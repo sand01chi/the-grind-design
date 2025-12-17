@@ -1492,6 +1492,7 @@ if ('serviceWorker' in navigator) {
             await gapi.client.init({
                 discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
             });
+            console.log('GAPI Loaded');
         });
     }
 
@@ -1501,6 +1502,7 @@ if ('serviceWorker' in navigator) {
             scope: SCOPES,
             callback: '', 
         });
+        console.log('GSI Loaded');
     }
 
     async function syncToCloud() {
@@ -1533,16 +1535,20 @@ if ('serviceWorker' in navigator) {
                 const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
                 if (response.result.files.length === 0) { alert('Tidak ada backup di Drive.'); return; }
                 if (!confirm('Timpah data lokal dengan data Cloud?')) return;
-                const fileContent = await gapi.client.drive.files.get({ fileId: response.result.files[0].id, alt: 'media' });
-                localStorage.setItem('gymLogData', JSON.stringify(fileContent.result));
+                const fileId = response.result.files[0].id;
+                const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+                
+                // Simpan ke LocalStorage
+                localStorage.setItem('gymLogData', (typeof fileContent.result === 'string') ? fileContent.result : JSON.stringify(fileContent.result));
+                
                 alert('✅ Restore Berhasil! Memuat ulang...');
                 location.reload();
-            } catch (err) { alert('❌ Gagal Restore.'); }
+            } catch (err) { console.error(err); alert('❌ Gagal Restore.'); }
         };
         tokenClient.requestAccessToken({ prompt: 'consent' });
     }
 
-    // Inisialisasi Google API
+    // Inisialisasi Google API saat window load
     window.addEventListener('load', () => {
         gapiLoaded();
         gsiLoaded();
