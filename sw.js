@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-grind-design-v21-integrity';
+const CACHE_NAME = 'the-grind-design-v21-final';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const ASSETS_TO_CACHE = [
   './app-logo.png'
 ];
 
-// Library eksternal yang sering bermasalah dengan CORS fetch
 const EXTERNAL_LIBS = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -18,19 +17,22 @@ const EXTERNAL_LIBS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Caching System Assets...');
-      // Cache file internal secara normal
-      cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('V21 Final: Caching Assets...');
+      // 1. Cache file internal (Pasti Berhasil)
+      await cache.addAll(ASSETS_TO_CACHE);
       
-      // Cache library eksternal dengan mode no-cors
-      return Promise.all(
-        EXTERNAL_LIBS.map(url => {
-          return fetch(url, { mode: 'no-cors' }).then(response => {
-            return cache.put(url, response);
-          });
-        })
-      );
+      // 2. Cache file eksternal (Gunakan Request khusus no-cors)
+      const libraryPromises = EXTERNAL_LIBS.map(async (url) => {
+        try {
+          const request = new Request(url, { mode: 'no-cors' });
+          const response = await fetch(request);
+          return await cache.put(url, response);
+        } catch (err) {
+          console.warn('Failed to cache library:', url);
+        }
+      });
+      return Promise.all(libraryPromises);
     })
   );
   self.skipWaiting();
@@ -50,7 +52,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      // Jika ada di cache, pakai cache. Jika tidak, ambil dari network.
+      return response || fetch(event.request).catch(() => {
+          // Jika offline dan file tidak ada di cache (misal gambar baru)
+          console.log('Offline & Not in cache');
+      });
     })
   );
 });
