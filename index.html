@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="icon" type="image/png" href="app-logo.png">
-<link rel="apple-touch-icon" href="app-logo.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/png" href="app-logo.png">
+    <link rel="apple-touch-icon" href="app-logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-    <title>THE GRIND DESIGN V20.7 (Stability Patch)</title>
+    <title>THE GRIND DESIGN V21.0 (Full Integrity)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -59,7 +59,7 @@
     <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center z-20 absolute top-0 w-full">
         <div class="app-header">
             <img src="app-logo.png" onerror="this.style.display='none'" class="app-logo" alt="Logo">
-            <div><h1 class="font-bold text-white text-sm tracking-wide">THE GRIND DESIGN</h1><p class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">V20.7 Stable</p></div>
+            <div><h1 class="font-bold text-white text-sm tracking-wide">THE GRIND DESIGN</h1><p class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">V21.0 Integrity</p></div>
         </div>
         <div class="flex gap-2">
             <button onclick="APP.ui.openModal('library')" class="text-xs text-indigo-400 border border-indigo-900 bg-indigo-900/20 px-3 py-1.5 rounded hover:bg-indigo-900/50 transition"><i class="fa-solid fa-book-bookmark mr-1"></i> Library</button>
@@ -69,20 +69,53 @@
 
     <main id="app-container" class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-24 px-4">
         <div id="dashboard-view" class="fade-in space-y-6">
-            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-chart-line text-9xl"></i></div>
-                <div class="flex justify-between items-start mb-1">
-                    <h2 class="text-2xl font-bold text-white">Halo, <span id="display-name" class="text-emerald-400">Dok</span>!</h2>
-                    <button onclick="APP.ui.openModal('profile')" class="text-slate-500 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+            
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl p-6 border border-white/5 relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+                    <svg width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h3L9 3l6 18 3-9h3" />
+                    </svg>
                 </div>
-                <p class="text-slate-400 text-sm mb-4">Kelola Intensitas, Raih Puncak Volume.</p>
-                <div class="flex flex-wrap gap-2 text-xs">
-                    <button onclick="APP.ui.openModal('weight')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition"><i class="fa-solid fa-weight-scale text-emerald-400"></i><span id="dashboard-bw">BW: --</span></button>
-                    <button onclick="APP.ui.openModal('stats')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition hover:border-emerald-500"><i class="fa-solid fa-chart-simple text-blue-400"></i> Stats</button>
-                    <button onclick="APP.ui.openModal('profile')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition"><i class="fa-solid fa-fire text-orange-400"></i><span id="dashboard-tdee">TDEE</span></button>
+
+                <div class="relative z-10">
+                    <h1 class="text-3xl font-bold text-white mb-1">Halo, <span id="display-name" class="text-emerald-400">Dok</span>!</h1>
+                    <p class="text-slate-400 text-sm mb-6">Kelola Intensitas, Raih Puncak Volume.</p>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="APP.ui.openModal('weight')" class="bg-slate-700/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5 cursor-pointer active:scale-95 transition">
+                            <span class="text-xl">⚖️</span>
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-wider">Weight</p>
+                                <p class="text-white font-bold" id="dashboard-bw">-- kg</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="APP.ui.openModal('stats')" class="bg-indigo-600/20 hover:bg-indigo-600/40 transition-all rounded-2xl p-3 flex items-center gap-3 border border-indigo-500/30 active:scale-95">
+                            <span class="text-xl">📊</span>
+                            <div class="text-left">
+                                <p class="text-[10px] text-indigo-300 uppercase tracking-wider">Analyze</p>
+                                <p class="text-indigo-100 font-bold">Stats</p>
+                            </div>
+                        </button>
+
+                        <div class="bg-slate-700/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5">
+                            <span class="text-xl">🔥</span>
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-wider">TDEE</p>
+                                <p class="text-white font-bold" id="dashboard-tdee">-- <span class="text-[10px] font-normal">kkal</span></p>
+                            </div>
+                        </div>
+
+                        <button onclick="APP.ui.openModal('profile')" class="bg-emerald-600/20 hover:bg-emerald-600/40 transition-all rounded-2xl p-3 flex items-center gap-3 border border-emerald-500/30 active:scale-95">
+                            <span class="text-xl">👤</span>
+                            <div class="text-left">
+                                <p class="text-[10px] text-emerald-300 uppercase tracking-wider">Manage</p>
+                                <p class="text-emerald-100 font-bold">Profile</p>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
-
             <div onclick="APP.ui.openModal('spontaneous')" class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group">
                 <div class="absolute right-0 bottom-0 text-indigo-500/10 text-6xl -mr-4 -mb-4"><i class="fa-solid fa-bolt"></i></div>
                 <div class="flex items-center gap-3">
@@ -171,13 +204,43 @@
     </div>
 
     <div id="error-modal" class="fixed inset-0 bg-red-900/90 z-[999] hidden flex items-center justify-center p-4 backdrop-blur-md"><div class="bg-slate-900 w-full max-w-md rounded-2xl border-2 border-red-500 p-5 shadow-2xl"><div class="flex items-center gap-3 mb-4 text-red-500 border-b border-red-500/30 pb-3"><i class="fa-solid fa-bug text-2xl animate-pulse"></i><h3 class="font-bold text-lg">System Crash Diagnosis</h3></div><p class="text-xs text-slate-300 mb-2">Terjadi kesalahan sistem. Silakan salin log di bawah dan kirim ke Gemini untuk perbaikan instan.</p><textarea id="error-log-text" class="w-full bg-slate-950 text-red-300 font-mono text-[10px] p-3 rounded-lg border border-red-900 h-32 focus:border-red-500 mb-3" readonly></textarea><div class="grid grid-cols-2 gap-2"><button onclick="APP.debug.copyErrorLog()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin Log</button><button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-rotate-right"></i> Refresh App</button></div></div></div>
-    <div id="rpe-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2"><h3 class="font-bold text-emerald-400"><i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR</h3><button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-700 text-emerald-400 text-[10px] uppercase"><th class="p-2 border border-slate-600 text-center w-1/6">RPE</th><th class="p-2 border border-slate-600 text-center w-1/6">Sisa (RIR)</th><th class="p-2 border border-slate-600 text-left">Indikator Fisik/Rasa</th></tr></thead><tbody class="text-slate-300 text-[11px]"><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-red-500 text-sm">10</td><td class="p-2 border border-slate-600 text-center font-bold">0</td><td class="p-2 border border-slate-600">Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-red-400">9.5</td><td class="p-2 border border-slate-600 text-center">0 - 1</td><td class="p-2 border border-slate-600">Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-orange-400">9</td><td class="p-2 border border-slate-600 text-center font-bold">1</td><td class="p-2 border border-slate-600">Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-emerald-400">8</td><td class="p-2 border border-slate-600 text-center font-bold">2</td><td class="p-2 border border-slate-600">Beban kerja ideal. Berat, kecepatan b
-ar terkontrol baik.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-blue-400">7</td><td class="p-2 border border-slate-600 text-center">3+</td><td class="p-2 border border-slate-600">Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.</td></tr></tbody></table></div></div></div>
-    <div id="library-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-book-bookmark text-indigo-400 mr-2"></i>Resep Latihan & Bridging AI</h3><button onclick="APP.ui.closeModal('library')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button></div><div class="space-y-4 overflow-y-auto no-scrollbar"><div class="bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30"><p class="text-xs text-indigo-300 mb-2 font-bold uppercase">Program Aktif Saat Ini</p><div class="grid grid-cols-2 gap-2 mb-2"><button onclick="APP.data.saveToLibrary()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-floppy-disk"></i> Simpan Resep Latihan</button><button onclick="APP.data.exportForConsultation()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-emerald-900/50"><i class="fa-solid fa-user-doctor"></i> Konsul Latihan</button></div><button onclick="APP.data.copyProgramToClipboard()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin JSON Resep Latihan </button></div><div><p class="text-xs text-slate-400 mb-2 font-bold uppercase border-b border-slate-700 pb-1">Daftar Resep Tersimpan</p><div id="library-list" class="space-y-2"><p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p></div></div><div class="bg-slate-900/50 p-4 rounded-xl border border-slate-
-700"><p class="text-xs text-slate-400 mb-2 font-bold uppercase">Terapkan Resep Baru</p><textarea id="ai-input" class="w-full bg-slate-950 text-emerald-400 font-mono text-[10px] p-3 rounded-lg border border-slate-700 h-20 focus:border-emerald-500 mb-3" placeholder='Paste JSON di sini...'></textarea><button onclick="APP.data.applyAIProgram()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i> Terapkan Program</button></div></div></div></div>
+    <div id="rpe-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2"><h3 class="font-bold text-emerald-400"><i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR</h3><button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-700 text-emerald-400 text-[10px] uppercase"><th class="p-2 border border-slate-600 text-center w-1/6">RPE</th><th class="p-2 border border-slate-600 text-center w-1/6">Sisa (RIR)</th><th class="p-2 border border-slate-600 text-left">Indikator Fisik/Rasa</th></tr></thead><tbody class="text-slate-300 text-[11px]"><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-red-500 text-sm">10</td><td class="p-2 border border-slate-600 text-center font-bold">0</td><td class="p-2 border border-slate-600">Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-red-400">9.5</td><td class="p-2 border border-slate-600 text-center">0 - 1</td><td class="p-2 border border-slate-600">Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-orange-400">9</td><td class="p-2 border border-slate-600 text-center font-bold">1</td><td class="p-2 border border-slate-600">Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-emerald-400">8</td><td class="p-2 border border-slate-600 text-center font-bold">2</td><td class="p-2 border border-slate-600">Beban kerja ideal. Berat, kecepatan bar terkontrol baik.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-blue-400">7</td><td class="p-2 border border-slate-600 text-center">3+</td><td class="p-2 border border-slate-600">Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.</td></tr></tbody></table></div></div></div>
+    
+    <div id="library-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-book-bookmark text-indigo-400 mr-2"></i>Library & AI Bridge</h3>
+                <button onclick="APP.ui.closeModal('library')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button>
+            </div>
+            <div class="space-y-4 overflow-y-auto no-scrollbar">
+                
+                <button onclick="APP.data.prepareGeminiAudit()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95 mb-2">
+                    <i class="fa-solid fa-robot"></i> SIAPKAN AUDIT GEMINI
+                </button>
+                
+                <div class="bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30">
+                    <p class="text-xs text-indigo-300 mb-2 font-bold uppercase">Program Management</p>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button onclick="APP.data.saveToLibrary()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-floppy-disk"></i> Simpan Resep</button>
+                        <button onclick="APP.data.exportForConsultation()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-emerald-900/50"><i class="fa-solid fa-file-export"></i> Export Log (Raw)</button>
+                    </div>
+                    <button onclick="APP.data.copyProgramToClipboard()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin JSON Resep Latihan </button>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 mb-2 font-bold uppercase border-b border-slate-700 pb-1">Daftar Resep Tersimpan</p>
+                    <div id="library-list" class="space-y-2"><p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p></div>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2 font-bold uppercase">Terapkan Resep Baru (AI Output)</p>
+                    <textarea id="ai-input" class="w-full bg-slate-950 text-emerald-400 font-mono text-[10px] p-3 rounded-lg border border-slate-700 h-20 focus:border-emerald-500 mb-3" placeholder='Paste JSON baru dari Gemini di sini (Satu Sesi atau Full)...'></textarea>
+                    <button onclick="APP.data.applyAIProgram()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i> Terapkan Program</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="calc-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white"><i class="fa-solid fa-calculator text-yellow-400 mr-2"></i>Warm-Up & Plates</h3><button onclick="APP.ui.closeModal('calc')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4 items-center justify-center"><span class="text-slate-400 text-xs">Target:</span><span id="calc-target" class="text-2xl font-bold text-white">0</span><span class="text-slate-400 text-xs">kg</span></div><div class="flex justify-center mb-4"><span id="calc-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400">Standard</span></div><div id="calc-steps" class="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar"></div><p class="text-[10px] text-slate-500 text-center mt-3 italic">Rincian pelat per sisi (Asumsi bar 20kg).</p></div></div>
-    <div id="stats-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col max-h-[90vh] fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3"><h3 class="font-bold text-white">Clinical Analytics</h3><button onclick="APP.ui.closeModal('stats')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="mb-4"><select id="stats-select" onchange="APP.stats.updateChart()" class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"></select></div><div class="flex gap-2 mb-3"><button id="tab-chart" onclick="APP.stats.switchTab('chart')" class="tab-btn active flex-1">Grafik Tren</button><button id="tab-table" onclick="APP.stats.switchTab('table')" class="tab-btn inactive flex-1">Tabel Klinis</button></div><div id="stats-chart-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"><canvas id="progressChart"></canvas><div id="no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">No Data.</div></div><div id="stats-table-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar"><table class="hist-table"><thead><tr><th>TGL</th><th>BEBAN</th><th>REPS</th><th>RPE</th><th>VOL</th></tr></thead><tbody id="hist-table-body"></tbody></table></div><div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden"><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">PR</div><div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Vol Avg</div><div class="text-lg font-bold text-blue-400" id="stat-vol">--</div></div><div class="bg-sl
-ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Count</div><div class="text-lg font-bold text-white" id="stat-count">--</div></div></div></div></div>
+    <div id="stats-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col max-h-[90vh] fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3"><h3 class="font-bold text-white">Clinical Analytics</h3><button onclick="APP.ui.closeModal('stats')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="mb-4"><select id="stats-select" onchange="APP.stats.updateChart()" class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"></select></div><div class="flex gap-2 mb-3"><button id="tab-chart" onclick="APP.stats.switchTab('chart')" class="tab-btn active flex-1">Grafik Tren</button><button id="tab-table" onclick="APP.stats.switchTab('table')" class="tab-btn inactive flex-1">Tabel Klinis</button></div><div id="stats-chart-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"><canvas id="progressChart"></canvas><div id="no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">No Data.</div></div><div id="stats-table-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar"><table class="hist-table"><thead><tr><th>TGL</th><th>BEBAN</th><th>REPS</th><th>RPE</th><th>VOL</th></tr></thead><tbody id="hist-table-body"></tbody></table></div><div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden"><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">PR</div><div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Vol Avg</div><div class="text-lg font-bold text-blue-400" id="stat-vol">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Count</div><div class="text-lg font-bold text-white" id="stat-count">--</div></div></div></div></div>
+    
     <div id="profile-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 space-y-4 fade-in overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between"><h3 class="font-bold text-white">Profil</h3><button onclick="APP.ui.closeModal('profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
@@ -205,8 +268,8 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
     <div id="weight-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between mb-4"><h3 class="font-bold text-white">Weight</h3><button onclick="APP.ui.closeModal('weight')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div><div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div></div></div>
     <div id="bio-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-6 max-h-[80vh] flex flex-col fade-in"><h3 class="font-bold text-white text-lg mb-4 text-emerald-400" id="bio-title"></h3><div class="overflow-y-auto pr-2 mb-4 no-scrollbar"><p id="bio-text" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed"></p></div><button onclick="APP.ui.closeModal('bio')" class="w-full bg-slate-700 text-white py-3 rounded-xl font-bold">Tutup</button></div></div>
     <div id="history-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 max-h-[80vh] flex flex-col fade-in"><div class="flex justify-between border-b border-slate-700 pb-2 mb-2"><h3 class="font-bold text-white" id="hist-title">History</h3><button onclick="APP.ui.closeModal('history')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div id="hist-content" class="overflow-y-auto space-y-2 no-scrollbar"></div></div></div>
-    <div id="calendar-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-calendar-days text-emerald-400 mr-2"></i>Jurnal</h3><button onclick="APP.ui.closeModal('calendar')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center mb-4"><button onclick="APP.ui.changeMonth(-1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button><h4 id="cal-month-year" class="text-white font-bold text-sm"></h4><button onclick="APP.ui.changeMonth(1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] text-slate-500 font-bold uppercase"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div><div id="cal-details" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 min-h-[140px] flex flex-col justify-center"><div class="text-center text-slate-500 opacity-70"><i class="fa-solid fa-hand-pointer mb-2 text-xl"></i><p class="text-xs italic">Klik tanggal hijau untuk melihat detail.</p></div></div></div></div>
-    <div id="timer-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col items-center justify-center backdrop-blur-sm"><div id="timer-display" class="text-7xl font-mono font-bold text-emerald-500 mb-8">00:00</div><div class="flex gap-4"><button onclick="APP.timer.add(10)" class="bg-slate-800 text-white px-4 py-2 rounded active:scale-95 transition">+10s</button><button onclick="APP.timer.stop()" class="bg-red-600 text-white px-6 py-2 rounded font-bold active:scale-95 transition">STOP</button><button onclick="APP.timer.add(30)" class="bg-slate-800 text-white px-4 py-2 rounded active:scale-95 transition">+30s</button></div></div>
+    
+    <div id="calendar-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-calendar-days text-emerald-400 mr-2"></i>Jurnal & Performa</h3><button onclick="APP.ui.closeModal('calendar')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center mb-4"><button onclick="APP.ui.changeMonth(-1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button><h4 id="cal-month-year" class="text-white font-bold text-sm"></h4><button onclick="APP.ui.changeMonth(1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] text-slate-500 font-bold uppercase"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div><div id="cal-details" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 min-h-[140px] flex flex-col justify-center overflow-y-auto no-scrollbar"><div class="text-center text-slate-500 opacity-70"><i class="fa-solid fa-hand-pointer mb-2 text-xl"></i><p class="text-xs italic">Klik tanggal hijau untuk melihat detail.</p></div></div></div></div>
 
     <script>
         // ==========================================
@@ -360,7 +423,7 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                 finishSession: () => {
                     try {
                         const now = new Date();
-                        const durationMins = Math.round((now.getTime() - APP.timer.startTime) / 60000); 
+                        const durationMins = 45; // Default estimation
                         let totalVol = 0, totalSets = 0;
                         const sessId = APP.state.currentSessionId;
                         const d = APP.state.workoutData[sessId];
@@ -446,7 +509,22 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                             const timeStr = DT.formatRelative(last);
                             const isRec = k === recommended;
                             
-                            htmlBuffer += `<div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg"><div><div class="flex items-center mb-1"><span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${d.label}</span>${isRec?'<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>':''}</div><h3 class="font-bold text-white text-lg flex items-center gap-2">${d.title} <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3><div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div></div><i class="fa-solid fa-chevron-right text-slate-500"></i></div>`;
+                            // UPDATED V21.0: ADDED DELETE BUTTON
+                            htmlBuffer += `
+                            <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${d.label}</span>
+                                        ${isRec?'<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>':''}
+                                    </div>
+                                    <h3 class="font-bold text-white text-lg flex items-center gap-2">${d.title} <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3>
+                                    <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div>
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <button onclick="APP.data.deleteSession(event, '${k}')" class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition" title="Hapus Sesi"><i class="fa-solid fa-trash text-xs"></i></button>
+                                    <i class="fa-solid fa-chevron-right text-slate-500"></i>
+                                </div>
+                            </div>`;
                         });
                         list.innerHTML = htmlBuffer;
                     } catch(e) { APP.debug.showFatalError("Render Dashboard", e); }
@@ -456,7 +534,6 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                         APP.state.currentSessionId = id; 
                         APP.state.focusMode = false; 
                         APP.ui.updateFocusBtn(); 
-                        APP.timer.startTime = new Date().getTime();
                         
                         const isSpon = id === 'spontaneous';
                         const badge = document.getElementById("spontaneous-badge");
@@ -518,7 +595,7 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                                 <div class="p-3 border-b border-slate-700 bg-slate-800/50">
                                     <div class="flex justify-between items-center mb-1">
                                         <span class="text-emerald-500 font-bold text-sm">#${idx+1}</span>
-                                        <button onclick="APP.timer.start(${ex.rest})" class="bg-slate-700 text-emerald-400 px-2 py-1 rounded text-xs font-bold border border-slate-600 active:scale-95 transition whitespace-nowrap"><i class="fa-regular fa-clock"></i> ${ex.rest}s</button>
+                                        <div class="bg-slate-700/50 px-2 py-0.5 rounded text-[10px] text-slate-400 font-medium border border-slate-600"><i class="fa-solid fa-stopwatch mr-1"></i> Rest: ${ex.rest}s</div>
                                     </div>
                                     <div class="flex items-center gap-2 mb-2">
                                         <select onchange="APP.data.changeVariant('${id}',${idx},this.value)" class="bg-slate-900 border border-slate-600 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
@@ -662,7 +739,7 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                 }
             },
 
-            // DATA MODULE (WITH DELETE & ROTATION FIX)
+            // DATA MODULE (WITH AI BRIDGE & DELETE FIX)
             data: {
                 saveSet: (id, t, v) => { LS.set(`${id}_${t}`, v); if(t==='rpe') APP.nav.loadWorkout(APP.state.currentSessionId); },
                 toggleDone: (id, el, idx) => {
@@ -711,6 +788,18 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     } 
                 },
                 editSessionTitle: (e, k) => { e.stopPropagation(); const n=prompt("Rename:",APP.state.workoutData[k].title); if(n){ APP.state.workoutData[k].title=n; APP.core.saveProgram(); APP.nav.renderDashboard(); } },
+                
+                // UPDATED V21.0: DELETE SESSION FUNCTION
+                deleteSession: (e, k) => {
+                    e.stopPropagation();
+                    if(confirm(`Hapus Sesi "${APP.state.workoutData[k].title}"?\n\nPERINGATAN: Sesi ini akan hilang permanen dari program.`)){
+                        delete APP.state.workoutData[k];
+                        APP.core.saveProgram();
+                        APP.nav.renderDashboard();
+                        alert("Sesi berhasil dihapus.");
+                    }
+                },
+
                 editVideo: (k) => { const n=prompt("URL:",LS.get(k)||""); if(n!==null){ n.trim()==="" ? LS.remove(k) : LS.set(k,n.trim()); APP.nav.loadWorkout(APP.state.currentSessionId); } },
                 editWarmup: (t) => { const n=prompt("Warmup:",APP.state.workoutData[APP.state.currentSessionId].dynamic||""); if(n!==null){ APP.state.workoutData[APP.state.currentSessionId].dynamic=n; APP.core.saveProgram(); APP.nav.loadWorkout(APP.state.currentSessionId); } },
                 
@@ -737,9 +826,9 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     const tdee = LS.get("tdee");
                     
                     document.getElementById("display-name").innerText = p.name;
-                    document.getElementById("dashboard-bw").innerText = `BW: ${w.length?w[0].v:"--"}kg`;
+                    document.getElementById("dashboard-bw").innerText = `${w.length?w[0].v:"--"} kg`;
                     if(tdee) {
-                        document.getElementById("dashboard-tdee").innerText = `${tdee} kkal`;
+                        document.getElementById("dashboard-tdee").innerHTML = `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
                         document.getElementById("tdee-box").classList.remove("hidden");
                         document.getElementById("tdee-val").innerText = tdee;
                         document.getElementById("bulk-val").innerText = parseInt(tdee)+300;
@@ -763,13 +852,13 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     APP.data.saveProfile();
                 },
 
-                // DELETE LOGS & ROTATION FIX (Stable)
+                // DELETE LOGS & ROTATION FIX
                 deleteLogs: (mode) => {
                     let logs = LS.getJSON("gym_hist", []);
                     if(!logs.length) return alert("Log sudah kosong.");
                     
                     const resetSessionTimestamp = (dateStr) => {
-                         Object.keys(APP.state.workoutData).forEach(sid => {
+                          Object.keys(APP.state.workoutData).forEach(sid => {
                              const lastTs = parseInt(LS.get(`last_${sid}`) || 0);
                              if(lastTs > 0) {
                                  const lastDate = DT.formatDate(new Date(lastTs));
@@ -777,7 +866,7 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                                      LS.remove(`last_${sid}`);
                                  }
                              }
-                         });
+                          });
                     };
 
                     if(mode === 'today') {
@@ -876,21 +965,68 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     LS.setJSON("cscs_library", lib);
                     APP.ui.renderLibrary();
                 },
+                
+                // SMART MERGE UPDATE V20.9
                 applyAIProgram: () => {
                     try {
-                        const n = JSON.parse(document.getElementById("ai-input").value);
-                        if(n.s1 && confirm("Terapkan resep baru?")){
-                            APP.state.workoutData = n;
+                        const inputStr = document.getElementById("ai-input").value;
+                        const newData = JSON.parse(inputStr);
+                        
+                        // Validation: Check keys
+                        const keys = Object.keys(newData);
+                        const validKeys = ['s1', 's2', 's3', 's4', 'spontaneous'];
+                        const isValid = keys.some(k => validKeys.includes(k));
+
+                        if(isValid && confirm("Terapkan pembaruan resep? (Sesi lain aman)")){
+                            // SMART MERGE LOGIC
+                            APP.state.workoutData = {
+                                ...APP.state.workoutData,
+                                ...newData
+                            };
                             APP.core.saveProgram();
+                            alert("Resep berhasil dikalibrasi & digabungkan!");
                             location.reload();
+                        } else {
+                            alert("Format JSON tidak dikenali (Harus mengandung key s1/s2/s3/s4).");
                         }
-                    } catch { alert("JSON Invalid"); }
+                    } catch (e) { alert("JSON Invalid: " + e.message); }
                 },
+
                 copyProgramToClipboard: () => {
                     const txt = JSON.stringify(APP.state.workoutData, null, 2);
                     if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => alert("Copied!")).catch(() => APP.ui.showManualCopy(txt));
                     else APP.ui.showManualCopy(txt);
                 },
+
+                // BRIDGE AUDIT AI: UPDATED PROMPT FOR PARTIAL UPDATE
+                prepareGeminiAudit: () => {
+                    const h = LS.getJSON("gym_hist", []);
+                    if (!h.length) return alert("Belum ada log latihan untuk diaudit.");
+
+                    const lastLog = h[h.length - 1]; // Ambil log terakhir
+                    const p = LS.getJSON("profile", {});
+                    
+                    // Master Prompt Template
+                    let promptText = `[MASTER PROMPT: FULL CYCLE AUDIT & PROGRAM CALIBRATION]\n\n`;
+                    promptText += `Instruksi:\n"Bertindaklah sebagai Senior CSCS Coach, Clinical Performance Analyst, & System Architect. Saya akan memberikan Resep Program Saat Ini (JSON) dan Log Latihan Terakhir (JSON/Teks). Tugas Anda adalah mengaudit performa saya secara klinis, lalu memperbarui kode program latihan untuk sesi berikutnya berdasarkan hasil audit tersebut.\n\n`;
+                    promptText += `BAGIAN 1: MISI ANALISIS & AUDIT\nLakukan analisis mendalam sebelum menulis kode, dengan parameter:\n1. Analisis Progres (Progressive Overload): Bandingkan volume/beban antar sesi.\n2. Audit Klinis (Fatigue Management): Deteksi Systemic Fatigue atau Junk Volume.\n3. Protokol Spontan: Jika log bertanda 'Spontan', abaikan tuntutan overload.\n\n`;
+                    promptText += `BAGIAN 2: ATURAN UPDATE RESEP JSON (EKSEKUSI)\n1. Struktur Imutabel: DILARANG MENGHAPUS gerakan utama.\n2. Kalibrasi Parameter: Perbarui t_k (Target Beban), t_r (Target Reps), rest (Istirahat), dan note.\n3. Metadata Wajib: Tag Alat, Link Video, Bio Note, Note.\n\n`;
+                    promptText += `NOTE: Aplikasi mendukung Partial JSON Update. Anda tidak perlu menulis ulang seluruh sesi jika hanya mengubah satu Sesi. Cukup outputkan JSON objek sesi tersebut (contoh: { 's2': { ... } }).\n\n`;
+                    promptText += `DATA SAYA:\n\n[RESEP SAAT INI (JSON)]\n${JSON.stringify(APP.state.workoutData, null, 2)}\n\n`;
+                    promptText += `[LOG TERAKHIR]\nTanggal: ${lastLog.date}\nSesi: ${lastLog.title}\nTotal Vol: ${lastLog.vol}kg\nDurasi: ${lastLog.dur} menit\n\nRincian Gerakan:\n`;
+
+                    // Ambil detail log sesi terakhir
+                    const sessionLogs = h.filter(x => x.date === lastLog.date && x.src === lastLog.src);
+                    sessionLogs.forEach(l => {
+                        const setDetails = l.d.map(s => `${s.k}x${s.r}${s.rpe ? '@'+s.rpe : ''}`).join(", ");
+                        promptText += `- ${l.ex}: ${setDetails}\n`;
+                    });
+
+                    // Tampilkan di text area dan copy
+                    APP.ui.showManualCopy(promptText);
+                    alert("Data Audit Siap! Salin teks di bawah dan paste ke Gemini.");
+                },
+
                 exportForConsultation: () => {
                     const h = LS.getJSON("gym_hist", []);
                     const p = LS.getJSON("profile", {});
@@ -998,7 +1134,29 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     const l = h.filter(x=>x.ex===n).sort((a,b)=>b.ts-a.ts);
                     let html = l.length ? "" : `<p class='text-slate-500 text-center text-xs'>No Data.</p>`;
                     l.forEach(x => {
-                        html += `<div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-2"><div class="flex justify-between text-xs mb-1"><span class="text-slate-400">${x.date}</span><span class="text-emerald-400">Vol: ${x.vol}</span></div><div class="text-[10px] text-slate-300 flex flex-wrap gap-1 font-mono">${x.d.map(s=>`<span class="bg-slate-700 px-1 rounded">${s.k}x${s.r} ${s.rpe?`(RPE ${s.rpe})`:''}</span>`).join(" ")}</div></div>`;
+                        
+                        // NEW FEATURE: BEST SET DETECTION
+                        let bestSet = {k:0, r:0};
+                        let maxLoad = 0;
+                        x.d.forEach(s => {
+                            if (s.k > maxLoad) { maxLoad = s.k; bestSet = s; }
+                            else if (s.k === maxLoad && s.r > bestSet.r) { bestSet = s; }
+                        });
+                        
+                        html += `
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 mb-2">
+                            <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
+                                <span class="text-xs font-bold text-slate-300">${x.date}</span>
+                                <span class="text-[10px] bg-emerald-900/30 text-emerald-400 px-2 rounded-full border border-emerald-900/50">Top: ${bestSet.k}kg x ${bestSet.r}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${x.d.map(s => {
+                                    const isBest = (s.k === bestSet.k && s.r === bestSet.r);
+                                    let badgeColor = isBest ? "bg-emerald-600 text-white border-emerald-500" : "bg-slate-800 text-slate-400 border-slate-700";
+                                    return `<span class="text-[10px] px-2 py-1 rounded border ${badgeColor} font-mono">${s.k}x${s.r} ${s.rpe?`<span class="text-yellow-400 font-bold">@${s.rpe}</span>`:''}</span>`;
+                                }).join("")}
+                            </div>
+                        </div>`;
                     });
                     b.innerHTML=html; APP.ui.openModal('history');
                 },
@@ -1109,6 +1267,8 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     g.innerHTML = html;
                 },
                 changeMonth: (d) => { APP.state.currentCalDate.setMonth(APP.state.currentCalDate.getMonth()+d); APP.ui.renderCalendar(); },
+                
+                // UPDATED V21.0: JOURNAL INTELLIGENCE VIEW
                 viewDay: (dStr) => {
                     const box = document.getElementById("cal-details");
                     const m = APP.state.currentCalDate.getMonth();
@@ -1117,13 +1277,78 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     
                     if(!logs.length) return box.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50"><i class="fa-solid fa-bed mb-1 text-xl"></i><span class="text-xs italic">Rest Day</span></div>`;
                     
-                    let html = `<div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-1"><span class="text-xs font-bold text-white">${dStr}</span><span class="text-[10px] text-emerald-400 bg-emerald-900/30 px-2 rounded">${logs.length} Gerakan</span></div><div class="space-y-1 max-h-[100px] overflow-y-auto no-scrollbar">`;
+                    // 1. Calculate Summary Metrics
+                    const sessionTitle = logs[0].title || (logs[0].src === 'spontaneous' ? 'Spontaneous' : logs[0].src);
+                    const duration = logs[0].dur || 0;
+                    const totalVol = logs.reduce((acc, curr) => acc + curr.vol, 0).toLocaleString();
+                    
+                    let maxRPE = 0;
                     logs.forEach(l => {
-                        html += `<div class="flex justify-between items-center bg-slate-800/80 p-1.5 rounded border border-slate-700"><span class="text-[10px] text-slate-200 truncate w-2/3">${l.ex}</span><span class="text-[10px] font-mono text-emerald-500 font-bold">${l.top}kg</span></div>`;
+                        l.d.forEach(s => {
+                            if(s.rpe && parseFloat(s.rpe) > maxRPE) maxRPE = parseFloat(s.rpe);
+                        });
+                    });
+                    
+                    let fatigueStatus = "Low";
+                    let fatigueColor = "text-emerald-400";
+                    if(maxRPE >= 9.5) { fatigueStatus = "High Fatigue"; fatigueColor = "text-red-400"; }
+                    else if(maxRPE >= 8) { fatigueStatus = "Optimal"; fatigueColor = "text-yellow-400"; }
+
+                    // 2. Build Header HTML
+                    let html = `
+                    <div class="mb-3 border-b border-slate-700 pb-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-bold text-white text-emerald-400">${sessionTitle}</span>
+                            <span class="text-[10px] text-slate-400 bg-slate-800 px-2 rounded"><i class="fa-solid fa-clock mr-1"></i> ${duration}m</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                             <div class="bg-slate-800 p-1.5 rounded text-center border border-slate-700">
+                                <div class="text-[9px] text-slate-500 uppercase">Total Vol</div>
+                                <div class="text-xs font-bold text-blue-300">${totalVol} <span class="text-[9px]">kg</span></div>
+                             </div>
+                             <div class="bg-slate-800 p-1.5 rounded text-center border border-slate-700">
+                                <div class="text-[9px] text-slate-500 uppercase">Max RPE</div>
+                                <div class="text-xs font-bold ${fatigueColor}">${maxRPE} <span class="text-[9px] font-normal opacity-70">(${fatigueStatus})</span></div>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="space-y-1 max-h-[120px] overflow-y-auto no-scrollbar">`;
+
+                    // 3. Build Exercise List with Progress Badges
+                    logs.forEach(l => {
+                        // PROGRESS LOGIC
+                        const prevLogs = hist.filter(h => h.ex === l.ex && h.ts < l.ts && (l.src === 'spontaneous' || h.src !== 'spontaneous')).sort((a,b)=>b.ts - a.ts);
+                        
+                        let badge = "";
+                        if(prevLogs.length > 0) {
+                            const prev = prevLogs[0];
+                            const allHistory = hist.filter(h => h.ex === l.ex && h.ts < l.ts);
+                            const globalMaxLoad = Math.max(...allHistory.map(h => h.top));
+                            
+                            if (l.top > globalMaxLoad) {
+                                badge = `<span class="text-[9px] bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded border border-yellow-700 ml-1 font-bold">PR 👑</span>`;
+                            } else {
+                                if (l.vol > prev.vol) badge = `<span class="text-[9px] bg-emerald-900/40 text-emerald-400 px-1 rounded ml-1">Vol ▲</span>`;
+                                else if (l.vol < prev.vol) badge = `<span class="text-[9px] bg-red-900/40 text-red-400 px-1 rounded ml-1">Vol ▼</span>`;
+                                else badge = `<span class="text-[9px] bg-slate-700 text-slate-400 px-1 rounded ml-1">Vol =</span>`;
+                            }
+                        } else {
+                            badge = `<span class="text-[9px] bg-blue-900/40 text-blue-300 px-1 rounded ml-1">New ✨</span>`;
+                        }
+
+                        html += `
+                        <div class="flex justify-between items-center bg-slate-800/80 p-1.5 rounded border border-slate-700">
+                            <div class="flex items-center min-w-0">
+                                <span class="text-[10px] text-slate-200 truncate font-medium">${l.ex}</span>
+                                ${badge}
+                            </div>
+                            <span class="text-[10px] font-mono text-emerald-500 font-bold whitespace-nowrap">${l.top}kg</span>
+                        </div>`;
                     });
                     html += `</div>`;
                     box.innerHTML = html;
                 },
+
                 showManualCopy: (txt) => {
                     APP.ui.openModal('library');
                     const b = document.getElementById('ai-input');
@@ -1207,34 +1432,18 @@ ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-sla
                     });
                 }
             },
-
+            
+            // TIMER MODULE (SIMPLIFIED TO STATIC)
             timer: {
-                interval: null,
-                timeLeft: 0,
                 startTime: 0,
-                start: (s) => {
-                    APP.timer.stop();
-                    APP.timer.timeLeft = s;
-                    document.getElementById("timer-modal").classList.remove("hidden");
-                    APP.timer.updateDisplay();
-                    APP.timer.interval = setInterval(() => {
-                        APP.timer.timeLeft--;
-                        APP.timer.updateDisplay();
-                        if(APP.timer.timeLeft <= 0) {
-                            if("vibrate" in navigator) navigator.vibrate([200,100,200]);
-                            APP.timer.stop();
-                        }
-                    }, 1000);
-                },
-                add: (s) => { APP.timer.timeLeft += s; APP.timer.updateDisplay(); },
-                stop: () => { clearInterval(APP.timer.interval); document.getElementById("timer-modal").classList.add("hidden"); },
-                updateDisplay: () => document.getElementById("timer-display").innerText = APP.timer.timeLeft
+                start: (s) => {}, // No-op
+                stop: () => {}, // No-op
             },
 
             debug: {
                 showFatalError: (ctx, err, extra="") => {
                     document.getElementById("error-modal").classList.remove("hidden");
-                    document.getElementById("error-log-text").value = `[LOG V20.7]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
+                    document.getElementById("error-log-text").value = `[LOG V20.9]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
                 },
                 copyErrorLog: () => {
                     const t = document.getElementById("error-log-text");
