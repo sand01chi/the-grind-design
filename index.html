@@ -54,6 +54,8 @@
         .app-header { display: flex; align-items: center; gap: 12px; }
         .app-logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-900">
 
@@ -114,7 +116,11 @@
                                 <p class="text-emerald-100 font-bold">Profile</p>
                             </div>
                         </button>
-                    </div>
+                        
+                        </div>
+                        <button onclick="syncToCloud()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i> Sync to Drive
+                        </button>
                 </div>
             </div>
             <div onclick="APP.ui.openModal('spontaneous')" class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group">
@@ -1465,6 +1471,89 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.log('SW Registration Failed', err));
     });
 }
+        // Konfigurasi Cloud Sync
+const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+let tokenClient;
+let gapiInited = false;
+let gsiInited = false;
+
+// Inisialisasi Google API
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    });
+    gapiInited = true;
+  });
+}
+
+function gsiLoaded() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: '', // didefinisikan saat pemanggilan
+  });
+  gsiInited = true;
+}
+
+// Fungsi utama: Upload data ke Google Drive
+async function syncToCloud() {
+  tokenClient.callback = async (resp) => {
+    if (resp.error !== undefined) throw (resp);
+
+    const data = localStorage.getItem('gymLogData'); // Pastikan key sesuai dengan aplikasi Anda
+    const fileName = 'the-grind-design-backup.json';
+    const metadata = {
+      name: fileName,
+      parents: ['appDataFolder']
+    };
+
+    const file = new Blob([data], { type: 'application/json' });
+    const formData = new FormData();
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    formData.append('file', file);
+
+    try {
+      // Cari file lama untuk diupdate atau buat baru
+      const existingFiles = await gapi.client.drive.files.list({
+        q: "name = 'the-grind-design-backup.json'",
+        spaces: 'appDataFolder'
+      });
+
+      if (existingFiles.result.files.length > 0) {
+        const fileId = existingFiles.result.files[0].id;
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
+          method: 'PATCH',
+          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+          body: formData
+        });
+      } else {
+        await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+          body: formData
+        });
+      }
+      alert('Cloud Sync Berhasil!');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal sinkronisasi ke cloud.');
+    }
+  };
+
+  if (gapi.client.getToken() === null) {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  } else {
+    tokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+
+// Panggil fungsi inisialisasi saat window load
+window.addEventListener('load', () => {
+  gapiLoaded();
+  gsiLoaded();
+});
     </script>
 </body>
 </html>
