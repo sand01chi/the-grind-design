@@ -253,12 +253,12 @@
         <i class="fa-solid fa-cloud mr-2"></i> Cloud Synchronization
     </h3>
     <div class="grid grid-cols-2 gap-2">
-       <button onclick="syncToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-    <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup
-</button>
-<button onclick="restoreFromCloud()" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-    <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore
-</button>
+        <button onclick="syncToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
+            <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup
+        </button>
+        <button onclick="restoreFromCloud()" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
+            <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore
+        </button>
     </div>
     <p class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight">Data disimpan aman di folder AppData Google Drive Anda.</p>
 </div>
@@ -1482,77 +1482,88 @@ if ('serviceWorker' in navigator) {
     });
 }
         // Konfigurasi Cloud Sync
-<script>
-    const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
-    let tokenClient;
+const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+let tokenClient;
+let gapiInited = false;
+let gsiInited = false;
 
-    function gapiLoaded() {
-        gapi.load('client', async () => {
-            await gapi.client.init({
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            });
-            console.log('GAPI Loaded');
-        });
-    }
-
-    function gsiLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: '', 
-        });
-        console.log('GSI Loaded');
-    }
-
-    async function syncToCloud() {
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
-            const data = localStorage.getItem('gymLogData') || "[]";
-            const metadata = { name: 'the-grind-design-backup.json', parents: ['appDataFolder'] };
-            const file = new Blob([data], { type: 'application/json' });
-            const formData = new FormData();
-            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            formData.append('file', file);
-            try {
-                const existingFiles = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
-                const fileId = existingFiles.result.files.length > 0 ? existingFiles.result.files[0].id : null;
-                await fetch(fileId ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: fileId ? 'PATCH' : 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-                    body: formData
-                });
-                alert('✅ Cloud Backup Berhasil!');
-            } catch (err) { alert('❌ Gagal Sync.'); }
-        };
-        tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
-    }
-
-    async function restoreFromCloud() {
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
-            try {
-                const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
-                if (response.result.files.length === 0) { alert('Tidak ada backup di Drive.'); return; }
-                if (!confirm('Timpah data lokal dengan data Cloud?')) return;
-                const fileId = response.result.files[0].id;
-                const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-                
-                // Simpan ke LocalStorage
-                localStorage.setItem('gymLogData', (typeof fileContent.result === 'string') ? fileContent.result : JSON.stringify(fileContent.result));
-                
-                alert('✅ Restore Berhasil! Memuat ulang...');
-                location.reload();
-            } catch (err) { console.error(err); alert('❌ Gagal Restore.'); }
-        };
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-    }
-
-    // Inisialisasi Google API saat window load
-    window.addEventListener('load', () => {
-        gapiLoaded();
-        gsiLoaded();
+// Inisialisasi Google API
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
     });
-</script>
+    gapiInited = true;
+  });
+}
+
+function gsiLoaded() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: '', // didefinisikan saat pemanggilan
+  });
+  gsiInited = true;
+}
+
+// Fungsi utama: Upload data ke Google Drive
+async function syncToCloud() {
+  tokenClient.callback = async (resp) => {
+    if (resp.error !== undefined) throw (resp);
+
+    const data = localStorage.getItem('gymLogData'); // Pastikan key sesuai dengan aplikasi Anda
+    const fileName = 'the-grind-design-backup.json';
+    const metadata = {
+      name: fileName,
+      parents: ['appDataFolder']
+    };
+
+    const file = new Blob([data], { type: 'application/json' });
+    const formData = new FormData();
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    formData.append('file', file);
+
+    try {
+      // Cari file lama untuk diupdate atau buat baru
+      const existingFiles = await gapi.client.drive.files.list({
+        q: "name = 'the-grind-design-backup.json'",
+        spaces: 'appDataFolder'
+      });
+
+      if (existingFiles.result.files.length > 0) {
+        const fileId = existingFiles.result.files[0].id;
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
+          method: 'PATCH',
+          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+          body: formData
+        });
+      } else {
+        await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+          body: formData
+        });
+      }
+      alert('Cloud Sync Berhasil!');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal sinkronisasi ke cloud.');
+    }
+  };
+
+  if (gapi.client.getToken() === null) {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  } else {
+    tokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+
+// Panggil fungsi inisialisasi saat window load
+window.addEventListener('load', () => {
+  gapiLoaded();
+  gsiLoaded();
+});
+    </script>
 </body>
 </html>
