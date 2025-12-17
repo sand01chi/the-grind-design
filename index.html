@@ -68,18 +68,6 @@
             <button onclick="APP.ui.openModal('library')" class="text-xs text-indigo-400 border border-indigo-900 bg-indigo-900/20 px-3 py-1.5 rounded hover:bg-indigo-900/50 transition"><i class="fa-solid fa-book-bookmark mr-1"></i> Library</button>
             <button onclick="APP.ui.openModal('calendar')" class="text-xs text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-3 py-1.5 rounded hover:bg-emerald-900/50 transition"><i class="fa-solid fa-calendar-days"></i></button>
         </div>
-        <div class="mt-4 p-4 border-t border-gray-700">
-    <h3 class="text-sm font-semibold text-gray-400 mb-2">Cloud Storage</h3>
-    <div class="flex flex-col gap-2">
-        <button onclick="syncToCloud()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
-            <i class="fas fa-cloud-upload-alt mr-2"></i> Sync to Drive
-        </button>
-        
-        <button onclick="restoreFromCloud()" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
-            <i class="fas fa-cloud-download-alt mr-2"></i> Restore from Drive
-        </button>
-    </div>
-</div>
     </header>
 
     <main id="app-container" class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-24 px-4">
@@ -278,6 +266,18 @@
                 </div>
             </div>
             <div class="pt-2 border-t border-slate-700"><div class="grid grid-cols-2 gap-3"><button onclick="APP.data.exportData()" class="bg-slate-700 text-emerald-400 text-xs py-2 rounded">Backup</button><label class="bg-slate-700 text-blue-400 text-xs py-2 rounded text-center cursor-pointer">Restore<input type="file" id="import-file" class="hidden" onchange="APP.data.importData(this)"></label></div></div>
+ <div class="mt-4 p-4 border-t border-gray-700">
+    <h3 class="text-sm font-semibold text-gray-400 mb-2">Cloud Storage</h3>
+    <div class="flex flex-col gap-2">
+        <button onclick="syncToCloud()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+            <i class="fas fa-cloud-upload-alt mr-2"></i> Sync to Drive
+        </button>
+        
+        <button onclick="restoreFromCloud()" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+            <i class="fas fa-cloud-download-alt mr-2"></i> Restore from Drive
+        </button>
+    </div>
+</div>           
         </div>
     </div>
     <div id="weight-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between mb-4"><h3 class="font-bold text-white">Weight</h3><button onclick="APP.ui.closeModal('weight')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div><div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div></div></div>
