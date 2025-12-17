@@ -248,20 +248,6 @@
         <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 space-y-4 fade-in overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between"><h3 class="font-bold text-white">Profil</h3><button onclick="APP.ui.closeModal('profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="space-y-3">
-                <div class="mb-6 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner">
-    <h3 class="text-[10px] font-bold text-indigo-400 mb-3 uppercase tracking-widest flex items-center">
-        <i class="fa-solid fa-cloud mr-2"></i> Cloud Synchronization
-    </h3>
-    <div class="grid grid-cols-2 gap-2">
-        <button onclick="syncToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-            <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup
-        </button>
-        <button onclick="restoreFromCloud()" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-            <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore
-        </button>
-    </div>
-    <p class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight">Data disimpan aman di folder AppData Google Drive Anda.</p>
-</div>
                 <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Nama</span><input type="text" id="prof-name" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Tinggi</span><input type="number" id="prof-height" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div></div>
                 <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Usia</span><input type="number" id="prof-age" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Gender</span><select id="prof-gender" class="w-full p-2 bg-slate-900 rounded text-white text-sm"><option value="male">Pria</option><option value="female">Wanita</option></select></div></div>
                 <div><span class="text-[10px] text-slate-400">Aktivitas</span><select id="prof-active" class="w-full p-2 bg-slate-900 rounded text-white text-sm"><option value="1.2">Sedentary</option><option value="1.375">Light</option><option value="1.55">Moderate</option><option value="1.725">Active</option></select></div>
