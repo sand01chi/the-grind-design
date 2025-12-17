@@ -1482,88 +1482,71 @@ if ('serviceWorker' in navigator) {
     });
 }
         // Konfigurasi Cloud Sync
-const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
-let tokenClient;
-let gapiInited = false;
-let gsiInited = false;
+<script>
+    const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+    let tokenClient;
 
-// Inisialisasi Google API
-function gapiLoaded() {
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-    });
-    gapiInited = true;
-  });
-}
-
-function gsiLoaded() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: '', // didefinisikan saat pemanggilan
-  });
-  gsiInited = true;
-}
-
-// Fungsi utama: Upload data ke Google Drive
-async function syncToCloud() {
-  tokenClient.callback = async (resp) => {
-    if (resp.error !== undefined) throw (resp);
-
-    const data = localStorage.getItem('gymLogData'); // Pastikan key sesuai dengan aplikasi Anda
-    const fileName = 'the-grind-design-backup.json';
-    const metadata = {
-      name: fileName,
-      parents: ['appDataFolder']
-    };
-
-    const file = new Blob([data], { type: 'application/json' });
-    const formData = new FormData();
-    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', file);
-
-    try {
-      // Cari file lama untuk diupdate atau buat baru
-      const existingFiles = await gapi.client.drive.files.list({
-        q: "name = 'the-grind-design-backup.json'",
-        spaces: 'appDataFolder'
-      });
-
-      if (existingFiles.result.files.length > 0) {
-        const fileId = existingFiles.result.files[0].id;
-        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
-          method: 'PATCH',
-          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-          body: formData
+    function gapiLoaded() {
+        gapi.load('client', async () => {
+            await gapi.client.init({
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            });
         });
-      } else {
-        await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-          method: 'POST',
-          headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-          body: formData
-        });
-      }
-      alert('Cloud Sync Berhasil!');
-    } catch (err) {
-      console.error(err);
-      alert('Gagal sinkronisasi ke cloud.');
     }
-  };
 
-  if (gapi.client.getToken() === null) {
-    tokenClient.requestAccessToken({ prompt: 'consent' });
-  } else {
-    tokenClient.requestAccessToken({ prompt: '' });
-  }
-}
+    function gsiLoaded() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: '', 
+        });
+    }
 
-// Panggil fungsi inisialisasi saat window load
-window.addEventListener('load', () => {
-  gapiLoaded();
-  gsiLoaded();
-});
-    </script>
+    async function syncToCloud() {
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) throw (resp);
+            const data = localStorage.getItem('gymLogData') || "[]";
+            const metadata = { name: 'the-grind-design-backup.json', parents: ['appDataFolder'] };
+            const file = new Blob([data], { type: 'application/json' });
+            const formData = new FormData();
+            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            formData.append('file', file);
+            try {
+                const existingFiles = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
+                const fileId = existingFiles.result.files.length > 0 ? existingFiles.result.files[0].id : null;
+                await fetch(fileId ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: fileId ? 'PATCH' : 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
+                    body: formData
+                });
+                alert('✅ Cloud Backup Berhasil!');
+            } catch (err) { alert('❌ Gagal Sync.'); }
+        };
+        tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
+    }
+
+    async function restoreFromCloud() {
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) throw (resp);
+            try {
+                const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
+                if (response.result.files.length === 0) { alert('Tidak ada backup di Drive.'); return; }
+                if (!confirm('Timpah data lokal dengan data Cloud?')) return;
+                const fileContent = await gapi.client.drive.files.get({ fileId: response.result.files[0].id, alt: 'media' });
+                localStorage.setItem('gymLogData', JSON.stringify(fileContent.result));
+                alert('✅ Restore Berhasil! Memuat ulang...');
+                location.reload();
+            } catch (err) { alert('❌ Gagal Restore.'); }
+        };
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    // Inisialisasi Google API
+    window.addEventListener('load', () => {
+        gapiLoaded();
+        gsiLoaded();
+    });
+</script>
 </body>
 </html>
