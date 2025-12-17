@@ -68,6 +68,18 @@
             <button onclick="APP.ui.openModal('library')" class="text-xs text-indigo-400 border border-indigo-900 bg-indigo-900/20 px-3 py-1.5 rounded hover:bg-indigo-900/50 transition"><i class="fa-solid fa-book-bookmark mr-1"></i> Library</button>
             <button onclick="APP.ui.openModal('calendar')" class="text-xs text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-3 py-1.5 rounded hover:bg-emerald-900/50 transition"><i class="fa-solid fa-calendar-days"></i></button>
         </div>
+        <div class="mt-4 p-4 border-t border-gray-700">
+    <h3 class="text-sm font-semibold text-gray-400 mb-2">Cloud Storage</h3>
+    <div class="flex flex-col gap-2">
+        <button onclick="syncToCloud()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+            <i class="fas fa-cloud-upload-alt mr-2"></i> Sync to Drive
+        </button>
+        
+        <button onclick="restoreFromCloud()" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+            <i class="fas fa-cloud-download-alt mr-2"></i> Restore from Drive
+        </button>
+    </div>
+</div>
     </header>
 
     <main id="app-container" class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-24 px-4">
@@ -116,11 +128,7 @@
                                 <p class="text-emerald-100 font-bold">Profile</p>
                             </div>
                         </button>
-                        
-                        </div>
-                        <button onclick="syncToCloud()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> Sync to Drive
-                        </button>
+                    </div>
                 </div>
             </div>
             <div onclick="APP.ui.openModal('spontaneous')" class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group">
