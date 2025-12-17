@@ -35,7 +35,7 @@ Setup: Masukkan data profil di menu Manage Profile.
 
 Log: Pilih sesi latihan pada dashboard (Sistem akan menyarankan sesi berdasarkan rotasi terakhir).
 
-Audit: Gunakan fitur Bridge Audit AI di menu Library untuk menyalin data latihan Dokter dan meminta evaluasi klinis dari Gemini/AI.
+Audit: Gunakan fitur Bridge Audit AI di menu Library untuk menyalin data latihan dan meminta evaluasi klinis dari Gemini/AI.
 
 Update: Tempelkan JSON output dari AI ke kolom Apply AI Program untuk memperbarui target beban sesi berikutnya.
 
@@ -45,7 +45,7 @@ Frontend: HTML5, Tailwind CSS, FontAwesome.
 
 Logic: Vanilla JavaScript (Module-based architecture).
 
-Storage: Browser LocalStorage (Data 100% aman di perangkat Dokter).
+Storage: Browser LocalStorage (Data 100% aman di perangkat pribadi).
 
 Visuals: Chart.js & Day.js.
 
