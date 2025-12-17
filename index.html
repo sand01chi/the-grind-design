@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/png" href="app-logo.png">
+<link rel="apple-touch-icon" href="app-logo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <title>THE GRIND DESIGN V20.7 (Stability Patch)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/id.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- CORE STYLES --- */
+        body { background-color: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981; background-color: #1e293b; }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2334d399%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.5rem auto; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse-border { animation: pulse-green 2s infinite; }
+        .focus-active .exercise-card { display: none; }
+        .focus-active .exercise-card.active-card { display: block; }
+        .plate-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-right: 2px; color: #1e293b; }
+        .plate-20 { background-color: #3b82f6; } .plate-15 { background-color: #eab308; } .plate-10 { background-color: #22c55e; }
+        .plate-5 { background-color: #fca5a5; } .plate-2_5 { background-color: #cbd5e1; } .plate-1_25 { background-color: #f1f5f9; }
+        
+        /* TOAST & TABLE STYLES */
+        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; width: 90%; max-width: 400px; display: flex; flex-col-reverse; gap: 8px; }
+        .toast { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border: 1px solid; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); pointer-events: auto; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast-success { border-color: #10b981; } .toast-warning { border-color: #f59e0b; }
+        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; flex-shrink: 0; }
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        
+        .hist-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .hist-table th { font-size: 10px; color: #94a3b8; font-weight: bold; text-align: left; padding: 6px; border-bottom: 1px solid #334155; }
+        .hist-table td { font-size: 11px; color: #e2e8f0; padding: 8px 6px; border-bottom: 1px solid #1e293b; }
+        .hist-table tr:last-child td { border-bottom: none; }
+        .tab-btn { padding: 6px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; transition: all 0.2s; }
+        .tab-btn.active { background-color: #10b981; color: #0f172a; }
+        .tab-btn.inactive { background-color: #1e293b; color: #94a3b8; }
+        .app-header { display: flex; align-items: center; gap: 12px; }
+        .app-logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-900">
+
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center z-20 absolute top-0 w-full">
+        <div class="app-header">
+            <img src="app-logo.png" onerror="this.style.display='none'" class="app-logo" alt="Logo">
+            <div><h1 class="font-bold text-white text-sm tracking-wide">THE GRIND DESIGN</h1><p class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">V20.7 Stable</p></div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="APP.ui.openModal('library')" class="text-xs text-indigo-400 border border-indigo-900 bg-indigo-900/20 px-3 py-1.5 rounded hover:bg-indigo-900/50 transition"><i class="fa-solid fa-book-bookmark mr-1"></i> Library</button>
+            <button onclick="APP.ui.openModal('calendar')" class="text-xs text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-3 py-1.5 rounded hover:bg-emerald-900/50 transition"><i class="fa-solid fa-calendar-days"></i></button>
+        </div>
+    </header>
+
+    <main id="app-container" class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-24 px-4">
+        <div id="dashboard-view" class="fade-in space-y-6">
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-chart-line text-9xl"></i></div>
+                <div class="flex justify-between items-start mb-1">
+                    <h2 class="text-2xl font-bold text-white">Halo, <span id="display-name" class="text-emerald-400">Dok</span>!</h2>
+                    <button onclick="APP.ui.openModal('profile')" class="text-slate-500 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+                </div>
+                <p class="text-slate-400 text-sm mb-4">Kelola Intensitas, Raih Puncak Volume.</p>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <button onclick="APP.ui.openModal('weight')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition"><i class="fa-solid fa-weight-scale text-emerald-400"></i><span id="dashboard-bw">BW: --</span></button>
+                    <button onclick="APP.ui.openModal('stats')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition hover:border-emerald-500"><i class="fa-solid fa-chart-simple text-blue-400"></i> Stats</button>
+                    <button onclick="APP.ui.openModal('profile')" class="bg-slate-700 px-3 py-1.5 rounded-full text-white border border-slate-600 flex items-center gap-2 active:scale-95 transition"><i class="fa-solid fa-fire text-orange-400"></i><span id="dashboard-tdee">TDEE</span></button>
+                </div>
+            </div>
+
+            <div onclick="APP.ui.openModal('spontaneous')" class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group">
+                <div class="absolute right-0 bottom-0 text-indigo-500/10 text-6xl -mr-4 -mb-4"><i class="fa-solid fa-bolt"></i></div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <h3 class="font-bold text-white text-sm">SPONTANEOUS MODE</h3>
+                        <p class="text-[10px] text-indigo-300">Sesi Bebas / Active Recovery (No Rotation Impact)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between"><p class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Rotasi Sesi</p><span class="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Suggest</span></div>
+            <div id="schedule-list" class="space-y-3 pb-10"></div>
+        </div>
+
+        <div id="workout-view" class="hidden fade-in space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <button onclick="APP.nav.switchView('dashboard')" class="flex items-center text-slate-400 hover:text-white text-sm group"><div class="bg-slate-800 p-2 rounded-full mr-2 group-hover:bg-slate-700 transition"><i class="fa-solid fa-arrow-left"></i></div> Kembali</button>
+                <div class="flex gap-2">
+                    <span id="spontaneous-badge" class="hidden text-[10px] bg-indigo-500 text-white px-2 py-1 rounded font-bold uppercase items-center shadow-lg shadow-indigo-500/30"><i class="fa-solid fa-bolt mr-1"></i> SPONTANEOUS</span>
+                    <button onclick="APP.ui.toggleFocusMode()" id="focus-btn" class="text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-eye"></i> Focus Mode</button>
+                </div>
+            </div>
+            <div id="warmup-box" class="bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-4 mb-6 cursor-pointer active:scale-[0.98] transition">
+                <div class="flex justify-between items-center" onclick="APP.ui.toggleWarmup()"><h3 class="text-indigo-400 font-bold text-sm"><i class="fa-solid fa-fire-flame-curved mr-2"></i> PROTOKOL PEMANASAN</h3><i id="warmup-arrow" class="fa-solid fa-chevron-down text-indigo-400 text-xs transition-transform"></i></div>
+                <div id="warmup-content" class="hidden text-sm text-slate-300 space-y-3 mt-3">
+                    <p class="text-[10px] text-slate-500 italic mb-2">*Klik teks di bawah untuk mengedit</p>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-walking text-emerald-400 mt-1"></i><div id="warmup-general" onclick="APP.data.editWarmup('general')" class="hover:text-white cursor-text">Jalan Cepat 5 Menit.</div></div>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-running text-emerald-400 mt-1"></i><div id="warmup-dynamic" onclick="APP.data.editWarmup('dynamic')" class="hover:text-white cursor-text text-slate-400">Arm Circles, Leg Swings</div></div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-700/50 border border-slate-700 rounded-xl p-3 mb-4 cursor-pointer" onclick="APP.ui.openModal('rpe')">
+                <p class="text-[10px] font-bold text-yellow-400 uppercase mb-2 flex justify-between"><span><i class="fa-solid fa-ranking-star mr-1"></i> Intensitas (RPE)</span> <i class="fa-solid fa-circle-info animate-pulse"></i></p>
+                <div class="grid grid-cols-5 gap-1 text-center font-mono font-bold mb-1">
+                    <div class="text-3xl text-red-300">10</div>
+                    <div class="text-3xl text-orange-300">9</div>
+                    <div class="text-3xl text-emerald-300">8</div>
+                    <div class="text-3xl text-blue-300">7</div>
+                    <div class="text-3xl text-slate-400">6</div>
+                </div>
+                <div class="grid grid-cols-5 gap-1 text-center text-[8px] sm:text-[10px] font-bold uppercase text-slate-400">
+                    <div>Failure</div>
+                    <div>Sisa 1</div>
+                    <div>Sisa 2</div>
+                    <div>Sisa 3</div>
+                    <div>Warm-up</div>
+                </div>
+            </div>
+
+            <div id="exercise-list" class="space-y-4"></div>
+            <button onclick="APP.data.addNewExerciseCard()" class="w-full bg-slate-800 border border-slate-700 border-dashed text-slate-400 py-3 rounded-xl hover:text-white hover:border-emerald-500 hover:bg-slate-700/50 transition mb-4"><i class="fa-solid fa-plus mr-2"></i> Tambah Gerakan Baru</button>
+            <div class="pt-2 pb-10"><button onclick="APP.core.finishSession()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition"><i class="fa-solid fa-flag-checkered"></i> SELESAI & SIMPAN LOG</button></div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <div id="spontaneous-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-indigo-500/50 p-5 flex flex-col fade-in max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-bolt text-indigo-400 mr-2"></i>Spontaneous Session</h3>
+                <button onclick="APP.ui.closeModal('spontaneous')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button>
+            </div>
+            <div class="overflow-y-auto no-scrollbar space-y-4">
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2 font-bold uppercase">Manual Start</p>
+                    <button onclick="APP.spontaneous.startEmpty()" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-plus"></i> Buat Sesi Kosong (Express)</button>
+                </div>
+                <div class="bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30">
+                    <p class="text-xs text-indigo-300 mb-2 font-bold uppercase">Blueprints (Presets)</p>
+                    <div id="blueprint-list" class="space-y-2"></div>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2 font-bold uppercase">JSON Box</p>
+                    <textarea id="spon-json-input" class="w-full bg-slate-950 text-indigo-300 font-mono text-[10px] p-3 rounded-lg border border-slate-700 h-20 focus:border-indigo-500 mb-2" placeholder='Paste JSON Sesi Spontan...'></textarea>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button onclick="APP.spontaneous.loadFromJSON()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg"><i class="fa-solid fa-play mr-1"></i> Load JSON</button>
+                        <button onclick="APP.spontaneous.saveToPresets()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 rounded-lg"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Preset</button>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Saved Presets</p>
+                    <div id="spon-preset-list" class="space-y-1 text-center text-[10px] text-slate-500 italic">Belum ada preset tersimpan.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-modal" class="fixed inset-0 bg-red-900/90 z-[999] hidden flex items-center justify-center p-4 backdrop-blur-md"><div class="bg-slate-900 w-full max-w-md rounded-2xl border-2 border-red-500 p-5 shadow-2xl"><div class="flex items-center gap-3 mb-4 text-red-500 border-b border-red-500/30 pb-3"><i class="fa-solid fa-bug text-2xl animate-pulse"></i><h3 class="font-bold text-lg">System Crash Diagnosis</h3></div><p class="text-xs text-slate-300 mb-2">Terjadi kesalahan sistem. Silakan salin log di bawah dan kirim ke Gemini untuk perbaikan instan.</p><textarea id="error-log-text" class="w-full bg-slate-950 text-red-300 font-mono text-[10px] p-3 rounded-lg border border-red-900 h-32 focus:border-red-500 mb-3" readonly></textarea><div class="grid grid-cols-2 gap-2"><button onclick="APP.debug.copyErrorLog()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin Log</button><button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-rotate-right"></i> Refresh App</button></div></div></div>
+    <div id="rpe-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2"><h3 class="font-bold text-emerald-400"><i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR</h3><button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-700 text-emerald-400 text-[10px] uppercase"><th class="p-2 border border-slate-600 text-center w-1/6">RPE</th><th class="p-2 border border-slate-600 text-center w-1/6">Sisa (RIR)</th><th class="p-2 border border-slate-600 text-left">Indikator Fisik/Rasa</th></tr></thead><tbody class="text-slate-300 text-[11px]"><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-red-500 text-sm">10</td><td class="p-2 border border-slate-600 text-center font-bold">0</td><td class="p-2 border border-slate-600">Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-red-400">9.5</td><td class="p-2 border border-slate-600 text-center">0 - 1</td><td class="p-2 border border-slate-600">Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-orange-400">9</td><td class="p-2 border border-slate-600 text-center font-bold">1</td><td class="p-2 border border-slate-600">Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-emerald-400">8</td><td class="p-2 border border-slate-600 text-center font-bold">2</td><td class="p-2 border border-slate-600">Beban kerja ideal. Berat, kecepatan b
+ar terkontrol baik.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-blue-400">7</td><td class="p-2 border border-slate-600 text-center">3+</td><td class="p-2 border border-slate-600">Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.</td></tr></tbody></table></div></div></div>
+    <div id="library-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-book-bookmark text-indigo-400 mr-2"></i>Resep Latihan & Bridging AI</h3><button onclick="APP.ui.closeModal('library')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button></div><div class="space-y-4 overflow-y-auto no-scrollbar"><div class="bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30"><p class="text-xs text-indigo-300 mb-2 font-bold uppercase">Program Aktif Saat Ini</p><div class="grid grid-cols-2 gap-2 mb-2"><button onclick="APP.data.saveToLibrary()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-floppy-disk"></i> Simpan Resep Latihan</button><button onclick="APP.data.exportForConsultation()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-emerald-900/50"><i class="fa-solid fa-user-doctor"></i> Konsul Latihan</button></div><button onclick="APP.data.copyProgramToClipboard()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin JSON Resep Latihan </button></div><div><p class="text-xs text-slate-400 mb-2 font-bold uppercase border-b border-slate-700 pb-1">Daftar Resep Tersimpan</p><div id="library-list" class="space-y-2"><p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p></div></div><div class="bg-slate-900/50 p-4 rounded-xl border border-slate-
+700"><p class="text-xs text-slate-400 mb-2 font-bold uppercase">Terapkan Resep Baru</p><textarea id="ai-input" class="w-full bg-slate-950 text-emerald-400 font-mono text-[10px] p-3 rounded-lg border border-slate-700 h-20 focus:border-emerald-500 mb-3" placeholder='Paste JSON di sini...'></textarea><button onclick="APP.data.applyAIProgram()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i> Terapkan Program</button></div></div></div></div>
+    <div id="calc-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white"><i class="fa-solid fa-calculator text-yellow-400 mr-2"></i>Warm-Up & Plates</h3><button onclick="APP.ui.closeModal('calc')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4 items-center justify-center"><span class="text-slate-400 text-xs">Target:</span><span id="calc-target" class="text-2xl font-bold text-white">0</span><span class="text-slate-400 text-xs">kg</span></div><div class="flex justify-center mb-4"><span id="calc-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400">Standard</span></div><div id="calc-steps" class="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar"></div><p class="text-[10px] text-slate-500 text-center mt-3 italic">Rincian pelat per sisi (Asumsi bar 20kg).</p></div></div>
+    <div id="stats-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col max-h-[90vh] fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3"><h3 class="font-bold text-white">Clinical Analytics</h3><button onclick="APP.ui.closeModal('stats')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="mb-4"><select id="stats-select" onchange="APP.stats.updateChart()" class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"></select></div><div class="flex gap-2 mb-3"><button id="tab-chart" onclick="APP.stats.switchTab('chart')" class="tab-btn active flex-1">Grafik Tren</button><button id="tab-table" onclick="APP.stats.switchTab('table')" class="tab-btn inactive flex-1">Tabel Klinis</button></div><div id="stats-chart-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"><canvas id="progressChart"></canvas><div id="no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">No Data.</div></div><div id="stats-table-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar"><table class="hist-table"><thead><tr><th>TGL</th><th>BEBAN</th><th>REPS</th><th>RPE</th><th>VOL</th></tr></thead><tbody id="hist-table-body"></tbody></table></div><div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden"><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">PR</div><div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Vol Avg</div><div class="text-lg font-bold text-blue-400" id="stat-vol">--</div></div><div class="bg-sl
+ate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Count</div><div class="text-lg font-bold text-white" id="stat-count">--</div></div></div></div></div>
+    <div id="profile-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 space-y-4 fade-in overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between"><h3 class="font-bold text-white">Profil</h3><button onclick="APP.ui.closeModal('profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Nama</span><input type="text" id="prof-name" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Tinggi</span><input type="number" id="prof-height" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div></div>
+                <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Usia</span><input type="number" id="prof-age" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Gender</span><select id="prof-gender" class="w-full p-2 bg-slate-900 rounded text-white text-sm"><option value="male">Pria</option><option value="female">Wanita</option></select></div></div>
+                <div><span class="text-[10px] text-slate-400">Aktivitas</span><select id="prof-active" class="w-full p-2 bg-slate-900 rounded text-white text-sm"><option value="1.2">Sedentary</option><option value="1.375">Light</option><option value="1.55">Moderate</option><option value="1.725">Active</option></select></div>
+                <div id="tdee-box" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-center hidden"><div class="text-2xl font-bold text-white mb-2"><span id="tdee-val">0</span> <span class="text-sm font-normal text-slate-500">kkal</span></div><div class="grid grid-cols-2 gap-2 text-xs"><div class="bg-emerald-500/10 p-1 rounded text-emerald-400"><b>Bulk</b><br><span id="bulk-val">0</span></div><div class="bg-red-500/10 p-1 rounded text-red-400"><b>Cut</b><br><span id="cut-val">0</span></div></div></div>
+                <button onclick="APP.data.saveProfile()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Simpan</button>
+            </div>
+            <div class="border-t border-slate-700 pt-3 mt-3">
+                <h4 class="text-red-400 font-bold text-[10px] mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Danger Zone</h4>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="APP.data.deleteLogs('today')" class="w-full bg-slate-700 text-slate-300 text-xs py-2 rounded hover:bg-red-900/50 hover:text-red-400 transition text-left px-3 flex justify-between items-center"><span>Hapus Log Hari Ini</span> <i class="fa-solid fa-trash"></i></button>
+                    <div class="flex gap-2">
+                        <input type="date" id="del-date-picker" class="bg-slate-900 text-white text-xs p-2 rounded border border-slate-700 flex-1">
+                        <button onclick="APP.data.deleteLogs('date')" class="bg-slate-700 text-slate-300 text-xs px-3 rounded hover:bg-red-900/50 hover:text-red-400 transition whitespace-nowrap">Hapus Tgl Ini</button>
+                    </div>
+                    <button onclick="APP.data.deleteLogs('all')" class="w-full bg-red-900/30 border border-red-900/50 text-red-400 font-bold text-xs py-3 rounded mt-2 hover:bg-red-900 hover:text-white transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/10"><i class="fa-solid fa-radiation"></i> RESET TOTAL (FRESH START)</button>
+                </div>
+            </div>
+            <div class="pt-2 border-t border-slate-700"><div class="grid grid-cols-2 gap-3"><button onclick="APP.data.exportData()" class="bg-slate-700 text-emerald-400 text-xs py-2 rounded">Backup</button><label class="bg-slate-700 text-blue-400 text-xs py-2 rounded text-center cursor-pointer">Restore<input type="file" id="import-file" class="hidden" onchange="APP.data.importData(this)"></label></div></div>
+        </div>
+    </div>
+    <div id="weight-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between mb-4"><h3 class="font-bold text-white">Weight</h3><button onclick="APP.ui.closeModal('weight')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div><div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div></div></div>
+    <div id="bio-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-6 max-h-[80vh] flex flex-col fade-in"><h3 class="font-bold text-white text-lg mb-4 text-emerald-400" id="bio-title"></h3><div class="overflow-y-auto pr-2 mb-4 no-scrollbar"><p id="bio-text" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed"></p></div><button onclick="APP.ui.closeModal('bio')" class="w-full bg-slate-700 text-white py-3 rounded-xl font-bold">Tutup</button></div></div>
+    <div id="history-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 max-h-[80vh] flex flex-col fade-in"><div class="flex justify-between border-b border-slate-700 pb-2 mb-2"><h3 class="font-bold text-white" id="hist-title">History</h3><button onclick="APP.ui.closeModal('history')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div id="hist-content" class="overflow-y-auto space-y-2 no-scrollbar"></div></div></div>
+    <div id="calendar-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-calendar-days text-emerald-400 mr-2"></i>Jurnal</h3><button onclick="APP.ui.closeModal('calendar')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center mb-4"><button onclick="APP.ui.changeMonth(-1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button><h4 id="cal-month-year" class="text-white font-bold text-sm"></h4><button onclick="APP.ui.changeMonth(1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] text-slate-500 font-bold uppercase"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div><div id="cal-details" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 min-h-[140px] flex flex-col justify-center"><div class="text-center text-slate-500 opacity-70"><i class="fa-solid fa-hand-pointer mb-2 text-xl"></i><p class="text-xs italic">Klik tanggal hijau untuk melihat detail.</p></div></div></div></div>
+    <div id="timer-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col items-center justify-center backdrop-blur-sm"><div id="timer-display" class="text-7xl font-mono font-bold text-emerald-500 mb-8">00:00</div><div class="flex gap-4"><button onclick="APP.timer.add(10)" class="bg-slate-800 text-white px-4 py-2 rounded active:scale-95 transition">+10s</button><button onclick="APP.timer.stop()" class="bg-red-600 text-white px-6 py-2 rounded font-bold active:scale-95 transition">STOP</button><button onclick="APP.timer.add(30)" class="bg-slate-800 text-white px-4 py-2 rounded active:scale-95 transition">+30s</button></div></div>
+
+    <script>
+        // ==========================================
+        // 0. LIBRARY BLUEPRINTS
+        // ==========================================
+        const PRESETS = {
+            "p1": { 
+                label: "Blood Flow", 
+                title: "The Blood Flow (Active Recovery)", 
+                dynamic: "Arm Circles, Leg Swings", 
+                exercises: [ 
+                    { sets: 3, rest: 60, note: "Constant Tension (No Lockout)", options: [{n:"[Machine] Chest Press", t_r:"15-20", bio:"Lakukan gerakan memompa, jangan kunci siku.", note:"Fokus Pompa Darah"}, {n:"[Cable] Face Pull", t_r:"15-20", bio:"Tarik ke arah dahi, fokus rear delt."}] }, 
+                    { sets: 3, rest: 60, note: "Slow Eccentric", options: [{n:"[Machine] Leg Extension", t_r:"15-20", bio:"Tahan 1 detik di puncak kontraksi.", note:"Tahan Puncak"}, {n:"[Machine] Leg Curl", t_r:"15-20", bio:"Jaga pinggul tetap menempel di pad."}] } 
+                ] 
+            },
+            "p2": { 
+                label: "Mini Pump", 
+                title: "Minimalist Pump", 
+                dynamic: "Arm Circles", 
+                exercises: [ 
+                    { sets: 3, rest: 90, note: "Squeeze at Top", options: [{n:"[DB] Incline Press", t_r:"10-12", bio:"Tekan dada atas, sudut bangku 30 derajat."}] }, 
+                    { sets: 3, rest: 90, note: "Full Stretch", options: [{n:"[Cable] Lat Pulldown", t_r:"10-12", bio:"Biarkan lats terulur maksimal di atas."}] }, 
+                    { sets: 3, rest: 90, note: "Control Weight", options: [{n:"[Machine] Leg Press", t_r:"10-12", bio:"Jangan biarkan lutut goyang (valgus)."}] } 
+                ] 
+            },
+            "p3": { 
+                label: "Core", 
+                title: "Core Stability", 
+                dynamic: "Cat-Cow", 
+                exercises: [ 
+                    { sets: 3, rest: 60, note: "Bracing Focus", options: [{n:"[Bodyweight] Plank", t_r:"45s", bio:"Kencangkan perut seperti akan dipukul."}] }, 
+                    { sets: 3, rest: 60, note: "Control", options: [{n:"[Bodyweight] Deadbug", t_r:"12 reps", bio:"Punggung bawah harus menempel lantai."}] }, 
+                    { sets: 3, rest: 60, note: "Obliques", options: [{n:"[Bodyweight] Side Plank", t_r:"30s", bio:"Angkat pinggul tinggi, garis lurus."}] } 
+                ] 
+            },
+            "p4": { 
+                label: "Mobility", 
+                title: "Upper Mobility Flow", 
+                dynamic: "Arm Swings", 
+                exercises: [ 
+                    { sets: 2, rest: 30, note: "Thoracic Ext.", options: [{n:"[Stretch] Cat-Cow", t_r:"10 reps", bio:"Fokus lengkungan di punggung atas."}] }, 
+                    { sets: 2, rest: 30, note: "Shoulder ROM", options: [{n:"[Stretch] Band Dislocates", t_r:"10 reps", bio:"Gunakan band elastis, jangan dipaksa."}] }, 
+                    { sets: 2, rest: 30, note: "Lats Stretch", options: [{n:"[Stretch] Child Pose", t_r:"30s", bio:"Dorong ketiak ke arah lantai."}] } 
+                ] 
+            },
+            "p5": { 
+                label: "Home", 
+                title: "Home Flow (No Gear)", 
+                dynamic: "Jumping Jacks", 
+                exercises: [ 
+                    { sets: 3, rest: 60, note: "Chest Focus", options: [{n:"[Bodyweight] Push Up", t_r:"Failure", bio:"Siku 45 derajat dari badan, jangan lebar."}] }, 
+                    { sets: 3, rest: 60, note: "Quads", options: [{n:"[Bodyweight] Squat", t_r:"20 reps", bio:"Lutut mengikuti arah jari kaki."}] }, 
+                    { sets: 3, rest: 60, note: "Glutes", options: [{n:"[Bodyweight] Glute Bridge", t_r:"15 reps", bio:"Kunci pantat di atas, jangan over-arch."}] } 
+                ] 
+            }
+        };
+
+        // ==========================================
+        // 1. GLOBAL ERROR HANDLER
+        // ==========================================
+        window.onerror = function(msg, url, line, col, error) { 
+            APP.debug.showFatalError("System Crash", error || msg, `Line: ${line}:${col}\nURL: ${url}`); 
+            return false; 
+        };
+
+        // ==========================================
+        // 2. STORAGE WRAPPER
+        // ==========================================
+        const LS = {
+            get: (k) => { try { return localStorage.getItem(k); } catch(e) { console.error("LS Get Err", e); return null; } },
+            set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) { alert("Memori Penuh! Hapus beberapa data."); } },
+            getJSON: (k, def = null) => {
+                try {
+                    const v = localStorage.getItem(k);
+                    return v ? JSON.parse(v) : def;
+                } catch (e) {
+                    console.error("LS Parse Err", k, e);
+                    return def;
+                }
+            },
+            setJSON: (k, v) => {
+                try {
+                    localStorage.setItem(k, JSON.stringify(v));
+                } catch (e) {
+                    alert("Gagal menyimpan data (Quota Exceeded).");
+                }
+            },
+            remove: (k) => { try { localStorage.removeItem(k); } catch(e){} },
+            clear: () => { try { localStorage.clear(); } catch(e){} }
+        };
+
+        // ==========================================
+        // 3. DATE UTILITY
+        // ==========================================
+        const DT = {
+            formatRelative: (ts) => {
+                if (!ts) return "Belum pernah";
+                return (typeof dayjs !== 'undefined') ? dayjs(parseInt(ts)).fromNow() : new Date(parseInt(ts)).toLocaleDateString();
+            },
+            formatDate: (d) => {
+                return (typeof dayjs !== 'undefined') ? dayjs(d).format('D MMM') : d.toLocaleDateString();
+            },
+            formatMonth: (d) => {
+                return (typeof dayjs !== 'undefined') ? dayjs(d).format("MMMM YYYY") : d.toLocaleDateString([], {month:'long', year:'numeric'});
+            }
+        };
+
+        // ==========================================
+        // 4. APP CORE MODULE
+        // ==========================================
+        const APP = {
+            state: {
+                wakeLock: null,
+                focusMode: false,
+                currentSessionId: "",
+                spontaneousMode: false,
+                currentCalDate: new Date(),
+                workoutData: {},
+                defaultTemplate: { s1: { label: "SESI 1", title: "Upper A", dynamic: "Arm Circles", exercises: [{ sets: 3, rest: 150, note: "Warm Up", options: [{ n: "Bench Press", vid: "", bio: "" }] }] } }
+            },
+
+            init: function() {
+                try {
+                    if(typeof dayjs!=='undefined') { dayjs.extend(window.dayjs_plugin_relativeTime); dayjs.locale('id'); }
+                    
+                    const stored = LS.getJSON("cscs_program_v10");
+                    if (stored) {
+                        this.state.workoutData = stored;
+                    } else {
+                        this.state.workoutData = this.state.defaultTemplate;
+                        LS.setJSON("cscs_program_v10", this.state.workoutData);
+                    }
+
+                    this.data.loadProfile();
+                    this.nav.renderDashboard();
+                    if(typeof Chart !== 'undefined') this.stats.init();
+                    
+                    this.core.requestWakeLock();
+                    document.addEventListener('visibilitychange', () => { 
+                        if (document.visibilityState === 'visible') this.core.requestWakeLock(); 
+                    });
+
+                } catch(e) {
+                    this.debug.showFatalError("Init Error", e);
+                }
+            },
+
+            core: {
+                saveProgram: () => LS.setJSON("cscs_program_v10", APP.state.workoutData),
+                requestWakeLock: async () => { try { if ('wakeLock' in navigator) APP.state.wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} },
+                finishSession: () => {
+                    try {
+                        const now = new Date();
+                        const durationMins = Math.round((now.getTime() - APP.timer.startTime) / 60000); 
+                        let totalVol = 0, totalSets = 0;
+                        const sessId = APP.state.currentSessionId;
+                        const d = APP.state.workoutData[sessId];
+
+                        d.exercises.forEach((ex,i) => { 
+                            for(let j=1; j<=ex.sets; j++){ 
+                                const s = `${sessId}_ex${i}_s${j}`; 
+                                const k = parseFloat(LS.get(`${s}_k`)||0); 
+                                const re = parseFloat(LS.get(`${s}_r`)||0); 
+                                const do_ = LS.get(`${s}_d`)==="true"; 
+                                if(do_ && k>0 && re>0) { totalVol += k*re; totalSets++; } 
+                            } 
+                        });
+
+                        let inputDur = prompt(`Selesai Latihan?\n\nVolume: ${totalVol} kg\nSets: ${totalSets}\n\nMasukkan Durasi Latihan (menit):`, durationMins);
+                        if (inputDur === null) return; 
+                        const finalDur = parseInt(inputDur) || durationMins;
+
+                        const ds = DT.formatDate(now);
+                        const h = LS.getJSON("gym_hist", []);
+                        
+                        d.exercises.forEach((ex,i)=>{ 
+                            const optIdx = LS.get(`pref_${sessId}_${i}`) || 0;
+                            const opt = ex.options[optIdx] || ex.options[0]; 
+                            const currentNote = opt.note || ex.note || "";
+                            
+                            let v=0, t=0, r=[]; 
+                            
+                            for(let j=1; j<=ex.sets; j++){ 
+                                const s = `${sessId}_ex${i}_s${j}`; 
+                                const k = parseFloat(LS.get(`${s}_k`)||0); 
+                                const re = parseFloat(LS.get(`${s}_r`)||0); 
+                                const rpe = LS.get(`${s}_rpe`)||""; 
+                                const do_ = LS.get(`${s}_d`)==="true"; 
+                                
+                                if(do_ && k>0 && re>0){ 
+                                    v += k*re; 
+                                    if(k > t) t = k; 
+                                    r.push({k, r:re, rpe: rpe}); 
+                                    LS.set(`${s}_d`, "false"); 
+                                } 
+                            } 
+                            if(r.length) h.push({date:ds, ts:now.getTime(), ex:opt.n, vol:v, top:t, d:r, src: sessId, title: d.title, dur: finalDur, note: currentNote}); 
+                        });
+
+                        LS.setJSON("gym_hist", h);
+                        
+                        if (sessId !== 'spontaneous') {
+                            LS.set(`last_${sessId}`, now.getTime());
+                        }
+                        
+                        APP.nav.switchView("dashboard");
+                        
+                    } catch(e) { APP.debug.showFatalError("Finish Session", e); }
+                }
+            },
+
+            nav: {
+                switchView: (v) => {
+                    document.getElementById("dashboard-view").classList.add("hidden");
+                    document.getElementById("workout-view").classList.add("hidden");
+                    document.getElementById(`${v}-view`).classList.remove("hidden");
+                    if(v==="dashboard") APP.nav.renderDashboard();
+                },
+                renderDashboard: () => {
+                    try {
+                        const list = document.getElementById("schedule-list"); 
+                        let htmlBuffer = ""; 
+                        let oldest = Infinity; 
+                        let recommended = "s1";
+                        const wData = APP.state.workoutData;
+
+                        Object.keys(wData).forEach(k => { 
+                            if(k === 'spontaneous') return;
+                            const t = parseInt(LS.get(`last_${k}`) || 0); 
+                            if(t < oldest) { oldest = t; recommended = k; } 
+                        });
+
+                        Object.keys(wData).forEach(k => {
+                            if(k === 'spontaneous') return;
+                            const d = wData[k]; 
+                            const last = LS.get(`last_${k}`);
+                            const timeStr = DT.formatRelative(last);
+                            const isRec = k === recommended;
+                            
+                            htmlBuffer += `<div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg"><div><div class="flex items-center mb-1"><span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${d.label}</span>${isRec?'<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>':''}</div><h3 class="font-bold text-white text-lg flex items-center gap-2">${d.title} <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3><div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div></div><i class="fa-solid fa-chevron-right text-slate-500"></i></div>`;
+                        });
+                        list.innerHTML = htmlBuffer;
+                    } catch(e) { APP.debug.showFatalError("Render Dashboard", e); }
+                },
+                loadWorkout: (id) => {
+                    try {
+                        APP.state.currentSessionId = id; 
+                        APP.state.focusMode = false; 
+                        APP.ui.updateFocusBtn(); 
+                        APP.timer.startTime = new Date().getTime();
+                        
+                        const isSpon = id === 'spontaneous';
+                        const badge = document.getElementById("spontaneous-badge");
+                        isSpon ? badge.classList.remove("hidden") : badge.classList.add("hidden");
+                        isSpon ? badge.classList.add("flex") : badge.classList.remove("flex");
+
+                        const data = APP.state.workoutData[id];
+                        const wGeneral = document.getElementById("warmup-general");
+                        const wDynamic = document.getElementById("warmup-dynamic");
+                        
+                        if(wGeneral) wGeneral.innerText = "Jalan Cepat 5 Menit.";
+                        if(wDynamic) wDynamic.innerText = data.dynamic || "Arm Circles";
+                        
+                        const exList = document.getElementById("exercise-list"); 
+                        let htmlBuffer = ""; 
+
+                        data.exercises.forEach((ex, idx) => {
+                            if(!ex.options || ex.options.length === 0) return;
+                            
+                            let savedVar = parseInt(LS.get(`pref_${id}_${idx}`) || 0); 
+                            if(savedVar >= ex.options.length) savedVar = 0;
+                            const opt = ex.options[savedVar]; if(!opt) return;
+
+                            const vidKey = `vid_ovr_${id}_${idx}_${savedVar}`; 
+                            const vidUrl = LS.get(vidKey) || opt.vid;
+                            
+                            let optHtml = ex.options.map((o, i) => `<option value="${i}" ${i==savedVar?'selected':''}>${o.n}</option>`).join('');
+                            const historySuggestion = APP.data.getSuggestion(opt.n);
+
+                            let targetBadge = "";
+                            if (opt.t_k || opt.t_r) {
+                                targetBadge = `<div class="text-[10px] text-blue-300 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-900/50 flex items-center gap-1 shadow-sm shrink-0 whitespace-nowrap"><i class="fa-solid fa-crosshairs text-blue-400"></i> Target: <b class="text-white">${opt.t_k || "-"}kg</b> x <b class="text-white">${opt.t_r || "-"}</b></div>`;
+                            }
+                            
+                            const displayNote = opt.note || ex.note || "Edit Note";
+
+                            let setsHtml = "";
+                            for(let i=1; i<=ex.sets; i++) {
+                                const sid = `${id}_ex${idx}_s${i}`;
+                                const k = LS.get(`${sid}_k`)||"";
+                                const r = LS.get(`${sid}_r`)||"";
+                                const rpe = LS.get(`${sid}_rpe`)||"";
+                                const done = LS.get(`${sid}_d`)==="true";
+                                
+                                let rpeColor = "text-white";
+                                const rpeVal = parseFloat(rpe);
+                                if(rpeVal <= 7) rpeColor = "text-yellow-400"; 
+                                else if(rpeVal >= 8 && rpeVal <= 9) rpeColor = "text-emerald-400"; 
+                                else if(rpeVal >= 9.5) rpeColor = "text-red-400";
+
+                                let rpeOpts = `<option value="">RPE</option>`; 
+                                for(let v=6;v<=10;v+=0.5) rpeOpts+=`<option value="${v}" ${rpe==v?'selected':''} class="${v<=7?'text-yellow-400':(v>=9.5?'text-red-400':'text-emerald-400')}">${v}</option>`;
+                                
+                                setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-emerald-900/20':''}" id="row_${sid}"><div class="col-span-1 text-center text-slate-500 text-xs font-bold">${i}</div><div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${done?'checked':''} onchange="APP.data.toggleDone('${sid}',this, ${idx})"></div></div>`;
+                            }
+
+                            htmlBuffer += `
+                            <div class="exercise-card bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-md mb-4 transition-all duration-300" id="card-${idx}">
+                                <div class="p-3 border-b border-slate-700 bg-slate-800/50">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-emerald-500 font-bold text-sm">#${idx+1}</span>
+                                        <button onclick="APP.timer.start(${ex.rest})" class="bg-slate-700 text-emerald-400 px-2 py-1 rounded text-xs font-bold border border-slate-600 active:scale-95 transition whitespace-nowrap"><i class="fa-regular fa-clock"></i> ${ex.rest}s</button>
+                                    </div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <select onchange="APP.data.changeVariant('${id}',${idx},this.value)" class="bg-slate-900 border border-slate-600 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
+                                        <button onclick="APP.data.addCustomVariant('${id}',${idx})" class="text-emerald-500 px-3 py-2 rounded bg-emerald-500/10 text-xs shrink-0 h-full"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 px-1 mb-2">
+                                        <div class="flex gap-1 bg-red-900/20 rounded border border-red-900/30 overflow-hidden">
+                                            <a href="${vidUrl}" target="_blank" class="flex-1 text-red-400 text-[10px] flex items-center justify-center py-1.5 hover:bg-red-900/40 transition truncate"><i class="fa-brands fa-youtube mr-1"></i> Watch</a>
+                                             <button onclick="APP.data.editVideo('${vidKey}')" class="px-2 text-red-500/70 hover:text-red-400 border-l border-red-900/30"><i class="fa-solid fa-pen text-[9px]"></i></button>
+                                        </div>
+                                        <button onclick="APP.ui.openBio('${opt.n}', \`${opt.bio}\`)" class="bg-blue-900/20 text-blue-400 py-1.5 rounded text-[10px] border border-blue-900/30 flex items-center justify-center gap-1 hover:bg-blue-900/40 transition truncate"><i class="fa-solid fa-microscope"></i> Info Bio</button>
+                                        <button onclick="APP.ui.openHist('${opt.n}')" class="bg-purple-900/20 text-purple-400 py-1.5 rounded text-[10px] border border-purple-900/30 flex items-center justify-center gap-1 hover:bg-purple-900/40 transition truncate"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+                                        <button onclick="APP.ui.openCalc(${idx})" class="bg-yellow-900/20 text-yellow-400 py-1.5 rounded text-[10px] border border-yellow-900/30 flex items-center justify-center gap-1 hover:bg-yellow-900/40 transition truncate"><i class="fa-solid fa-calculator"></i> WarmUp Calc</button>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-1 px-1 gap-2">
+                                        <div onclick="APP.data.editNote('${id}',${idx})" class="text-[10px] text-yellow-500 font-bold cursor-pointer hover:text-white truncate flex-1 min-w-0"><i class="fa-solid fa-pen-to-square mr-1"></i> ${displayNote}</div>
+                                        ${targetBadge}
+                                    </div>
+                                    <div class="ml-1 text-[9px] text-slate-500 font-mono mt-1">${historySuggestion}</div>
+                                </div>
+                                <div class="p-3">
+                                    <div class="grid grid-cols-12 gap-1 text-[10px] text-slate-500 font-bold text-center mb-1">
+                                        <div class="col-span-1">#</div><div class="col-span-4">KG</div><div class="col-span-3">REPS</div><div class="col-span-2">RPE</div><div class="col-span-2">OK</div>
+                                    </div>
+                                    ${setsHtml}
+                                </div>
+                                <div class="flex justify-between items-center bg-slate-900/50 p-2 border-t border-slate-700/50">
+                                    <div class="flex gap-2">
+                                        <button onclick="APP.data.modifySet('${id}',${idx},1)" class="text-[10px] bg-slate-700 text-emerald-400 px-2 py-1 rounded"><b>+ Set</b></button>
+                                        <button onclick="APP.data.modifySet('${id}',${idx},-1)" class="text-[10px] bg-slate-700 text-red-400 px-2 py-1 rounded"><b>- Set</b></button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="APP.data.moveCard('${id}',${idx},-1)" class="text-slate-500 hover:text-white px-1"><i class="fa-solid fa-arrow-up"></i></button>
+                                        <button onclick="APP.data.moveCard('${id}',${idx},1)" class="text-slate-500 hover:text-white px-1"><i class="fa-solid fa-arrow-down"></i></button>
+                                        <button onclick="APP.data.deleteCard('${id}',${idx})" class="text-red-500/50 hover:text-red-500 px-1"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        exList.innerHTML = htmlBuffer; 
+                        APP.ui.checkActiveCard(); 
+                        APP.nav.switchView("workout");
+                    } catch(e) { APP.debug.showFatalError("Load Workout Error", e); }
+                }
+            },
+
+            // SPONTANEOUS MODULE (FIXED POSITION)
+            spontaneous: {
+                startEmpty: () => {
+                    const title = prompt("Nama Sesi Spontan:", "Express Session");
+                    if (!title) return;
+                    
+                    const emptySession = {
+                        label: "SPONTANEOUS",
+                        title: title,
+                        dynamic: "Arm Circles, Jumping Jacks",
+                        exercises: []
+                    };
+                    
+                    APP.state.workoutData['spontaneous'] = emptySession;
+                    APP.ui.closeModal('spontaneous');
+                    APP.nav.loadWorkout('spontaneous');
+                    
+                    setTimeout(() => APP.data.addNewExerciseCard(), 500);
+                },
+
+                loadFromJSON: () => {
+                    try {
+                        const jsonStr = document.getElementById("spon-json-input").value;
+                        if (!jsonStr) return alert("Paste JSON dulu.");
+                        
+                        const json = JSON.parse(jsonStr);
+                        if (!json.exercises) throw new Error("Format JSON Salah");
+
+                        APP.state.workoutData['spontaneous'] = json;
+                        APP.state.workoutData['spontaneous'].label = "SPONTANEOUS";
+                        
+                        APP.ui.closeModal('spontaneous');
+                        APP.nav.loadWorkout('spontaneous');
+                    } catch(e) { alert("JSON Invalid: " + e.message); }
+                },
+
+                saveToPresets: () => {
+                    const jsonStr = document.getElementById("spon-json-input").value;
+                    if (!jsonStr) return alert("Tidak ada data untuk disimpan.");
+                    const name = prompt("Nama Preset:");
+                    if (!name) return;
+
+                    const presets = LS.getJSON("cscs_spon_presets", []);
+                    presets.push({ name, data: JSON.parse(jsonStr) });
+                    LS.setJSON("cscs_spon_presets", presets);
+                    APP.spontaneous.renderPresets();
+                },
+
+                deletePreset: (idx) => {
+                    if(!confirm("Hapus preset ini?")) return;
+                    const presets = LS.getJSON("cscs_spon_presets", []);
+                    presets.splice(idx, 1);
+                    LS.setJSON("cscs_spon_presets", presets);
+                    APP.spontaneous.renderPresets();
+                },
+
+                loadPreset: (idx, fromSource = 'custom') => {
+                    let data;
+                    if (fromSource === 'custom') {
+                        const presets = LS.getJSON("cscs_spon_presets", []);
+                        data = presets[idx].data;
+                    } else {
+                        data = PRESETS[idx];
+                    }
+
+                    if (data) {
+                        APP.state.workoutData['spontaneous'] = JSON.parse(JSON.stringify(data)); // Deep copy
+                        APP.state.workoutData['spontaneous'].label = "SPONTANEOUS";
+                        APP.ui.closeModal('spontaneous');
+                        APP.nav.loadWorkout('spontaneous');
+                    }
+                },
+
+                renderPresets: () => {
+                    const presets = LS.getJSON("cscs_spon_presets", []);
+                    const el = document.getElementById("spon-preset-list");
+                    
+                    if (!presets.length) {
+                        el.innerHTML = `<div class="text-center text-[10px] text-slate-500 italic">Belum ada preset tersimpan.</div>`;
+                    } else {
+                        let html = "";
+                        presets.forEach((p, i) => {
+                            html += `<div class="bg-slate-900 p-2 rounded flex justify-between items-center border border-slate-700 mb-1"><span class="text-xs text-indigo-300 font-bold">${p.name}</span><div class="flex gap-2"><button onclick="APP.spontaneous.loadPreset(${i})" class="text-emerald-400 hover:text-emerald-300 text-[10px]"><i class="fa-solid fa-play"></i></button><button onclick="APP.spontaneous.deletePreset(${i})" class="text-red-500 hover:text-red-400 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
+                        });
+                        el.innerHTML = html;
+                    }
+
+                    const bpEl = document.getElementById("blueprint-list");
+                    let bpHtml = "";
+                    Object.keys(PRESETS).forEach(k => {
+                        const p = PRESETS[k];
+                        bpHtml += `<button onclick="APP.spontaneous.loadPreset('${k}', 'blueprint')" class="w-full bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/30 p-2 rounded text-left flex items-center gap-3 transition"><div class="bg-indigo-500/20 w-8 h-8 rounded flex items-center justify-center text-indigo-400"><i class="fa-solid fa-dumbbell"></i></div><div><div class="text-xs font-bold text-white">${p.title}</div><div class="text-[10px] text-indigo-300">${p.exercises.length} Exercises</div></div></button>`;
+                    });
+                    bpEl.innerHTML = bpHtml;
+                }
+            },
+
+            // DATA MODULE (WITH DELETE & ROTATION FIX)
+            data: {
+                saveSet: (id, t, v) => { LS.set(`${id}_${t}`, v); if(t==='rpe') APP.nav.loadWorkout(APP.state.currentSessionId); },
+                toggleDone: (id, el, idx) => {
+                    LS.set(`${id}_d`, el.checked);
+                    document.getElementById(`row_${id}`).className = `grid grid-cols-12 gap-1 mb-1 items-center ${el.checked ? 'bg-emerald-900/20' : ''}`;
+                    if (el.checked) {
+                        const rpeVal = parseFloat(LS.get(`${id}_rpe`));
+                        if (!isNaN(rpeVal)) {
+                            if (rpeVal <= 7) APP.ui.showToast(`RPE ${rpeVal} (Ringan). Naik beban set depan? 🔼`, "success");
+                            else if (rpeVal >= 9.5) APP.ui.showToast(`RPE ${rpeVal} (Maksimal). Pertahankan/Turun beban ⚠️`, "warning");
+                        }
+                    }
+                    APP.ui.checkActiveCard();
+                },
+                getSuggestion: (exName) => {
+                    const h = LS.getJSON("gym_hist", []);
+                    const filtered = h.filter(x => x && x.ex === exName).sort((a,b) => b.ts - a.ts); 
+                    if(filtered.length === 0) return ""; 
+                    const lastLog = filtered[0]; 
+                    let msg = `Last: ${lastLog.top || 0}kg`;
+                    
+                    if (lastLog.d && lastLog.d.length > 0) {
+                        const lastSet = lastLog.d[lastLog.d.length - 1];
+                        if (lastSet.rpe) {
+                            const rpeVal = parseFloat(lastSet.rpe);
+                            if (rpeVal <= 7) msg += ` <span class="text-emerald-400 font-bold animate-pulse">🔼 +2.5kg</span>`;
+                            else if (rpeVal >= 9.5) msg += ` <span class="text-red-400 font-bold">⚠️ Stay</span>`;
+                        }
+                    }
+                    return msg;
+                },
+                changeVariant: (d, i, v) => { LS.set(`pref_${d}_${i}`, v); APP.nav.loadWorkout(d); },
+                addCustomVariant: (d, i) => { const n=prompt("Name:"); if(n){ APP.state.workoutData[d].exercises[i].options.push({n,vid:"",bio:""}); APP.core.saveProgram(); APP.data.changeVariant(d,i,APP.state.workoutData[d].exercises[i].options.length-1); } },
+                modifySet: (d, i, v) => { APP.state.workoutData[d].exercises[i].sets += v; if(APP.state.workoutData[d].exercises[i].sets<1) APP.state.workoutData[d].exercises[i].sets=1; APP.core.saveProgram(); APP.nav.loadWorkout(d); },
+                deleteCard: (d, i) => { if(confirm("Hapus gerakan ini?")){ APP.state.workoutData[d].exercises.splice(i,1); APP.core.saveProgram(); APP.nav.loadWorkout(d); } },
+                moveCard: (d, i, v) => { const a = APP.state.workoutData[d].exercises, n = i+v; if(n>=0 && n<a.length){ [a[i],a[n]]=[a[n],a[i]]; APP.core.saveProgram(); APP.nav.loadWorkout(d); } },
+                addNewExerciseCard: () => { const n=prompt("Exercise Name:"); if(n){ APP.state.workoutData[APP.state.currentSessionId].exercises.push({sets:3,rest:90,note:"Custom",options:[{n,vid:"",bio:""}]}); APP.core.saveProgram(); APP.nav.loadWorkout(APP.state.currentSessionId); } },
+                editNote: (d, i) => { 
+                    const optIdx = parseInt(LS.get(`pref_${d}_${i}`) || 0);
+                    const currentNote = APP.state.workoutData[d].exercises[i].options[optIdx].note || APP.state.workoutData[d].exercises[i].note || "";
+                    const n = prompt("Note (untuk variasi ini):", currentNote); 
+                    if(n!==null){ 
+                        APP.state.workoutData[d].exercises[i].options[optIdx].note = n; 
+                        APP.core.saveProgram(); 
+                        APP.nav.loadWorkout(d); 
+                    } 
+                },
+                editSessionTitle: (e, k) => { e.stopPropagation(); const n=prompt("Rename:",APP.state.workoutData[k].title); if(n){ APP.state.workoutData[k].title=n; APP.core.saveProgram(); APP.nav.renderDashboard(); } },
+                editVideo: (k) => { const n=prompt("URL:",LS.get(k)||""); if(n!==null){ n.trim()==="" ? LS.remove(k) : LS.set(k,n.trim()); APP.nav.loadWorkout(APP.state.currentSessionId); } },
+                editWarmup: (t) => { const n=prompt("Warmup:",APP.state.workoutData[APP.state.currentSessionId].dynamic||""); if(n!==null){ APP.state.workoutData[APP.state.currentSessionId].dynamic=n; APP.core.saveProgram(); APP.nav.loadWorkout(APP.state.currentSessionId); } },
+                
+                saveProfile: () => {
+                    const p = {
+                        name: document.getElementById("prof-name").value,
+                        h: parseFloat(document.getElementById("prof-height").value),
+                        a: parseFloat(document.getElementById("prof-age").value),
+                        g: document.getElementById("prof-gender").value,
+                        act: parseFloat(document.getElementById("prof-active").value)
+                    };
+                    LS.setJSON("profile", p);
+                    
+                    const w = LS.getJSON("weights", []);
+                    const kg = w.length > 0 ? parseFloat(w[0].v) : 80;
+                    let bmr = (10*kg) + (6.25*p.h) - (5*p.a) + (p.g==='male'?5:-161);
+                    const tdee = Math.round(bmr * p.act);
+                    LS.set("tdee", tdee);
+                    APP.data.loadProfile();
+                },
+                loadProfile: () => {
+                    const p = LS.getJSON("profile", {name:"Dok"});
+                    const w = LS.getJSON("weights", []);
+                    const tdee = LS.get("tdee");
+                    
+                    document.getElementById("display-name").innerText = p.name;
+                    document.getElementById("dashboard-bw").innerText = `BW: ${w.length?w[0].v:"--"}kg`;
+                    if(tdee) {
+                        document.getElementById("dashboard-tdee").innerText = `${tdee} kkal`;
+                        document.getElementById("tdee-box").classList.remove("hidden");
+                        document.getElementById("tdee-val").innerText = tdee;
+                        document.getElementById("bulk-val").innerText = parseInt(tdee)+300;
+                        document.getElementById("cut-val").innerText = parseInt(tdee)-500;
+                    }
+                    if(document.getElementById("prof-name")) {
+                        document.getElementById("prof-name").value = p.name || "";
+                        if(p.h) document.getElementById("prof-height").value = p.h;
+                        if(p.a) document.getElementById("prof-age").value = p.a;
+                    }
+                },
+                addWeight: () => {
+                    const v = document.getElementById("new-weight").value;
+                    if(!v) return;
+                    const w = LS.getJSON("weights", []);
+                    const d = DT.formatDate(new Date());
+                    w.unshift({v,d});
+                    LS.setJSON("weights", w);
+                    document.getElementById("new-weight").value = "";
+                    APP.ui.renderWeight();
+                    APP.data.saveProfile();
+                },
+
+                // DELETE LOGS & ROTATION FIX (Stable)
+                deleteLogs: (mode) => {
+                    let logs = LS.getJSON("gym_hist", []);
+                    if(!logs.length) return alert("Log sudah kosong.");
+                    
+                    const resetSessionTimestamp = (dateStr) => {
+                         Object.keys(APP.state.workoutData).forEach(sid => {
+                             const lastTs = parseInt(LS.get(`last_${sid}`) || 0);
+                             if(lastTs > 0) {
+                                 const lastDate = DT.formatDate(new Date(lastTs));
+                                 if(lastDate === dateStr) {
+                                     LS.remove(`last_${sid}`);
+                                 }
+                             }
+                         });
+                    };
+
+                    if(mode === 'today') {
+                        const today = DT.formatDate(new Date());
+                        if(!confirm(`Hapus semua log latihan hari ini (${today})?`)) return;
+                        
+                        const newLogs = logs.filter(l => l.date !== today);
+                        LS.setJSON("gym_hist", newLogs);
+                        resetSessionTimestamp(today); 
+                        
+                        alert("Log hari ini dihapus. Rotasi sesi dikembalikan.");
+                    }
+                    else if(mode === 'date') {
+                        const inputDate = document.getElementById("del-date-picker").value;
+                        if(!inputDate) return alert("Pilih tanggal dulu.");
+                        const targetDate = DT.formatDate(new Date(inputDate));
+                        
+                        if(!confirm(`Hapus semua log tanggal ${targetDate}?`)) return;
+                        
+                        const initialLen = logs.length;
+                        const newLogs = logs.filter(l => l.date !== targetDate);
+                        if(newLogs.length === initialLen) return alert("Tidak ada data di tanggal tersebut.");
+                        
+                        LS.setJSON("gym_hist", newLogs);
+                        resetSessionTimestamp(targetDate); 
+                        
+                        alert(`Data tanggal ${targetDate} dihapus.`);
+                    }
+                    else if(mode === 'all') {
+                        if(!confirm("⚠️ FRESH START ⚠️\n\nHapus SEMUA history & reset program ke awal?")) return;
+                        
+                        LS.remove("gym_hist");
+                        
+                        const toRemove = [];
+                        for(let i=0; i<localStorage.length; i++){
+                            const k = localStorage.key(i);
+                            if( (k.includes('_ex') && (k.endsWith('_k') || k.endsWith('_r') || k.endsWith('_rpe') || k.endsWith('_d'))) || k.startsWith('last_') ) {
+                                toRemove.push(k);
+                            }
+                        }
+                        toRemove.forEach(k => LS.remove(k));
+                        
+                        alert("Fresh Start Berhasil! Kembali ke Sesi 1.");
+                        location.reload();
+                    }
+                    
+                    APP.stats.loadOptions();
+                    APP.nav.renderDashboard();
+                },
+
+                exportData: () => {
+                    const d = {};
+                    for(let i=0; i<localStorage.length; i++){
+                        const k = localStorage.key(i);
+                        d[k] = localStorage.getItem(k);
+                    }
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(new Blob([JSON.stringify(d)],{type:"application/json"}));
+                    a.download = `cscs_bkp_${Date.now()}.json`;
+                    a.click();
+                },
+                importData: (i) => {
+                    const r = new FileReader();
+                    r.onload = e => {
+                        try {
+                            const d = JSON.parse(e.target.result);
+                            LS.clear();
+                            for(let k in d) LS.set(k, d[k]);
+                            location.reload();
+                        } catch { alert("File Corrupt/Invalid"); }
+                    };
+                    r.readAsText(i.files[0]);
+                },
+                saveToLibrary: () => {
+                    const dName = `Program ${DT.formatDate(new Date())}`;
+                    const name = prompt("Nama Program:", dName);
+                    if(!name) return;
+                    const lib = LS.getJSON("cscs_library", []);
+                    lib.push({name, date: Date.now(), data: APP.state.workoutData});
+                    LS.setJSON("cscs_library", lib);
+                    APP.ui.renderLibrary();
+                    alert("Tersimpan!");
+                },
+                loadFromLibrary: (idx) => {
+                    const lib = LS.getJSON("cscs_library", []);
+                    if(confirm(`Load "${lib[idx].name}"?`)){
+                        APP.state.workoutData = lib[idx].data;
+                        APP.core.saveProgram();
+                        location.reload();
+                    }
+                },
+                deleteFromLibrary: (idx) => {
+                    if(!confirm("Hapus?")) return;
+                    const lib = LS.getJSON("cscs_library", []);
+                    lib.splice(idx,1);
+                    LS.setJSON("cscs_library", lib);
+                    APP.ui.renderLibrary();
+                },
+                applyAIProgram: () => {
+                    try {
+                        const n = JSON.parse(document.getElementById("ai-input").value);
+                        if(n.s1 && confirm("Terapkan resep baru?")){
+                            APP.state.workoutData = n;
+                            APP.core.saveProgram();
+                            location.reload();
+                        }
+                    } catch { alert("JSON Invalid"); }
+                },
+                copyProgramToClipboard: () => {
+                    const txt = JSON.stringify(APP.state.workoutData, null, 2);
+                    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => alert("Copied!")).catch(() => APP.ui.showManualCopy(txt));
+                    else APP.ui.showManualCopy(txt);
+                },
+                exportForConsultation: () => {
+                    const h = LS.getJSON("gym_hist", []);
+                    const p = LS.getJSON("profile", {});
+                    const w = LS.getJSON("weights", []);
+                    
+                    if (!h.length) return alert("Belum ada data.");
+                    
+                    const uniqueDates = [...new Set(h.map(i => i.date))].slice(-5);
+                    const currentWeight = w.length > 0 ? w[0].v : 80;
+
+                    let rep = `[KONSULTASI KLINIS & PERFORMA]\n`;
+                    rep += `User: ${p.name||'Dok'} | Usia: ${p.a||'-'} | TB: ${p.h||170}cm | BB: ${currentWeight}kg\n`;
+                    rep += `TDEE: ${LS.get("tdee")||'?'} kkal | Goal: Hypertrophy/Strength\n\n`;
+                    rep += `--- LOG LATIHAN TERAKHIR ---\n`;
+                    
+                    uniqueDates.forEach(d => {
+                        const dayLogs = h.filter(x => x.date === d);
+                        const titles = [...new Set(dayLogs.map(l => l.title || (l.src==='spontaneous'?'Spontaneous':l.src)))].join(" & ");
+                        const dur = dayLogs[0].dur ? `${dayLogs[0].dur} menit` : 'N/A';
+                        const totalSessionVol = dayLogs.reduce((acc, curr) => acc + curr.vol, 0);
+
+                        rep += `\n📅 ${d} | 🏷️ ${titles}\n`;
+                        rep += `⏱️ Durasi: ${dur} | 🏗️ Volume Load: ${totalSessionVol} kg\n`;
+                        
+                        dayLogs.forEach(l => {
+                            const noteStr = l.note ? ` [📝 ${l.note}]` : '';
+                            const sStr = l.d.map(s => `${s.k}x${s.r}${s.rpe?'@'+s.rpe:''}`).join(", ");
+                            rep += `- ${l.ex}${noteStr}: ${sStr}\n`;
+                        });
+                    });
+                    rep += `\n--- END ---`;
+                    
+                    APP.ui.openModal('library');
+                    const b = document.getElementById('ai-input');
+                    b.value = rep; b.focus(); b.select();
+                    if(navigator.clipboard) navigator.clipboard.writeText(rep).then(()=>alert("Copied!"));
+                }
+            },
+
+            ui: {
+                showToast: (msg, type="success") => {
+                    const con = document.getElementById("toast-container");
+                    const t = document.createElement("div");
+                    t.className = `toast toast-${type}`;
+                    let icon = type === "success" ? '<i class="fa-solid fa-arrow-up"></i>' : '<i class="fa-solid fa-triangle-exclamation"></i>';
+                    t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight">${msg}</div>`;
+                    con.appendChild(t);
+                    requestAnimationFrame(() => t.classList.add("show"));
+                    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 4000);
+                },
+                toggleFocusMode: () => {
+                    APP.state.focusMode = !APP.state.focusMode;
+                    APP.ui.updateFocusBtn();
+                    const el = document.getElementById("exercise-list");
+                    APP.state.focusMode ? el.classList.add("focus-active") : el.classList.remove("focus-active");
+                    if(APP.state.focusMode) APP.ui.checkActiveCard();
+                },
+                updateFocusBtn: () => {
+                    const btn = document.getElementById("focus-btn");
+                    if(APP.state.focusMode) {
+                        btn.className="text-xs bg-emerald-600 text-white border border-emerald-500 px-3 py-1.5 rounded-full transition flex items-center gap-2 shadow-lg shadow-emerald-500/20";
+                        btn.innerHTML=`<i class="fa-solid fa-eye-slash"></i> Exit Focus`;
+                    } else {
+                        btn.className="text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2";
+                        btn.innerHTML=`<i class="fa-solid fa-eye"></i> Focus Mode`;
+                    }
+                },
+                checkActiveCard: () => {
+                    const cards = document.querySelectorAll(".exercise-card");
+                    let found = false;
+                    cards.forEach(c => {
+                        c.classList.remove("active-card");
+                        const chks = c.querySelectorAll(".checkbox-done");
+                        let all = true;
+                        chks.forEach(k => { if(!k.checked) all = false; });
+                        
+                        if(all) {
+                            c.classList.add("opacity-50","scale-95","grayscale");
+                        } else {
+                            c.classList.remove("opacity-50","scale-95","grayscale");
+                            if(!found) {
+                                c.classList.add("active-card");
+                                if(APP.state.focusMode) c.scrollIntoView({behavior:"smooth",block:"center"});
+                                found = true;
+                            }
+                        }
+                    });
+                },
+                toggleWarmup: () => document.getElementById("warmup-content").classList.toggle("hidden"),
+                openModal: (n) => {
+                    document.getElementById(`${n}-modal`).classList.remove("hidden");
+                    if(n==='weight') APP.ui.renderWeight();
+                    if(n==='profile') APP.data.loadProfile();
+                    if(n==='stats') APP.stats.loadOptions();
+                    if(n==='library') APP.ui.renderLibrary();
+                    if(n==='calendar') { APP.state.currentCalDate = new Date(); APP.ui.renderCalendar(); }
+                    if(n==='spontaneous') { if(APP.spontaneous) APP.spontaneous.renderPresets(); else alert("Error: Module Spontaneous Missing"); }
+                },
+                closeModal: (n) => document.getElementById(`${n}-modal`).classList.add("hidden"),
+                openBio: (t,b) => { document.getElementById("bio-title").innerText=t; document.getElementById("bio-text").innerText=b; APP.ui.openModal('bio'); },
+                openHist: (n) => {
+                    document.getElementById("hist-title").innerText=n;
+                    const b = document.getElementById("hist-content");
+                    const h = LS.getJSON("gym_hist", []);
+                    const l = h.filter(x=>x.ex===n).sort((a,b)=>b.ts-a.ts);
+                    let html = l.length ? "" : `<p class='text-slate-500 text-center text-xs'>No Data.</p>`;
+                    l.forEach(x => {
+                        html += `<div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-2"><div class="flex justify-between text-xs mb-1"><span class="text-slate-400">${x.date}</span><span class="text-emerald-400">Vol: ${x.vol}</span></div><div class="text-[10px] text-slate-300 flex flex-wrap gap-1 font-mono">${x.d.map(s=>`<span class="bg-slate-700 px-1 rounded">${s.k}x${s.r} ${s.rpe?`(RPE ${s.rpe})`:''}</span>`).join(" ")}</div></div>`;
+                    });
+                    b.innerHTML=html; APP.ui.openModal('history');
+                },
+                openCalc: (idx) => {
+                    const inputs = document.querySelectorAll(`#card-${idx} .input-k`);
+                    let maxK = 0;
+                    inputs.forEach(i => { const v = parseFloat(i.value); if(v>maxK) maxK=v; });
+                    if(maxK===0) return alert("Isi beban (KG) dulu!");
+                    
+                    const sData = APP.state.workoutData[APP.state.currentSessionId];
+                    const sOpt = parseInt(LS.get(`pref_${APP.state.currentSessionId}_${idx}`)||0);
+                    const name = sData.exercises[idx].options[sOpt].n.toUpperCase();
+                    
+                    const isNonBarbell = name.includes("DUMBBELL") || name.includes("DB") || name.includes("MACHINE") || name.includes("CABLE") || name.includes("PRESS") || name.includes("FLY");
+                    let useBar = true;
+                    if (isNonBarbell && !name.includes("BARBELL")) useBar = false;
+                    
+                    let baseBar = 20;
+                    let forcePlate = false;
+                    if (name.includes("LEG PRESS") || name.includes("HACK SQUAT")) { forcePlate = true; baseBar = 0; }
+                    
+                    document.getElementById("calc-target").innerText = maxK;
+                    const badge = document.getElementById("calc-type-badge");
+                    badge.innerText = (useBar || forcePlate) ? (baseBar===20 ? "Barbell Protocol" : "Plate Loaded") : "Standard Machine/DB";
+                    badge.className = (useBar || forcePlate) ? "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400" : "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-900 text-indigo-400";
+                    
+                    const steps = document.getElementById("calc-steps");
+                    let sets = useBar ? 
+                        [{p:0,r:10,l:"Bar Kosong"},{p:0.5,r:5,l:"Warm 1"},{p:0.7,r:3,l:"Warm 2"},{p:0.9,r:1,l:"Potentiation"}] : 
+                        [{p:0.5,r:8,l:"Warm 1"},{p:0.7,r:3,l:"Warm 2"},{p:0.9,r:1,l:"Potentiation"}];
+                    
+                    let html = "";
+                    sets.forEach(s => {
+                        let w = Math.round((maxK * s.p)/2.5)*2.5;
+                        if(useBar && s.p===0) w=20;
+                        if(s.p>0 && w>=maxK) return;
+                        if(w===0 && !useBar && !forcePlate) return;
+                        
+                        let pHTML = "";
+                        if((useBar && w>20) || (forcePlate && w>0)) pHTML = `<div class="mt-1">${APP.ui.getPlates(w, baseBar)}</div>`;
+                        html += `<div class="bg-slate-700/50 p-2 rounded text-sm mb-2 border border-slate-700/50"><div class="flex justify-between items-center"><span class="text-slate-400">${s.l}</span><span class="font-mono font-bold text-white">${w}kg <span class="text-emerald-400 text-xs">x${s.r}</span></span></div>${pHTML}</div>`;
+                    });
+                    steps.innerHTML = html; APP.ui.openModal('calc');
+                },
+                getPlates: (target, base) => {
+                    if (target <= base) return "";
+                    let w = (target - base) / 2;
+                    const pArr = [20, 15, 10, 5, 2.5, 1.25];
+                    let html = "";
+                    for (let p of pArr) {
+                        while (w >= p) {
+                            let c = "plate-20";
+                            if(p===15) c="plate-15"; else if(p===10) c="plate-10"; else if(p===5) c="plate-5"; else if(p===2.5) c="plate-2_5"; else if(p===1.25) c="plate-1_25";
+                            html += `<span class="plate-badge ${c}">${p}</span>`;
+                            w -= p;
+                        }
+                    }
+                    return html;
+                },
+                renderWeight: () => {
+                    const l = document.getElementById("weight-list");
+                    const w = LS.getJSON("weights", []);
+                    let html = "";
+                    w.forEach(x => html+=`<div class="flex justify-between p-2 bg-slate-900/50 rounded mb-1 text-xs"><span class="text-white font-bold">${x.v} kg</span><span class="text-slate-500">${x.d}</span></div>`);
+                    l.innerHTML = html;
+                },
+                renderLibrary: () => {
+                    const lib = LS.getJSON("cscs_library", []);
+                    const el = document.getElementById("library-list");
+                    if(!lib.length) return el.innerHTML=`<p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p>`;
+                    let html = "";
+                    lib.forEach((item, i) => {
+                        const dStr = DT.formatDate(new Date(item.date));
+                        html += `<div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center"><div><div class="text-xs text-white font-bold">${item.name}</div><div class="text-[10px] text-slate-500">${dStr}</div></div><div class="flex gap-2"><button onclick="APP.data.loadFromLibrary(${i})" class="bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded text-[10px] hover:bg-emerald-900/50 border border-emerald-900">Load</button><button onclick="APP.data.deleteFromLibrary(${i})" class="text-red-500 hover:text-white px-2 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
+                    });
+                    el.innerHTML = html;
+                },
+                renderCalendar: () => {
+                    const g = document.getElementById("cal-grid");
+                    const hText = document.getElementById("cal-month-year");
+                    const curr = APP.state.currentCalDate;
+                    const y = curr.getFullYear(), m = curr.getMonth();
+                    
+                    hText.innerText = DT.formatMonth(curr);
+                    const firstDay = new Date(y, m, 1).getDay();
+                    const daysInMonth = new Date(y, m+1, 0).getDate();
+                    
+                    let html = "";
+                    for(let i=0; i<firstDay; i++) html += `<div></div>`;
+                    
+                    const hist = LS.getJSON("gym_hist", []);
+                    for(let d=1; d<=daysInMonth; d++) {
+                        const dateObj = new Date(y, m, d);
+                        const dStr = DT.formatDate(dateObj);
+                        
+                        const logs = hist.filter(x => x.date === dStr && new Date(x.ts).getMonth() === m);
+                        let c = "bg-slate-700 text-slate-400";
+                        let dot = "";
+                        
+                        if (logs.length) {
+                            c = "bg-emerald-900/50 border border-emerald-500 text-white shadow shadow-emerald-500/20";
+                            dot = `<div class="w-1.5 h-1.5 bg-emerald-400 rounded-full mx-auto mt-1"></div>`;
+                        }
+                        if (new Date().toDateString() === dateObj.toDateString()) c += " ring-1 ring-yellow-400";
+                        
+                        html += `<div onclick="APP.ui.viewDay('${dStr}')" class="h-12 rounded-lg ${c} flex flex-col items-center justify-center cursor-pointer hover:bg-slate-600 transition active:scale-95"><span class="text-xs font-bold leading-none">${d}</span>${dot}</div>`;
+                    }
+                    g.innerHTML = html;
+                },
+                changeMonth: (d) => { APP.state.currentCalDate.setMonth(APP.state.currentCalDate.getMonth()+d); APP.ui.renderCalendar(); },
+                viewDay: (dStr) => {
+                    const box = document.getElementById("cal-details");
+                    const m = APP.state.currentCalDate.getMonth();
+                    const hist = LS.getJSON("gym_hist", []);
+                    const logs = hist.filter(x => x.date === dStr && new Date(x.ts).getMonth() === m);
+                    
+                    if(!logs.length) return box.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50"><i class="fa-solid fa-bed mb-1 text-xl"></i><span class="text-xs italic">Rest Day</span></div>`;
+                    
+                    let html = `<div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-1"><span class="text-xs font-bold text-white">${dStr}</span><span class="text-[10px] text-emerald-400 bg-emerald-900/30 px-2 rounded">${logs.length} Gerakan</span></div><div class="space-y-1 max-h-[100px] overflow-y-auto no-scrollbar">`;
+                    logs.forEach(l => {
+                        html += `<div class="flex justify-between items-center bg-slate-800/80 p-1.5 rounded border border-slate-700"><span class="text-[10px] text-slate-200 truncate w-2/3">${l.ex}</span><span class="text-[10px] font-mono text-emerald-500 font-bold">${l.top}kg</span></div>`;
+                    });
+                    html += `</div>`;
+                    box.innerHTML = html;
+                },
+                showManualCopy: (txt) => {
+                    APP.ui.openModal('library');
+                    const b = document.getElementById('ai-input');
+                    b.value = txt; b.focus(); b.select();
+                    alert("Auto-copy blocked. Silakan copy manual teks di bawah.");
+                }
+            },
+
+            stats: {
+                chart: null,
+                init: () => APP.stats.loadOptions(),
+                loadOptions: () => {
+                    const h = LS.getJSON("gym_hist", []);
+                    const u = [...new Set(h.map(x=>x.ex))].sort();
+                    const s = document.getElementById("stats-select");
+                    s.innerHTML = "";
+                    u.forEach(x => s.innerHTML+=`<option value="${x}">${x}</option>`);
+                    APP.stats.updateChart();
+                },
+                switchTab: (t) => {
+                    const ch = document.getElementById("stats-chart-view");
+                    const tb = document.getElementById("stats-table-view");
+                    const bC = document.getElementById("tab-chart");
+                    const bT = document.getElementById("tab-table");
+                    
+                    if(t==='chart'){ ch.classList.remove("hidden"); tb.classList.add("hidden"); bC.className="tab-btn active flex-1"; bT.className="tab-btn inactive flex-1"; }
+                    else { ch.classList.add("hidden"); tb.classList.remove("hidden"); bC.className="tab-btn inactive flex-1"; bT.className="tab-btn active flex-1"; }
+                },
+                updateChart: () => {
+                    if(typeof Chart === 'undefined') return;
+                    const sel = document.getElementById("stats-select").value;
+                    if(!sel) return;
+                    
+                    const h = LS.getJSON("gym_hist", []).filter(x => x.ex === sel).sort((a,b)=>a.ts-b.ts);
+                    const msg = document.getElementById("no-data-msg");
+                    const vital = document.getElementById("vital-signs");
+                    const tbody = document.getElementById("hist-table-body");
+                    
+                    if(!h.length) {
+                        if(APP.stats.chart) { APP.stats.chart.destroy(); APP.stats.chart=null; }
+                        msg.classList.remove("hidden"); vital.classList.add("hidden"); tbody.innerHTML="";
+                        return;
+                    }
+                    msg.classList.add("hidden"); vital.classList.remove("hidden");
+                    
+                    let mx=0, tv=0; 
+                    let tHtml = "";
+                    [...h].sort((a,b)=>b.ts-a.ts).forEach(l => {
+                        if(l.top > mx) mx = l.top;
+                        tv += l.vol;
+                        l.d.forEach(s => {
+                             tHtml += `<tr><td class="text-slate-400">${l.date}</td><td class="font-bold text-white">${s.k}kg</td><td class="text-emerald-400">x${s.r}</td><td class="text-yellow-400 font-bold">${s.rpe||'-'}</td><td class="text-blue-400">${s.k*s.r}</td></tr>`;
+                        });
+                    });
+                    tbody.innerHTML = tHtml;
+                    document.getElementById("stat-pr").innerText = mx;
+                    document.getElementById("stat-vol").innerText = Math.round(tv/h.length);
+                    document.getElementById("stat-count").innerText = h.length;
+                    
+                    const ctx = document.getElementById('progressChart').getContext('2d');
+                    if(APP.stats.chart) APP.stats.chart.destroy();
+                    
+                    APP.stats.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: h.map(d=>d.date),
+                            datasets: [
+                                { label: 'Top Set', data: h.map(d=>d.top), borderColor: '#10b981', backgroundColor: '#10b981', yAxisID: 'y', tension: 0.3 },
+                                { label: 'Volume', data: h.map(d=>d.vol), type: 'bar', yAxisID: 'y1', backgroundColor: 'rgba(59,130,246,0.2)' }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { display: true, position: 'left', grid: { color: '#334155' } },
+                                y1: { display: true, position: 'right', grid: { display: false } },
+                                x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 5 } }
+                            }
+                        }
+                    });
+                }
+            },
+
+            timer: {
+                interval: null,
+                timeLeft: 0,
+                startTime: 0,
+                start: (s) => {
+                    APP.timer.stop();
+                    APP.timer.timeLeft = s;
+                    document.getElementById("timer-modal").classList.remove("hidden");
+                    APP.timer.updateDisplay();
+                    APP.timer.interval = setInterval(() => {
+                        APP.timer.timeLeft--;
+                        APP.timer.updateDisplay();
+                        if(APP.timer.timeLeft <= 0) {
+                            if("vibrate" in navigator) navigator.vibrate([200,100,200]);
+                            APP.timer.stop();
+                        }
+                    }, 1000);
+                },
+                add: (s) => { APP.timer.timeLeft += s; APP.timer.updateDisplay(); },
+                stop: () => { clearInterval(APP.timer.interval); document.getElementById("timer-modal").classList.add("hidden"); },
+                updateDisplay: () => document.getElementById("timer-display").innerText = APP.timer.timeLeft
+            },
+
+            debug: {
+                showFatalError: (ctx, err, extra="") => {
+                    document.getElementById("error-modal").classList.remove("hidden");
+                    document.getElementById("error-log-text").value = `[LOG V20.7]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
+                },
+                copyErrorLog: () => {
+                    const t = document.getElementById("error-log-text");
+                    t.select();
+                    navigator.clipboard.writeText(t.value).then(()=>alert("Copied!"));
+                }
+            }
+        };
+
+        // ==========================================
+        // 6. STARTUP
+        // ==========================================
+        window.onload = () => APP.init();
+
+    </script>
+</body>
+</html>
