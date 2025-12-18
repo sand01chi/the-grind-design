@@ -1494,28 +1494,35 @@ if ('serviceWorker' in navigator) {
         console.log('GSI Ready');
     }
 
+    // --- FUNGSI DOWNLOADER OTOMATIS (Sesuai Permintaan) ---
+    function triggerManualDownload(jsonString) {
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup_cloud_fisik_${new Date().getTime()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     async function syncToCloud() {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             
-            // 1. KUMPULKAN DATA (Full Dump)
+            // 1. SIAPKAN DATA
             const backupData = {};
             let itemCount = 0;
-            
-            console.log("Memulai Backup V4.0...");
-
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('gapi') || key.startsWith('google')) continue;
-                
-                const val = localStorage.getItem(key);
-                backupData[key] = val;
+                backupData[key] = localStorage.getItem(key);
                 itemCount++;
             }
 
-            // Validasi Data Kosong
             if (itemCount === 0) {
-                if(!confirm('⚠️ Data lokal 0 item. Lanjutkan backup? (Ini akan membuat file kosong di Cloud)')) return;
+                if(!confirm('⚠️ Data lokal 0 item. Lanjutkan Backup?')) return;
             }
 
             const rawData = JSON.stringify(backupData);
@@ -1523,56 +1530,53 @@ if ('serviceWorker' in navigator) {
             const accessToken = gapi.client.getToken().access_token;
 
             try {
-                // 2. CEK FILE LAMA
+                // 2. CARI FILE LAMA
                 const search = await gapi.client.drive.files.list({ 
                     q: `name = '${fileName}'`, 
                     spaces: 'appDataFolder',
                     fields: 'files(id)' 
                 });
                 
-                const existingFiles = search.result.files;
+                let fileId;
 
-                if (existingFiles.length > 0) {
-                    // --- JALUR A: UPDATE FILE (Metode Langsung/Media) ---
-                    // Ini jauh lebih stabil untuk update konten
-                    const fileId = existingFiles[0].id;
-                    console.log(`File ditemukan (${fileId}). Melakukan Direct Update...`);
-
-                    const updateResponse = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-                        method: 'PATCH',
+                if (search.result.files.length > 0) {
+                    // FILE ADA -> Ambil ID-nya
+                    fileId = search.result.files[0].id;
+                    console.log("File ditemukan, ID:", fileId);
+                } else {
+                    // FILE TIDAK ADA -> Buat WADAH KOSONG dulu (Metadata Only)
+                    // Ini menghindari error Multipart yang bikin file 0 bytes
+                    console.log("File tidak ada, membuat wadah baru...");
+                    const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+                        method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
                             'Content-Type': 'application/json'
                         },
-                        body: rawData
+                        body: JSON.stringify({
+                            name: fileName,
+                            parents: ['appDataFolder']
+                        })
                     });
-
-                    if (!updateResponse.ok) throw new Error(`Gagal Update: ${updateResponse.status}`);
-                    
-                    alert(`✅ Update Berhasil! Data (${itemCount} item) telah ditimpa ke file cloud.`);
-
-                } else {
-                    // --- JALUR B: FILE BARU (Metode Multipart) ---
-                    // Hanya dipakai saat pertama kali buat file
-                    console.log("File belum ada. Membuat File Baru...");
-                    
-                    const file = new Blob([rawData], { type: 'application/json' });
-                    const metadata = { name: fileName, parents: ['appDataFolder'] };
-                    
-                    const formData = new FormData();
-                    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                    formData.append('file', file);
-
-                    const createResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${accessToken}` },
-                        body: formData
-                    });
-
-                    if (!createResponse.ok) throw new Error(`Gagal Create: ${createResponse.status}`);
-                    
-                    alert(`✅ File Baru Berhasil Dibuat! (${itemCount} item tersimpan).`);
+                    const createJson = await createRes.json();
+                    fileId = createJson.id;
                 }
+
+                // 3. INJEKSI KONTEN (Direct Media Upload)
+                // Kita gunakan method PATCH ke upload endpoint. Ini 100% mengisi konten.
+                console.log("Mengupload konten ke ID:", fileId);
+                const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: rawData
+                });
+
+                if (!uploadRes.ok) throw new Error(`Upload Gagal: ${uploadRes.status}`);
+
+                alert(`✅ Backup Sukses! ${itemCount} item data diamankan di Cloud.`);
 
             } catch (err) { 
                 console.error("BACKUP ERROR:", err); 
@@ -1591,32 +1595,34 @@ if ('serviceWorker' in navigator) {
                 if (search.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
                 const fileId = search.result.files[0].id;
 
-                if (!confirm('PERINGATAN: Data HP akan DITIMPA TOTAL dengan data Cloud. Lanjutkan?')) return;
+                if (!confirm('PERINGATAN: Data HP akan DITIMPA. Lanjutkan?')) return;
 
-                // 2. Download Isi
+                // 2. Download Konten
                 const accessToken = gapi.client.getToken().access_token;
                 const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
 
                 const rawText = await response.text();
-                console.log("Cloud Raw Length:", rawText.length);
-
-                // --- VALIDASI ZOMBIE FILE ---
-                if (!rawText || rawText.length === 0) {
-                    alert("⚠️ FILE ZOMBIE TERDETEKSI!\nFile ada di Cloud tapi isinya 0 bytes.\n\nSOLUSI: Silakan lakukan 'Backup' ulang dari HP/Komputer yang datanya masih lengkap untuk memperbaiki file ini.");
+                
+                // 3. Validasi Zombie & Download Fisik
+                if (!rawText || rawText.length < 5) {
+                    alert("⚠️ File Cloud Kosong (Zombie). Silakan Backup ulang.");
                     return;
                 }
 
-                // 3. Parsing
-                let cloudData;
-                try { cloudData = JSON.parse(rawText); } catch(e) { alert("❌ JSON Rusak."); return; }
+                // *** FITUR PERMINTAAN DOKTER ***
+                // Download file JSON-nya ke HP/Laptop sebagai bukti fisik
+                triggerManualDownload(rawText);
 
+                // 4. Parsing & Inject
+                let cloudData;
+                try { cloudData = JSON.parse(rawText); } catch(e) { alert("Format JSON Rusak."); return; }
+                
                 if (typeof cloudData === 'string') {
                     try { cloudData = JSON.parse(cloudData); } catch(e) {}
                 }
 
-                // 4. Inject ke LocalStorage
                 localStorage.clear();
                 let restoreCount = 0;
                 for (const key in cloudData) {
@@ -1628,8 +1634,11 @@ if ('serviceWorker' in navigator) {
                     }
                 }
                 
-                alert(`✅ Restore Sukses! ${restoreCount} item dipulihkan.\nAplikasi akan dimuat ulang...`);
-                location.reload();
+                // Beri jeda sedikit agar user melihat file terdownload
+                setTimeout(() => {
+                    alert(`✅ Restore Berhasil! File backup juga telah didownload ke perangkat Anda.\nAplikasi akan dimuat ulang...`);
+                    location.reload();
+                }, 1000);
 
             } catch (err) { 
                 console.error("RESTORE ERROR:", err); 
