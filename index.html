@@ -1498,23 +1498,23 @@ if ('serviceWorker' in navigator) {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             
-            // --- LOGIKA BARU: AMBIL SEMUA DATA (FULL DUMP) ---
+            // 1. Ambil SEMUA data LocalStorage (Full Dump)
             const backupData = {};
-            // Loop semua kunci yang ada di LocalStorage HP
+            let itemCount = 0;
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                // Jangan backup token Google atau sampah sistem lain
-                if (key.startsWith('gapi') || key.startsWith('google')) continue; 
+                // Abaikan sampah sistem
+                if (key.startsWith('gapi') || key.startsWith('google')) continue;
                 backupData[key] = localStorage.getItem(key);
+                itemCount++;
             }
 
-            // Validasi: Pastikan ada isinya
-            const rawData = JSON.stringify(backupData);
-            if (Object.keys(backupData).length === 0) {
-                alert('⚠️ LocalStorage Kosong. Tidak ada yang perlu dibackup.');
+            if (itemCount === 0) {
+                alert('⚠️ LocalStorage Kosong. Tidak ada data untuk dibackup.');
                 return;
             }
 
+            const rawData = JSON.stringify(backupData);
             const fileName = 'the-grind-design-backup.json';
             const file = new Blob([rawData], { type: 'application/json' });
             const metadata = { name: fileName, parents: ['appDataFolder'] };
@@ -1524,7 +1524,7 @@ if ('serviceWorker' in navigator) {
             formData.append('file', file);
 
             try {
-                // Proses Upload (sama seperti sebelumnya)
+                // Upload/Update Logic
                 const search = await gapi.client.drive.files.list({ q: `name = '${fileName}'`, spaces: 'appDataFolder' });
                 const existingFiles = search.result.files;
                 
@@ -1538,7 +1538,7 @@ if ('serviceWorker' in navigator) {
                     headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
                     body: formData
                 });
-                alert(`✅ Backup Full Berhasil! (${Object.keys(backupData).length} item data diamankan).`);
+                alert(`✅ Backup Berhasil! (${itemCount} item data tersimpan).`);
             } catch (err) { alert('❌ Gagal Backup.'); console.error(err); }
         };
         tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
@@ -1551,26 +1551,38 @@ if ('serviceWorker' in navigator) {
                 const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
                 if (response.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
                 
-                if (!confirm('PERINGATAN: Data di HP ini akan diganti TOTAL dengan data dari Cloud. Lanjutkan?')) return;
+                if (!confirm('PERINGATAN: Data saat ini akan diganti dengan data Cloud. Lanjutkan?')) return;
 
                 const fileContent = await gapi.client.drive.files.get({ fileId: response.result.files[0].id, alt: 'media' });
                 
-                // --- LOGIKA BARU: SEBAR DATA (INJECT) ---
-                const cloudData = fileContent.result; // Ini berupa Objek JSON besar
-                
-                // Bersihkan data lama agar tidak bentrok (Opsional, tapi disarankan)
+                // --- BAGIAN KRUSIAL (PERBAIKAN FORMAT) ---
+                let cloudData = fileContent.result;
+
+                // Jika Google memberikan data sebagai Text (String), kita Parse paksa jadi Object
+                if (typeof cloudData === 'string') {
+                    try {
+                        cloudData = JSON.parse(cloudData);
+                    } catch (e) {
+                        alert('❌ Error: Format data Cloud rusak (Invalid JSON).');
+                        return;
+                    }
+                }
+
+                // Bersihkan data lama
                 localStorage.clear();
 
-                // Masukkan kembali satu per satu
-                let count = 0;
+                // Masukkan data satu per satu
+                let restoreCount = 0;
                 for (const key in cloudData) {
                     if (cloudData.hasOwnProperty(key)) {
-                        localStorage.setItem(key, cloudData[key]);
-                        count++;
+                        // Pastikan yang disimpan adalah String murni (tanpa double quotes tambahan)
+                        const value = typeof cloudData[key] === 'object' ? JSON.stringify(cloudData[key]) : cloudData[key];
+                        localStorage.setItem(key, value);
+                        restoreCount++;
                     }
                 }
                 
-                alert(`✅ Restore Berhasil! ${count} item data telah dipulihkan. Reloading...`);
+                alert(`✅ Restore Sukses! ${restoreCount} item dipulihkan.\nAplikasi akan dimuat ulang...`);
                 location.reload();
             } catch (err) { alert('❌ Gagal Restore.'); console.error(err); }
         };
