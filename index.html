@@ -1477,7 +1477,7 @@ if ('serviceWorker' in navigator) {
     });
 }
     </script>
- <script>
+<script>
     const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
     let tokenClient;
@@ -1498,20 +1498,20 @@ if ('serviceWorker' in navigator) {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             
-            // 1. Ambil SEMUA data LocalStorage (Full Dump)
+            // 1. Full Dump LocalStorage
             const backupData = {};
             let itemCount = 0;
+            
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                // Abaikan sampah sistem
                 if (key.startsWith('gapi') || key.startsWith('google')) continue;
                 backupData[key] = localStorage.getItem(key);
                 itemCount++;
             }
 
+            // Konfirmasi Paksa jika 0 (Jaga-jaga)
             if (itemCount === 0) {
-                alert('⚠️ LocalStorage Kosong. Tidak ada data untuk dibackup.');
-                return;
+                if(!confirm('⚠️ Data lokal 0 item. Yakin tetap backup (ini akan menimpa file cloud)?')) return;
             }
 
             const rawData = JSON.stringify(backupData);
@@ -1524,7 +1524,6 @@ if ('serviceWorker' in navigator) {
             formData.append('file', file);
 
             try {
-                // Upload/Update Logic
                 const search = await gapi.client.drive.files.list({ q: `name = '${fileName}'`, spaces: 'appDataFolder' });
                 const existingFiles = search.result.files;
                 
@@ -1538,55 +1537,63 @@ if ('serviceWorker' in navigator) {
                     headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
                     body: formData
                 });
-                alert(`✅ Backup Berhasil! (${itemCount} item data tersimpan).`);
+                alert(`✅ Backup Berhasil! ${itemCount} item tersimpan.`);
             } catch (err) { alert('❌ Gagal Backup.'); console.error(err); }
         };
-        tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
+        tokenClient.requestAccessToken({ prompt: '' });
     }
 
     async function restoreFromCloud() {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             try {
-                const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
-                if (response.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
+                // 1. Cari File ID
+                const search = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
+                if (search.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
                 
-                if (!confirm('PERINGATAN: Data saat ini akan diganti dengan data Cloud. Lanjutkan?')) return;
+                const fileId = search.result.files[0].id;
 
-                const fileContent = await gapi.client.drive.files.get({ fileId: response.result.files[0].id, alt: 'media' });
+                if (!confirm('PERINGATAN: Restore akan MENGGANTI TOTAL data di HP ini. Lanjutkan?')) return;
+
+                // 2. DOWNLOAD MENGGUNAKAN FETCH (Lebih Stabil)
+                const accessToken = gapi.client.getToken().access_token;
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                // 3. Parsing JSON Manual
+                const cloudData = await response.json();
                 
-                // --- BAGIAN KRUSIAL (PERBAIKAN FORMAT) ---
-                let cloudData = fileContent.result;
+                // Debugging: Cek isi di Console
+                console.log("Data Cloud Diterima:", cloudData);
+                console.log("Jumlah Keys:", Object.keys(cloudData).length);
 
-                // Jika Google memberikan data sebagai Text (String), kita Parse paksa jadi Object
-                if (typeof cloudData === 'string') {
-                    try {
-                        cloudData = JSON.parse(cloudData);
-                    } catch (e) {
-                        alert('❌ Error: Format data Cloud rusak (Invalid JSON).');
-                        return;
-                    }
+                if (Object.keys(cloudData).length === 0) {
+                    alert('⚠️ File Cloud ditemukan, tapi KOSONG (0 item). Restore dibatalkan.');
+                    return;
                 }
 
-                // Bersihkan data lama
+                // 4. Proses Restore
                 localStorage.clear();
-
-                // Masukkan data satu per satu
                 let restoreCount = 0;
                 for (const key in cloudData) {
                     if (cloudData.hasOwnProperty(key)) {
-                        // Pastikan yang disimpan adalah String murni (tanpa double quotes tambahan)
-                        const value = typeof cloudData[key] === 'object' ? JSON.stringify(cloudData[key]) : cloudData[key];
-                        localStorage.setItem(key, value);
+                        localStorage.setItem(key, cloudData[key]);
                         restoreCount++;
                     }
                 }
                 
                 alert(`✅ Restore Sukses! ${restoreCount} item dipulihkan.\nAplikasi akan dimuat ulang...`);
                 location.reload();
-            } catch (err) { alert('❌ Gagal Restore.'); console.error(err); }
+
+            } catch (err) { 
+                console.error("RESTORE ERROR:", err); 
+                alert(`❌ Gagal Restore: ${err.message}`); 
+            }
         };
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        tokenClient.requestAccessToken({ prompt: '' });
     }
 
     window.addEventListener('load', () => { gapiLoaded(); gsiLoaded(); });
