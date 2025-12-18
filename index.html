@@ -1509,9 +1509,9 @@ if ('serviceWorker' in navigator) {
                 itemCount++;
             }
 
-            // Konfirmasi Paksa jika 0 (Jaga-jaga)
+            // Izinkan backup walau 0 item (untuk menimpa file corrupt di cloud)
             if (itemCount === 0) {
-                if(!confirm('⚠️ Data lokal 0 item. Yakin tetap backup (ini akan menimpa file cloud)?')) return;
+                if(!confirm('⚠️ Data lokal 0 item. Lanjutkan backup untuk memperbaiki file cloud?')) return;
             }
 
             const rawData = JSON.stringify(backupData);
@@ -1537,7 +1537,7 @@ if ('serviceWorker' in navigator) {
                     headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
                     body: formData
                 });
-                alert(`✅ Backup Berhasil! ${itemCount} item tersimpan.`);
+                alert(`✅ Backup Berhasil! ${itemCount} item tersimpan/diperbarui.`);
             } catch (err) { alert('❌ Gagal Backup.'); console.error(err); }
         };
         tokenClient.requestAccessToken({ prompt: '' });
@@ -1547,40 +1547,52 @@ if ('serviceWorker' in navigator) {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             try {
-                // 1. Cari File ID
                 const search = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
                 if (search.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
-                
                 const fileId = search.result.files[0].id;
 
                 if (!confirm('PERINGATAN: Restore akan MENGGANTI TOTAL data di HP ini. Lanjutkan?')) return;
 
-                // 2. DOWNLOAD MENGGUNAKAN FETCH (Lebih Stabil)
+                // DOWNLOAD RAW
                 const accessToken = gapi.client.getToken().access_token;
                 const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
 
-                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-                // 3. Parsing JSON Manual
-                const cloudData = await response.json();
+                const rawText = await response.text();
                 
-                // Debugging: Cek isi di Console
-                console.log("Data Cloud Diterima:", cloudData);
-                console.log("Jumlah Keys:", Object.keys(cloudData).length);
-
-                if (Object.keys(cloudData).length === 0) {
-                    alert('⚠️ File Cloud ditemukan, tapi KOSONG (0 item). Restore dibatalkan.');
+                // --- FIX: NULL CHECK ---
+                if (!rawText || rawText === "null" || rawText.trim() === "") {
+                    alert("⚠️ File di Cloud ditemukan TAPI KOSONG/RUSAK (Null). Silakan lakukan Backup ulang dari HP yang datanya benar.");
                     return;
                 }
 
-                // 4. Proses Restore
+                let cloudData;
+                try {
+                    cloudData = JSON.parse(rawText);
+                } catch (e) {
+                    alert("❌ Format Data Cloud Rusak (Invalid JSON)."); return;
+                }
+
+                // Handle Double Stringify
+                if (typeof cloudData === 'string') {
+                    try { cloudData = JSON.parse(cloudData); } catch (e) {}
+                }
+
+                // --- FIX: OBJECT CHECK ---
+                if (!cloudData || typeof cloudData !== 'object') {
+                     alert("⚠️ Data Cloud tidak valid (Bukan Objek). Lakukan Backup ulang.");
+                     return;
+                }
+
+                // RESTORE
                 localStorage.clear();
                 let restoreCount = 0;
                 for (const key in cloudData) {
                     if (cloudData.hasOwnProperty(key)) {
-                        localStorage.setItem(key, cloudData[key]);
+                        let val = cloudData[key];
+                        if (typeof val === 'object') val = JSON.stringify(val);
+                        localStorage.setItem(key, val);
                         restoreCount++;
                     }
                 }
@@ -1590,7 +1602,7 @@ if ('serviceWorker' in navigator) {
 
             } catch (err) { 
                 console.error("RESTORE ERROR:", err); 
-                alert(`❌ Gagal Restore: ${err.message}`); 
+                alert(`❌ Error: ${err.message}`); 
             }
         };
         tokenClient.requestAccessToken({ prompt: '' });
