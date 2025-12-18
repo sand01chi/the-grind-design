@@ -1477,11 +1477,7 @@ if ('serviceWorker' in navigator) {
     });
 }
     </script>
-    <script>
-    // --- KONFIGURASI KUNCI (AUDIT: gymLogData) ---
-    const STORAGE_KEY = 'gymLogData'; 
-    // ---------------------------------------------
-
+ <script>
     const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
     let tokenClient;
@@ -1489,23 +1485,33 @@ if ('serviceWorker' in navigator) {
     function gapiLoaded() {
         gapi.load('client', async () => {
             await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+            console.log('GAPI Ready');
         });
     }
 
     function gsiLoaded() {
         tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
+        console.log('GSI Ready');
     }
 
     async function syncToCloud() {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) throw (resp);
             
-            // 1. Ambil data asli
-            const rawData = localStorage.getItem(STORAGE_KEY);
-            
-            // 2. Cegah Backup Kosong (Safety)
-            if (!rawData || rawData === "[]" || rawData.length < 5) {
-                alert('⚠️ Data lokal kosong. Backup dibatalkan untuk melindungi data Cloud.');
+            // --- LOGIKA BARU: AMBIL SEMUA DATA (FULL DUMP) ---
+            const backupData = {};
+            // Loop semua kunci yang ada di LocalStorage HP
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                // Jangan backup token Google atau sampah sistem lain
+                if (key.startsWith('gapi') || key.startsWith('google')) continue; 
+                backupData[key] = localStorage.getItem(key);
+            }
+
+            // Validasi: Pastikan ada isinya
+            const rawData = JSON.stringify(backupData);
+            if (Object.keys(backupData).length === 0) {
+                alert('⚠️ LocalStorage Kosong. Tidak ada yang perlu dibackup.');
                 return;
             }
 
@@ -1518,6 +1524,7 @@ if ('serviceWorker' in navigator) {
             formData.append('file', file);
 
             try {
+                // Proses Upload (sama seperti sebelumnya)
                 const search = await gapi.client.drive.files.list({ q: `name = '${fileName}'`, spaces: 'appDataFolder' });
                 const existingFiles = search.result.files;
                 
@@ -1531,7 +1538,7 @@ if ('serviceWorker' in navigator) {
                     headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
                     body: formData
                 });
-                alert(`✅ Backup Berhasil! (${rawData.length} karakter)`);
+                alert(`✅ Backup Full Berhasil! (${Object.keys(backupData).length} item data diamankan).`);
             } catch (err) { alert('❌ Gagal Backup.'); console.error(err); }
         };
         tokenClient.requestAccessToken({ prompt: gapi.client.getToken() === null ? 'consent' : '' });
@@ -1544,18 +1551,26 @@ if ('serviceWorker' in navigator) {
                 const response = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
                 if (response.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
                 
-                if (!confirm('Timpah data HP ini dengan data Cloud?')) return;
+                if (!confirm('PERINGATAN: Data di HP ini akan diganti TOTAL dengan data dari Cloud. Lanjutkan?')) return;
 
                 const fileContent = await gapi.client.drive.files.get({ fileId: response.result.files[0].id, alt: 'media' });
                 
-                // --- FIX UTAMA: SMART DATA HANDLING ---
-                const resultBody = fileContent.result;
-                // Jika Google memberi Objek (JSON), jadikan string. Jika sudah String, biarkan.
-                const stringData = typeof resultBody === 'object' ? JSON.stringify(resultBody) : resultBody;
+                // --- LOGIKA BARU: SEBAR DATA (INJECT) ---
+                const cloudData = fileContent.result; // Ini berupa Objek JSON besar
                 
-                localStorage.setItem(STORAGE_KEY, stringData);
+                // Bersihkan data lama agar tidak bentrok (Opsional, tapi disarankan)
+                localStorage.clear();
+
+                // Masukkan kembali satu per satu
+                let count = 0;
+                for (const key in cloudData) {
+                    if (cloudData.hasOwnProperty(key)) {
+                        localStorage.setItem(key, cloudData[key]);
+                        count++;
+                    }
+                }
                 
-                alert('✅ Restore Sukses! Aplikasi akan dimuat ulang...');
+                alert(`✅ Restore Berhasil! ${count} item data telah dipulihkan. Reloading...`);
                 location.reload();
             } catch (err) { alert('❌ Gagal Restore.'); console.error(err); }
         };
