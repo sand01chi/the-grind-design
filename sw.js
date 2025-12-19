@@ -19,10 +19,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       console.log('V21 Final: Caching Assets...');
-      // 1. Cache file internal (Pasti Berhasil)
       await cache.addAll(ASSETS_TO_CACHE);
-      
-      // 2. Cache file eksternal (Gunakan Request khusus no-cors)
       const libraryPromises = EXTERNAL_LIBS.map(async (url) => {
         try {
           const request = new Request(url, { mode: 'no-cors' });
@@ -38,25 +35,22 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(keys.map((key) => {
-        if (key !== CACHE_NAME) return caches.delete(key);
-      }));
-    })
-  );
-  self.clients.claim();
-});
-
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Jika ada di cache, pakai cache. Jika tidak, ambil dari network.
-      return response || fetch(event.request).catch(() => {
-          // Jika offline dan file tidak ada di cache (misal gambar baru)
-          console.log('Offline & Not in cache');
-      });
-    })
+    fetch(event.request)
+      .then((response) => {
+       
+        if (event.request.method === 'GET') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
+
