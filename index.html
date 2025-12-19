@@ -850,10 +850,10 @@
               id="prof-active"
               class="w-full p-2 bg-slate-900 rounded text-white text-sm"
             >
-              <option value="1.2">Sedentary (Tidak ada olahraga)</option>
-              <option value="1.375">Light (1-3 hari/minggu)</option>
-              <option value="1.55">Moderate (3-5 hari/minggu)</option>
-              <option value="1.725">Active (6-7 hari/minggu)</option>
+              <option value="1.2">Sedentary</option>
+              <option value="1.375">Light</option>
+              <option value="1.55">Moderate</option>
+              <option value="1.725">Active</option>
             </select>
           </div>
           <div
@@ -879,6 +879,34 @@
           >
             Simpan
           </button>
+        </div>
+        <div
+          class="mb-4 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner"
+        >
+          <h3
+            class="text-[10px] font-bold text-indigo-400 mb-3 uppercase tracking-widest flex items-center"
+          >
+            <i class="fa-solid fa-cloud mr-2"></i> Cloud Sync (G-Drive)
+          </h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              onclick="syncToCloud()"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1"
+            >
+              <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup
+            </button>
+            <button
+              onclick="restoreFromCloud()"
+              class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1"
+            >
+              <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore
+            </button>
+          </div>
+          <p
+            class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight"
+          >
+            Backup disimpan aman di AppData Google Drive.
+          </p>
         </div>
         <div class="border-t border-slate-700 pt-3 mt-3">
           <h4
@@ -1311,6 +1339,7 @@
                                   const timeStr = DT.formatRelative(last);
                                   const isRec = k === recommended;
 
+                                  // UPDATED V21.0: ADDED DELETE BUTTON
                                   htmlBuffer += `
                                   <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
                                       <div>
@@ -1443,7 +1472,7 @@
                       }
                   },
 
-
+                  // SPONTANEOUS MODULE (FIXED POSITION)
                   spontaneous: {
                       startEmpty: () => {
                           const title = prompt("Nama Sesi Spontan:", "Express Session");
@@ -1509,7 +1538,7 @@
                           }
 
                           if (data) {
-                              APP.state.workoutData['spontaneous'] = JSON.parse(JSON.stringify(data));
+                              APP.state.workoutData['spontaneous'] = JSON.parse(JSON.stringify(data)); // Deep copy
                               APP.state.workoutData['spontaneous'].label = "SPONTANEOUS";
                               APP.ui.closeModal('spontaneous');
                               APP.nav.loadWorkout('spontaneous');
@@ -1540,7 +1569,7 @@
                       }
                   },
 
-
+                  // DATA MODULE (WITH AI BRIDGE & DELETE FIX)
                   data: {
                       saveSet: (id, t, v) => { LS.set(`${id}_${t}`, v); if(t==='rpe') APP.nav.loadWorkout(APP.state.currentSessionId); },
                       toggleDone: (id, el, idx) => {
@@ -1590,7 +1619,7 @@
                       },
                       editSessionTitle: (e, k) => { e.stopPropagation(); const n=prompt("Rename:",APP.state.workoutData[k].title); if(n){ APP.state.workoutData[k].title=n; APP.core.saveProgram(); APP.nav.renderDashboard(); } },
 
-
+                      // UPDATED V21.0: DELETE SESSION FUNCTION
                       deleteSession: (e, k) => {
                           e.stopPropagation();
                           if(confirm(`Hapus Sesi "${APP.state.workoutData[k].title}"?\n\nPERINGATAN: Sesi ini akan hilang permanen dari program.`)){
@@ -1656,7 +1685,7 @@
                           APP.data.saveProfile();
                       },
 
-
+                      // DELETE LOGS & ROTATION FIX
                       deleteLogs: (mode) => {
                           let logs = LS.getJSON("gym_hist", []);
                           if(!logs.length) return alert("Log sudah kosong.");
@@ -1770,19 +1799,19 @@
                           APP.ui.renderLibrary();
                       },
 
-
+                      // SMART MERGE UPDATE V20.9
                       applyAIProgram: () => {
                           try {
                               const inputStr = document.getElementById("ai-input").value;
                               const newData = JSON.parse(inputStr);
 
-
+                              // Validation: Check keys
                               const keys = Object.keys(newData);
                               const validKeys = ['s1', 's2', 's3', 's4', 'spontaneous'];
                               const isValid = keys.some(k => validKeys.includes(k));
 
                               if(isValid && confirm("Terapkan pembaruan resep? (Sesi lain aman)")){
-
+                                  // SMART MERGE LOGIC
                                   APP.state.workoutData = {
                                       ...APP.state.workoutData,
                                       ...newData
@@ -1802,12 +1831,12 @@
                           else APP.ui.showManualCopy(txt);
                       },
 
-
+                      // BRIDGE AUDIT AI: UPDATED PROMPT FOR PARTIAL UPDATE
                       prepareGeminiAudit: () => {
                           const h = LS.getJSON("gym_hist", []);
                           if (!h.length) return alert("Belum ada log latihan untuk diaudit.");
 
-                          const lastLog = h[h.length - 1];
+                          const lastLog = h[h.length - 1]; // Ambil log terakhir
                           const p = LS.getJSON("profile", {});
 
                           // Master Prompt Template
@@ -1939,7 +1968,7 @@
                           let html = l.length ? "" : `<p class='text-slate-500 text-center text-xs'>No Data.</p>`;
                           l.forEach(x => {
 
-
+                              // NEW FEATURE: BEST SET DETECTION
                               let bestSet = {k:0, r:0};
                               let maxLoad = 0;
                               x.d.forEach(s => {
@@ -2072,7 +2101,7 @@
                       },
                       changeMonth: (d) => { APP.state.currentCalDate.setMonth(APP.state.currentCalDate.getMonth()+d); APP.ui.renderCalendar(); },
 
-
+                      // UPDATED V21.0: JOURNAL INTELLIGENCE VIEW
                       viewDay: (dStr) => {
                           const box = document.getElementById("cal-details");
                           const m = APP.state.currentCalDate.getMonth();
@@ -2081,7 +2110,7 @@
 
                           if(!logs.length) return box.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50"><i class="fa-solid fa-bed mb-1 text-xl"></i><span class="text-xs italic">Rest Day</span></div>`;
 
-
+                          // 1. Calculate Summary Metrics
                           const sessionTitle = logs[0].title || (logs[0].src === 'spontaneous' ? 'Spontaneous' : logs[0].src);
                           const duration = logs[0].dur || 0;
                           const totalVol = logs.reduce((acc, curr) => acc + curr.vol, 0).toLocaleString();
@@ -2098,7 +2127,7 @@
                           if(maxRPE >= 9.5) { fatigueStatus = "High Fatigue"; fatigueColor = "text-red-400"; }
                           else if(maxRPE >= 8) { fatigueStatus = "Optimal"; fatigueColor = "text-yellow-400"; }
 
-
+                          // 2. Build Header HTML
                           let html = `
                           <div class="mb-3 border-b border-slate-700 pb-2">
                               <div class="flex justify-between items-center mb-1">
@@ -2118,9 +2147,9 @@
                           </div>
                           <div class="space-y-1 max-h-[120px] overflow-y-auto no-scrollbar">`;
 
-
+                          // 3. Build Exercise List with Progress Badges
                           logs.forEach(l => {
-
+                              // PROGRESS LOGIC
                               const prevLogs = hist.filter(h => h.ex === l.ex && h.ts < l.ts && (l.src === 'spontaneous' || h.src !== 'spontaneous')).sort((a,b)=>b.ts - a.ts);
 
                               let badge = "";
@@ -2237,11 +2266,11 @@
                       }
                   },
 
-
+                  // TIMER MODULE (SIMPLIFIED TO STATIC)
                   timer: {
                       startTime: 0,
-                      start: (s) => {},
-                      stop: () => {},
+                      start: (s) => {}, // No-op
+                      stop: () => {}, // No-op
                   },
 
                   debug: {
@@ -2268,89 +2297,179 @@
               .catch(err => console.log('SW Registration Failed', err));
           });
       }
-              // Konfigurasi Cloud Sync
+    </script>
+    <script>
       const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
       const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
       let tokenClient;
-      let gapiInited = false;
-      let gsiInited = false;
 
-      // Inisialisasi Google API
       function gapiLoaded() {
-        gapi.load('client', async () => {
-          await gapi.client.init({
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+          gapi.load('client', async () => {
+              await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+              console.log('GAPI Ready');
           });
-          gapiInited = true;
-        });
       }
 
       function gsiLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          callback: '',
-        });
-        gsiInited = true;
+          tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
+          console.log('GSI Ready');
       }
 
+      // --- FUNGSI DOWNLOADER OTOMATIS (Sesuai Permintaan) ---
+      function triggerManualDownload(jsonString) {
+          const blob = new Blob([jsonString], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `backup_cloud_fisik_${new Date().getTime()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+      }
 
       async function syncToCloud() {
-        tokenClient.callback = async (resp) => {
-          if (resp.error !== undefined) throw (resp);
+          tokenClient.callback = async (resp) => {
+              if (resp.error !== undefined) throw (resp);
 
-          const data = localStorage.getItem('gymLogData');
-          const fileName = 'the-grind-design-backup.json';
-          const metadata = {
-            name: fileName,
-            parents: ['appDataFolder']
+              // 1. SIAPKAN DATA
+              const backupData = {};
+              let itemCount = 0;
+              for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key.startsWith('gapi') || key.startsWith('google')) continue;
+                  backupData[key] = localStorage.getItem(key);
+                  itemCount++;
+              }
+
+              if (itemCount === 0) {
+                  if(!confirm('⚠️ Data lokal 0 item. Lanjutkan Backup?')) return;
+              }
+
+              const rawData = JSON.stringify(backupData);
+              const fileName = 'the-grind-design-backup.json';
+              const accessToken = gapi.client.getToken().access_token;
+
+              try {
+                  // 2. CARI FILE LAMA
+                  const search = await gapi.client.drive.files.list({
+                      q: `name = '${fileName}'`,
+                      spaces: 'appDataFolder',
+                      fields: 'files(id)'
+                  });
+
+                  let fileId;
+
+                  if (search.result.files.length > 0) {
+                      // FILE ADA -> Ambil ID-nya
+                      fileId = search.result.files[0].id;
+                      console.log("File ditemukan, ID:", fileId);
+                  } else {
+                      // FILE TIDAK ADA -> Buat WADAH KOSONG dulu (Metadata Only)
+                      // Ini menghindari error Multipart yang bikin file 0 bytes
+                      console.log("File tidak ada, membuat wadah baru...");
+                      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+                          method: 'POST',
+                          headers: {
+                              'Authorization': `Bearer ${accessToken}`,
+                              'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                              name: fileName,
+                              parents: ['appDataFolder']
+                          })
+                      });
+                      const createJson = await createRes.json();
+                      fileId = createJson.id;
+                  }
+
+                  // 3. INJEKSI KONTEN (Direct Media Upload)
+                  // Kita gunakan method PATCH ke upload endpoint. Ini 100% mengisi konten.
+                  console.log("Mengupload konten ke ID:", fileId);
+                  const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                      method: 'PATCH',
+                      headers: {
+                          'Authorization': `Bearer ${accessToken}`,
+                          'Content-Type': 'application/json'
+                      },
+                      body: rawData
+                  });
+
+                  if (!uploadRes.ok) throw new Error(`Upload Gagal: ${uploadRes.status}`);
+
+                  alert(`✅ Backup Sukses! ${itemCount} item data diamankan di Cloud.`);
+
+              } catch (err) {
+                  console.error("BACKUP ERROR:", err);
+                  alert(`❌ Gagal Backup: ${err.message}`);
+              }
           };
-
-          const file = new Blob([data], { type: 'application/json' });
-          const formData = new FormData();
-          formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-          formData.append('file', file);
-
-          try {
-
-            const existingFiles = await gapi.client.drive.files.list({
-              q: "name = 'the-grind-design-backup.json'",
-              spaces: 'appDataFolder'
-            });
-
-            if (existingFiles.result.files.length > 0) {
-              const fileId = existingFiles.result.files[0].id;
-              await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
-                method: 'PATCH',
-                headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-                body: formData
-              });
-            } else {
-              await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: new Headers({ 'Authorization': 'Bearer ' + gapi.client.getToken().access_token }),
-                body: formData
-              });
-            }
-            alert('Cloud Sync Berhasil!');
-          } catch (err) {
-            console.error(err);
-            alert('Gagal sinkronisasi ke cloud.');
-          }
-        };
-
-        if (gapi.client.getToken() === null) {
-          tokenClient.requestAccessToken({ prompt: 'consent' });
-        } else {
           tokenClient.requestAccessToken({ prompt: '' });
-        }
       }
 
+      async function restoreFromCloud() {
+          tokenClient.callback = async (resp) => {
+              if (resp.error !== undefined) throw (resp);
+              try {
+                  // 1. Cari File
+                  const search = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
+                  if (search.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
+                  const fileId = search.result.files[0].id;
 
-      window.addEventListener('load', () => {
-        gapiLoaded();
-        gsiLoaded();
-      });
+                  if (!confirm('PERINGATAN: Data HP akan DITIMPA. Lanjutkan?')) return;
+
+                  // 2. Download Konten
+                  const accessToken = gapi.client.getToken().access_token;
+                  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                      headers: { 'Authorization': `Bearer ${accessToken}` }
+                  });
+
+                  const rawText = await response.text();
+
+                  // 3. Validasi Zombie & Download Fisik
+                  if (!rawText || rawText.length < 5) {
+                      alert("⚠️ File Cloud Kosong (Zombie). Silakan Backup ulang.");
+                      return;
+                  }
+
+                  // *** FITUR PERMINTAAN DOKTER ***
+                  // Download file JSON-nya ke HP/Laptop sebagai bukti fisik
+                  triggerManualDownload(rawText);
+
+                  // 4. Parsing & Inject
+                  let cloudData;
+                  try { cloudData = JSON.parse(rawText); } catch(e) { alert("Format JSON Rusak."); return; }
+
+                  if (typeof cloudData === 'string') {
+                      try { cloudData = JSON.parse(cloudData); } catch(e) {}
+                  }
+
+                  localStorage.clear();
+                  let restoreCount = 0;
+                  for (const key in cloudData) {
+                      if (cloudData.hasOwnProperty(key)) {
+                          let val = cloudData[key];
+                          if (typeof val === 'object') val = JSON.stringify(val);
+                          localStorage.setItem(key, val);
+                          restoreCount++;
+                      }
+                  }
+
+                  // Beri jeda sedikit agar user melihat file terdownload
+                  setTimeout(() => {
+                      alert(`✅ Restore Berhasil! File backup juga telah didownload ke perangkat Anda.\nAplikasi akan dimuat ulang...`);
+                      location.reload();
+                  }, 1000);
+
+              } catch (err) {
+                  console.error("RESTORE ERROR:", err);
+                  alert(`❌ Error: ${err.message}`);
+              }
+          };
+          tokenClient.requestAccessToken({ prompt: '' });
+      }
+
+      window.addEventListener('load', () => { gapiLoaded(); gsiLoaded(); });
     </script>
   </body>
 </html>
