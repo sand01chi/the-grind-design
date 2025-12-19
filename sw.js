@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-grind-design-v21-final';
+const CACHE_NAME = 'the-grind-design';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -53,4 +53,5 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
 
