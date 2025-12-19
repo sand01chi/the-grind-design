@@ -137,7 +137,8 @@
                 onclick="APP.ui.openModal('weight')"
                 class="bg-slate-700/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5 cursor-pointer active:scale-95 transition"
               >
-                <span class="text-xl">⚖️</span>
+              <div class="flex items-center gap-2"></div>
+                <i class="fa-solid fa-weight-scale text-emerald-400"></i>
                 <div>
                   <p
                     class="text-[10px] text-slate-400 uppercase tracking-wider"
@@ -152,7 +153,8 @@
                 onclick="APP.ui.openModal('stats')"
                 class="bg-indigo-600/20 hover:bg-indigo-600/40 transition-all rounded-2xl p-3 flex items-center gap-3 border border-indigo-500/30 active:scale-95"
               >
-                <span class="text-xl">📊</span>
+              <div class="flex items-center gap-2"></div>
+                <i class="fa-solid fa-chart-line text-blue-400"></i>
                 <div class="text-left">
                   <p
                     class="text-[10px] text-indigo-300 uppercase tracking-wider"
@@ -166,7 +168,8 @@
               <div
                 class="bg-slate-700/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5"
               >
-                <span class="text-xl">🔥</span>
+              <div class="flex items-center gap-2"></div>
+                <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
                 <div>
                   <p
                     class="text-[10px] text-slate-400 uppercase tracking-wider"
@@ -183,7 +186,8 @@
                 onclick="APP.ui.openModal('profile')"
                 class="bg-emerald-600/20 hover:bg-emerald-600/40 transition-all rounded-2xl p-3 flex items-center gap-3 border border-emerald-500/30 active:scale-95"
               >
-                <span class="text-xl">👤</span>
+              <div class="flex items-center gap-2"></div>
+                <i class="fa-solid fa-user-gear text-slate-400"></i>
                 <div class="text-left">
                   <p
                     class="text-[10px] text-emerald-300 uppercase tracking-wider"
@@ -629,7 +633,7 @@
                 onclick="APP.data.exportForConsultation()"
                 class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-emerald-900/50"
               >
-                <i class="fa-solid fa-file-export"></i> Export Log (Raw)
+                <i class="fa-solid fa-file-export"></i> Salin Log Latihan
               </button>
             </div>
             <button
@@ -653,7 +657,7 @@
           </div>
           <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
             <p class="text-xs text-slate-400 mb-2 font-bold uppercase">
-              Terapkan Resep Baru (AI Output)
+              Terapkan Resep Baru (Gemini Output)
             </p>
             <textarea
               id="ai-input"
@@ -863,7 +867,7 @@
     </div>
 
     <div class="flex items-baseline justify-center gap-1 mb-5">
-        <span id="tdee-val" class="text-5xl font-black text-white tracking-tighter">0</span>
+        <span id="tdee-val" class="text-5xl font-black text-orange-400 tracking-tighter">0</span>
         <span class="text-slate-500 text-xs font-bold italic">Kkal/Hari</span>
     </div>
 
@@ -887,9 +891,12 @@
             onclick="APP.data.saveProfile()"
             class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg"
           >
-            Simpan
+            Simpan Profil
           </button>
         </div>
+      <div class="mt-6 p-4 rounded-xl border border-teal-500/40 bg-teal-900/20">
+    
+    <div class="mb-4">
         <div
           class="mb-4 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner"
         >
@@ -933,11 +940,14 @@
                 class="hidden"
                 onchange="APP.data.importData(this)"
             /></label>
+            </div>
+    </div>
+</div>
           </div>
             <h4
             class="text-red-400 font-bold text-[10px] mb-4 uppercase tracking-wide"
           >
-          <div class="border-t border-slate-700 pt-3 mt-3"></div>
+          
           <div class="mt-6 p-4 rounded-xl border border-red-900/30 bg-red-950/20">
     <h4 class="text-red-400 font-bold text-[10px] mb-1 uppercase tracking-wide flex items-center">
             <i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Danger
@@ -2278,11 +2288,10 @@
                       }
                   },
 
-                  // TIMER MODULE (SIMPLIFIED TO STATIC)
                   timer: {
                       startTime: 0,
-                      start: (s) => {}, // No-op
-                      stop: () => {}, // No-op
+                      start: (s) => {}, 
+                      stop: () => {}, 
                   },
 
                   debug: {
@@ -2327,7 +2336,6 @@
           console.log('GSI Ready');
       }
 
-      // --- FUNGSI DOWNLOADER OTOMATIS (Sesuai Permintaan) ---
       function triggerManualDownload(jsonString) {
           const blob = new Blob([jsonString], { type: "application/json" });
           const url = URL.createObjectURL(blob);
@@ -2373,12 +2381,11 @@
                   let fileId;
 
                   if (search.result.files.length > 0) {
-                      // FILE ADA -> Ambil ID-nya
+                
                       fileId = search.result.files[0].id;
                       console.log("File ditemukan, ID:", fileId);
                   } else {
-                      // FILE TIDAK ADA -> Buat WADAH KOSONG dulu (Metadata Only)
-                      // Ini menghindari error Multipart yang bikin file 0 bytes
+
                       console.log("File tidak ada, membuat wadah baru...");
                       const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
                           method: 'POST',
@@ -2444,8 +2451,6 @@
                       return;
                   }
 
-                  // *** FITUR PERMINTAAN DOKTER ***
-                  // Download file JSON-nya ke HP/Laptop sebagai bukti fisik
                   triggerManualDownload(rawText);
 
                   // 4. Parsing & Inject
