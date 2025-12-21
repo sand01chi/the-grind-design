@@ -1451,11 +1451,13 @@
                         <button onclick="APP.ui.openHist('${optName.replace(/'/g, "\\'")}')" class="bg-purple-900/20 text-purple-400 py-1.5 rounded text-[10px] border border-purple-900/30 flex items-center justify-center gap-1 hover:bg-purple-900/40 transition truncate"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
                         <button onclick="APP.ui.openCalc(${_idx})" class="bg-yellow-900/20 text-yellow-400 py-1.5 rounded text-[10px] border border-yellow-900/30 flex items-center justify-center gap-1 hover:bg-yellow-900/40 transition truncate"><i class="fa-solid fa-calculator"></i> WarmUp Calc</button>
                     </div>
-                    <div class="flex justify-between items-center mb-1 px-1 gap-2">
-                        <div onclick="APP.data.editNote('${_id}',${_idx})" class="text-[10px] text-yellow-500 font-bold cursor-pointer hover:text-white truncate flex-1 min-w-0"><i class="fa-solid fa-pen-to-square mr-1"></i> ${optNote}</div>
-                        ${targetBadge}
-                    </div>
-                    <div class="ml-1 text-[9px] text-slate-500 font-mono mt-1">${historySuggestion}</div>
+                    <div class="flex flex-col gap-2 mb-1 px-1">
+    <div onclick="APP.data.editNote('${_id}',${_idx})" class="text-[10px] text-yellow-500 font-bold cursor-pointer hover:text-white leading-relaxed break-words"><i class="fa-solid fa-pen-to-square mr-1"></i> ${optNote}</div>
+    <div class="flex justify-between items-center gap-2">
+        <div class="text-[9px] text-slate-500 font-mono flex-shrink-0">${historySuggestion}</div>
+        ${targetBadge}
+    </div>
+</div>
                 </div>
                 <div class="p-3">
                     <div class="grid grid-cols-12 gap-1 text-[10px] text-slate-500 font-bold text-center mb-1">
