@@ -2617,7 +2617,7 @@
         };
         
         // 📍 SHOW STORAGE STATS (moved outside ui)
-        APP.ui.showStorageStats = () => {
+        APP.showStorageStats = () => {
             const stats = LS_SAFE.getStats();
             document.getElementById('stat-items').innerText = stats.items;
             document.getElementById('stat-size').innerText = stats.sizeKB + ' KB';
