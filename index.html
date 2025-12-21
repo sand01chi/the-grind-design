@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-    <title>THE GRIND DESIGN v21.1 Stable Baseline</title>
+    <title>THE GRIND DESIGN v21.2 Stable Baseline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
@@ -18,44 +19,234 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981; background-color: #1e293b; }
-        select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2334d399%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.5rem auto; }
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .pulse-border { animation: pulse-green 2s infinite; }
-        .focus-active .exercise-card { display: none; }
-        .focus-active .exercise-card.active-card { display: block; }
-        .plate-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-right: 2px; color: #1e293b; }
-        .plate-20 { background-color: #3b82f6; } .plate-15 { background-color: #eab308; } .plate-10 { background-color: #22c55e; }
-        .plate-5 { background-color: #fca5a5; } .plate-2_5 { background-color: #cbd5e1; } .plate-1_25 { background-color: #f1f5f9; }
-        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; width: 90%; max-width: 400px; display: flex; display: flex; flex-direction: column-reverse; gap: 8px; }
-        .toast { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border: 1px solid; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); pointer-events: auto; }
-        .toast.show { opacity: 1; transform: translateY(0); }
-        .toast-success { border-color: #10b981; } .toast-warning { border-color: #f59e0b; }
-        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; flex-shrink: 0; }
-        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .toast-warning .toast-icon { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .hist-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .hist-table th { font-size: 10px; color: #94a3b8; font-weight: bold; text-align: left; padding: 6px; border-bottom: 1px solid #334155; }
-        .hist-table td { font-size: 11px; color: #e2e8f0; padding: 8px 6px; border-bottom: 1px solid #1e293b; }
-        .hist-table tr:last-child td { border-bottom: none; }
-        .tab-btn { padding: 6px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; transition: all 0.2s; }
-        .tab-btn.active { background-color: #10b981; color: #0f172a; }
-        .tab-btn.inactive { background-color: #1e293b; color: #94a3b8; }
-        .app-header { display: flex; align-items: center; gap: 12px; }
-        .app-logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #10b981;
+            background-color: #1e293b;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2334d399%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.2rem top 50%;
+            background-size: 0.5rem auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-border {
+            animation: pulse-green 2s infinite;
+        }
+
+        .focus-active .exercise-card {
+            display: none;
+        }
+
+        .focus-active .exercise-card.active-card {
+            display: block;
+        }
+
+        .plate-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-right: 2px;
+            color: #1e293b;
+        }
+
+        .plate-20 {
+            background-color: #3b82f6;
+        }
+
+        .plate-15 {
+            background-color: #eab308;
+        }
+
+        .plate-10 {
+            background-color: #22c55e;
+        }
+
+        .plate-5 {
+            background-color: #fca5a5;
+        }
+
+        .plate-2_5 {
+            background-color: #cbd5e1;
+        }
+
+        .plate-1_25 {
+            background-color: #f1f5f9;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+        }
+
+        .toast {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: auto;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            border-color: #10b981;
+        }
+
+        .toast-warning {
+            border-color: #f59e0b;
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .toast-success .toast-icon {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .toast-warning .toast-icon {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .hist-table th {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .hist-table td {
+            font-size: 11px;
+            color: #e2e8f0;
+            padding: 8px 6px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .hist-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tab-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: #10b981;
+            color: #0f172a;
+        }
+
+        .tab-btn.inactive {
+            background-color: #1e293b;
+            color: #94a3b8;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
+
 <body class="h-screen flex flex-col overflow-hidden bg-slate-900">
     <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center z-20 absolute top-0 w-full">
         <div class="app-header">
             <img src="app-logo.png" onerror="this.style.display='none'" class="app-logo" alt="Logo">
-            <div><h1 class="font-bold text-white text-sm tracking-wide">THE GRIND DESIGN</h1><p class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">v21.1 Stable Baseline</p></div>
+            <div>
+                <h1 class="font-bold text-white text-sm tracking-wide">THE GRIND DESIGN</h1>
+                <p class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">v21.2 Stable Baseline</p>
+            </div>
         </div>
         <div class="flex gap-2">
             <button onclick="APP.ui.openModal('library')" class="text-xs text-indigo-400 border border-indigo-900 bg-indigo-900/20 px-3 py-1.5 rounded hover:bg-indigo-900/50 transition"><i class="fa-solid fa-book-bookmark mr-1"></i> Library</button>
@@ -119,23 +310,33 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center justify-between"><p class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Rotasi Sesi</p><span class="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Suggest</span></div>
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Rotasi Sesi</p><span class="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Suggest</span>
+            </div>
             <div id="schedule-list" class="space-y-3 pb-10"></div>
         </div>
         <div id="workout-view" class="hidden fade-in space-y-4">
             <div class="flex justify-between items-center mb-2">
-                <button onclick="APP.nav.switchView('dashboard')" class="flex items-center text-slate-400 hover:text-white text-sm group"><div class="bg-slate-800 p-2 rounded-full mr-2 group-hover:bg-slate-700 transition"><i class="fa-solid fa-arrow-left"></i></div> Kembali</button>
+                <button onclick="APP.nav.switchView('dashboard')" class="flex items-center text-slate-400 hover:text-white text-sm group">
+                    <div class="bg-slate-800 p-2 rounded-full mr-2 group-hover:bg-slate-700 transition"><i class="fa-solid fa-arrow-left"></i></div> Kembali
+                </button>
                 <div class="flex gap-2">
                     <span id="spontaneous-badge" class="hidden text-[10px] bg-indigo-500 text-white px-2 py-1 rounded font-bold uppercase items-center shadow-lg shadow-indigo-500/30"><i class="fa-solid fa-bolt mr-1"></i> SPONTANEOUS</span>
                     <button onclick="APP.ui.toggleFocusMode()" id="focus-btn" class="text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-eye"></i> Focus Mode</button>
                 </div>
             </div>
             <div id="warmup-box" class="bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-4 mb-6 cursor-pointer active:scale-[0.98] transition">
-                <div class="flex justify-between items-center" onclick="APP.ui.toggleWarmup()"><h3 class="text-indigo-400 font-bold text-sm"><i class="fa-solid fa-fire-flame-curved mr-2"></i> PROTOKOL PEMANASAN</h3><i id="warmup-arrow" class="fa-solid fa-chevron-down text-indigo-400 text-xs transition-transform"></i></div>
+                <div class="flex justify-between items-center" onclick="APP.ui.toggleWarmup()">
+                    <h3 class="text-indigo-400 font-bold text-sm"><i class="fa-solid fa-fire-flame-curved mr-2"></i> PROTOKOL PEMANASAN</h3><i id="warmup-arrow" class="fa-solid fa-chevron-down text-indigo-400 text-xs transition-transform"></i>
+                </div>
                 <div id="warmup-content" class="hidden text-sm text-slate-300 space-y-3 mt-3">
                     <p class="text-[10px] text-slate-500 italic mb-2">*Klik teks di bawah untuk mengedit</p>
-                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-walking text-emerald-400 mt-1"></i><div id="warmup-general" onclick="APP.data.editWarmup('general')" class="hover:text-white cursor-text">Jalan Cepat 5 Menit.</div></div>
-                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-running text-emerald-400 mt-1"></i><div id="warmup-dynamic" onclick="APP.data.editWarmup('dynamic')" class="hover:text-white cursor-text text-slate-400">Arm Circles, Leg Swings</div></div>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-walking text-emerald-400 mt-1"></i>
+                        <div id="warmup-general" onclick="APP.data.editWarmup('general')" class="hover:text-white cursor-text">Jalan Cepat 5 Menit.</div>
+                    </div>
+                    <div class="flex items-start gap-2"><i class="fa-solid fa-person-running text-emerald-400 mt-1"></i>
+                        <div id="warmup-dynamic" onclick="APP.data.editWarmup('dynamic')" class="hover:text-white cursor-text text-slate-400">Arm Circles, Leg Swings</div>
+                    </div>
                 </div>
             </div>
             <div class="bg-slate-700/50 border border-slate-700 rounded-xl p-3 mb-4 cursor-pointer" onclick="APP.ui.openModal('rpe')">
@@ -189,8 +390,60 @@
             </div>
         </div>
     </div>
-    <div id="error-modal" class="fixed inset-0 bg-red-900/90 z-[999] hidden flex items-center justify-center p-4 backdrop-blur-md"><div class="bg-slate-900 w-full max-w-md rounded-2xl border-2 border-red-500 p-5 shadow-2xl"><div class="flex items-center gap-3 mb-4 text-red-500 border-b border-red-500/30 pb-3"><i class="fa-solid fa-bug text-2xl animate-pulse"></i><h3 class="font-bold text-lg">System Crash Diagnosis</h3></div><p class="text-xs text-slate-300 mb-2">Terjadi kesalahan sistem. Silakan salin log di bawah dan kirim ke Gemini untuk perbaikan instan.</p><textarea id="error-log-text" class="w-full bg-slate-950 text-red-300 font-mono text-[10px] p-3 rounded-lg border border-red-900 h-32 focus:border-red-500 mb-3" readonly></textarea><div class="grid grid-cols-2 gap-2"><button onclick="APP.debug.copyErrorLog()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin Log</button><button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-rotate-right"></i> Refresh App</button></div></div></div>
-    <div id="rpe-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2"><h3 class="font-bold text-emerald-400"><i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR</h3><button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-700 text-emerald-400 text-[10px] uppercase"><th class="p-2 border border-slate-600 text-center w-1/6">RPE</th><th class="p-2 border border-slate-600 text-center w-1/6">Sisa (RIR)</th><th class="p-2 border border-slate-600 text-left">Indikator Fisik/Rasa</th></tr></thead><tbody class="text-slate-300 text-[11px]"><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-red-500 text-sm">10</td><td class="p-2 border border-slate-600 text-center font-bold">0</td><td class="p-2 border border-slate-600">Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-red-400">9.5</td><td class="p-2 border border-slate-600 text-center">0 - 1</td><td class="p-2 border border-slate-600">Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-orange-400">9</td><td class="p-2 border border-slate-600 text-center font-bold">1</td><td class="p-2 border border-slate-600">Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.</td></tr><tr><td class="p-2 border border-slate-600 font-bold text-center text-emerald-400">8</td><td class="p-2 border border-slate-600 text-center font-bold">2</td><td class="p-2 border border-slate-600">Beban kerja ideal. Berat, kecepatan bar terkontrol baik.</td></tr><tr class="bg-slate-900/50"><td class="p-2 border border-slate-600 font-bold text-center text-blue-400">7</td><td class="p-2 border border-slate-600 text-center">3+</td><td class="p-2 border border-slate-600">Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.</td></tr></tbody></table></div></div></div>
+    <div id="error-modal" class="fixed inset-0 bg-red-900/90 z-[999] hidden flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-slate-900 w-full max-w-md rounded-2xl border-2 border-red-500 p-5 shadow-2xl">
+            <div class="flex items-center gap-3 mb-4 text-red-500 border-b border-red-500/30 pb-3"><i class="fa-solid fa-bug text-2xl animate-pulse"></i>
+                <h3 class="font-bold text-lg">System Crash Diagnosis</h3>
+            </div>
+            <p class="text-xs text-slate-300 mb-2">Terjadi kesalahan sistem. Silakan salin log di bawah dan kirim ke Gemini untuk perbaikan instan.</p><textarea id="error-log-text" class="w-full bg-slate-950 text-red-300 font-mono text-[10px] p-3 rounded-lg border border-red-900 h-32 focus:border-red-500 mb-3" readonly></textarea>
+            <div class="grid grid-cols-2 gap-2"><button onclick="APP.debug.copyErrorLog()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-regular fa-copy"></i> Salin Log</button><button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-rotate-right"></i> Refresh App</button></div>
+        </div>
+    </div>
+    <div id="rpe-modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                <h3 class="font-bold text-emerald-400"><i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR</h3><button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-700 text-emerald-400 text-[10px] uppercase">
+                            <th class="p-2 border border-slate-600 text-center w-1/6">RPE</th>
+                            <th class="p-2 border border-slate-600 text-center w-1/6">Sisa (RIR)</th>
+                            <th class="p-2 border border-slate-600 text-left">Indikator Fisik/Rasa</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300 text-[11px]">
+                        <tr class="bg-slate-900/50">
+                            <td class="p-2 border border-slate-600 font-bold text-center text-red-500 text-sm">10</td>
+                            <td class="p-2 border border-slate-600 text-center font-bold">0</td>
+                            <td class="p-2 border border-slate-600">Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 border border-slate-600 font-bold text-center text-red-400">9.5</td>
+                            <td class="p-2 border border-slate-600 text-center">0 - 1</td>
+                            <td class="p-2 border border-slate-600">Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.</td>
+                        </tr>
+                        <tr class="bg-slate-900/50">
+                            <td class="p-2 border border-slate-600 font-bold text-center text-orange-400">9</td>
+                            <td class="p-2 border border-slate-600 text-center font-bold">1</td>
+                            <td class="p-2 border border-slate-600">Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 border border-slate-600 font-bold text-center text-emerald-400">8</td>
+                            <td class="p-2 border border-slate-600 text-center font-bold">2</td>
+                            <td class="p-2 border border-slate-600">Beban kerja ideal. Berat, kecepatan bar terkontrol baik.</td>
+                        </tr>
+                        <tr class="bg-slate-900/50">
+                            <td class="p-2 border border-slate-600 font-bold text-center text-blue-400">7</td>
+                            <td class="p-2 border border-slate-600 text-center">3+</td>
+                            <td class="p-2 border border-slate-600">Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <div id="library-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
@@ -211,7 +464,9 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-400 mb-2 font-bold uppercase border-b border-slate-700 pb-1">Daftar Resep Tersimpan</p>
-                    <div id="library-list" class="space-y-2"><p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p></div>
+                    <div id="library-list" class="space-y-2">
+                        <p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p>
+                    </div>
                 </div>
                 <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                     <p class="text-xs text-slate-400 mb-2 font-bold uppercase">Terapkan Resep Baru (Output Gemini)</p>
@@ -221,151 +476,393 @@
             </div>
         </div>
     </div>
-    <div id="calc-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white"><i class="fa-solid fa-calculator text-yellow-400 mr-2"></i>Warm-Up & Plates</h3><button onclick="APP.ui.closeModal('calc')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4 items-center justify-center"><span class="text-slate-400 text-xs">Target:</span><span id="calc-target" class="text-2xl font-bold text-white">0</span><span class="text-slate-400 text-xs">kg</span></div><div class="flex justify-center mb-4"><span id="calc-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400">Standard</span></div><div id="calc-steps" class="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar"></div><p class="text-[10px] text-slate-500 text-center mt-3 italic">Rincian pelat per sisi (Asumsi bar 20kg).</p></div></div>
-    <div id="stats-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col max-h-[90vh] fade-in"><div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3"><h3 class="font-bold text-white">Clinical Analytics</h3><button onclick="APP.ui.closeModal('stats')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="mb-4"><select id="stats-select" onchange="APP.stats.updateChart()" class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"></select></div><div class="flex gap-2 mb-3"><button id="tab-chart" onclick="APP.stats.switchTab('chart')" class="tab-btn active flex-1">Grafik Tren</button><button id="tab-table" onclick="APP.stats.switchTab('table')" class="tab-btn inactive flex-1">Tabel Klinis</button></div><div id="stats-chart-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"><canvas id="progressChart"></canvas><div id="no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">No Data.</div></div><div id="stats-table-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar"><table class="hist-table"><thead><tr><th>TGL</th><th>BEBAN</th><th>REPS</th><th>RPE</th><th>VOL</th></tr></thead><tbody id="hist-table-body"></tbody></table></div><div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden"><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">PR</div><div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Vol Avg</div><div class="text-lg font-bold text-blue-400" id="stat-vol">--</div></div><div class="bg-slate-700/30 p-2 rounded border border-slate-700"><div class="text-[10px] text-slate-400 uppercase">Count</div><div class="text-lg font-bold text-white" id="stat-count">--</div></div></div></div></div>
+    <div id="calc-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-calculator text-yellow-400 mr-2"></i>Warm-Up & Plates</h3><button onclick="APP.ui.closeModal('calc')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex gap-2 mb-4 items-center justify-center"><span class="text-slate-400 text-xs">Target:</span><span id="calc-target" class="text-2xl font-bold text-white">0</span><span class="text-slate-400 text-xs">kg</span></div>
+            <div class="flex justify-center mb-4"><span id="calc-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400">Standard</span></div>
+            <div id="calc-steps" class="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar"></div>
+            <p class="text-[10px] text-slate-500 text-center mt-3 italic">Rincian pelat per sisi (Asumsi bar 20kg).</p>
+        </div>
+    </div>
+    <div id="stats-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col max-h-[90vh] fade-in">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h3 class="font-bold text-white">Clinical Analytics</h3><button onclick="APP.ui.closeModal('stats')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="mb-4"><select id="stats-select" onchange="APP.stats.updateChart()" class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"></select></div>
+            <div class="flex gap-2 mb-3"><button id="tab-chart" onclick="APP.stats.switchTab('chart')" class="tab-btn active flex-1">Grafik Tren</button><button id="tab-table" onclick="APP.stats.switchTab('table')" class="tab-btn inactive flex-1">Tabel Klinis</button></div>
+            <div id="stats-chart-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"><canvas id="progressChart"></canvas>
+                <div id="no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">No Data.</div>
+            </div>
+            <div id="stats-table-view" class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar">
+                <table class="hist-table">
+                    <thead>
+                        <tr>
+                            <th>TGL</th>
+                            <th>BEBAN</th>
+                            <th>REPS</th>
+                            <th>RPE</th>
+                            <th>VOL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hist-table-body"></tbody>
+                </table>
+            </div>
+            <div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden">
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                    <div class="text-[10px] text-slate-400 uppercase">PR</div>
+                    <div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                    <div class="text-[10px] text-slate-400 uppercase">Vol Avg</div>
+                    <div class="text-lg font-bold text-blue-400" id="stat-vol">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                    <div class="text-[10px] text-slate-400 uppercase">Count</div>
+                    <div class="text-lg font-bold text-white" id="stat-count">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="profile-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 space-y-4 fade-in overflow-y-auto max-h-[90vh]">
-        <div class="flex justify-between"><h3 class="font-bold text-white">Profil</h3><button onclick="APP.ui.closeModal('profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
-        <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Nama</span><input type="text" id="prof-name" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Tinggi</span><input type="number" id="prof-height" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div></div>
-        <div class="grid grid-cols-2 gap-3"><div><span class="text-[10px] text-slate-400">Usia</span><input type="number" id="prof-age" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div><div><span class="text-[10px] text-slate-400">Gender</span><select id="prof-gender" class="w-full p-2 bg-slate-900 rounded text-white text-sm"><option value="male">Pria</option><option value="female">Wanita</option></select></div></div><div>
-        <span class="text-[10px] text-slate-400">Aktivitas</span><select id="prof-active" class="w-full p-2 bg-slate-900 rounded text-white text-sm">
-            <option value="1.2">Sedentary (Tidak ada olahraga)</option>
-            <option value="1.375">Light (1-3 hari/minggu)</option>
-            <option value="1.55">Moderate (3-5 hari/minggu)</option>
-            <option value="1.725">Active (6-7 hari/minggu)</option></select>
-    </div>
-    <div id="tdee-box" class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 mb-6 text-center hidden shadow-lg">
-        <div class="mb-1">
-        <span class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black">Kebutuhan Kalori Harian</span>
-        </div>
-        <div class="flex items-baseline justify-center gap-1 mb-5">
-        <span id="tdee-val" class="text-5xl font-black text-orange-400 tracking-tighter">0</span>
-        <span class="text-slate-500 text-xs font-bold italic">Kkal/Hari</span>
-        </div>
-        <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl transition-all hover:border-emerald-500/40">
-        <span class="text-emerald-500 font-black uppercase text-[9px] block mb-1">Bulking</span>
-        <div class="text-emerald-400 font-bold">
-        <span id="bulk-val" class="text-lg">0</span> <span class="opacity-60">Kkal (+300)</span>
-        </div>
-    </div>
-        <div class="bg-red-500/10 border border-red-500/20 p-3 rounded-xl transition-all hover:border-red-500/40">
-        <span class="text-red-400 font-black uppercase text-[9px] block mb-1">Cutting</span>
-        <div class="text-red-400 font-bold">
-        <span id="cut-val" class="text-lg">0</span> <span class="opacity-60">Kkal (-500)</span>
+            <div class="flex justify-between">
+                <h3 class="font-bold text-white">Profil</h3><button onclick="APP.ui.closeModal('profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><span class="text-[10px] text-slate-400">Nama</span><input type="text" id="prof-name" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div>
+                    <div><span class="text-[10px] text-slate-400">Tinggi</span><input type="number" id="prof-height" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><span class="text-[10px] text-slate-400">Usia</span><input type="number" id="prof-age" class="w-full p-2 bg-slate-900 rounded text-white text-sm"></div>
+                    <div><span class="text-[10px] text-slate-400">Gender</span><select id="prof-gender" class="w-full p-2 bg-slate-900 rounded text-white text-sm">
+                            <option value="male">Pria</option>
+                            <option value="female">Wanita</option>
+                        </select></div>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400">Aktivitas</span><select id="prof-active" class="w-full p-2 bg-slate-900 rounded text-white text-sm">
+                        <option value="1.2">Sedentary (Tidak ada olahraga)</option>
+                        <option value="1.375">Light (1-3 hari/minggu)</option>
+                        <option value="1.55">Moderate (3-5 hari/minggu)</option>
+                        <option value="1.725">Active (6-7 hari/minggu)</option>
+                    </select>
+                </div>
+                <div id="tdee-box" class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 mb-6 text-center hidden shadow-lg">
+                    <div class="mb-1">
+                        <span class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black">Kebutuhan Kalori Harian</span>
+                    </div>
+                    <div class="flex items-baseline justify-center gap-1 mb-5">
+                        <span id="tdee-val" class="text-5xl font-black text-orange-400 tracking-tighter">0</span>
+                        <span class="text-slate-500 text-xs font-bold italic">Kkal/Hari</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl transition-all hover:border-emerald-500/40">
+                            <span class="text-emerald-500 font-black uppercase text-[9px] block mb-1">Bulking</span>
+                            <div class="text-emerald-400 font-bold">
+                                <span id="bulk-val" class="text-lg">0</span> <span class="opacity-60">Kkal (+300)</span>
+                            </div>
+                        </div>
+                        <div class="bg-red-500/10 border border-red-500/20 p-3 rounded-xl transition-all hover:border-red-500/40">
+                            <span class="text-red-400 font-black uppercase text-[9px] block mb-1">Cutting</span>
+                            <div class="text-red-400 font-bold">
+                                <span id="cut-val" class="text-lg">0</span> <span class="opacity-60">Kkal (-500)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="APP.data.saveProfile()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Simpan Profil</button>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4">
+                <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase flex justify-between">
+                    <span><i class="fa-solid fa-database mr-1"></i> Storage Status</span>
+                    <button onclick="APP.showStorageStats()" class="text-blue-400 hover:text-blue-300">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </h4>
+                <div id="storage-stats" class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-800 p-2 rounded">
+                        <div class="text-slate-500 text-[10px]">Items</div>
+                        <div class="text-white font-bold" id="stat-items">--</div>
+                    </div>
+                    <div class="bg-slate-800 p-2 rounded">
+                        <div class="text-slate-500 text-[10px]">Size</div>
+                        <div class="text-white font-bold" id="stat-size">--</div>
+                    </div>
+                    <div class="bg-slate-800 p-2 rounded col-span-2">
+                        <div class="text-slate-500 text-[10px]">Usage</div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-700 rounded-full h-2 overflow-hidden">
+                                <div id="usage-bar" class="bg-emerald-500 h-full transition-all" style="width: 0%"></div>
+                            </div>
+                            <span class="text-white font-bold text-[10px]" id="stat-usage">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 rounded-xl border border-teal-500/40 bg-teal-900/20">
+                <div class="mb-4 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner">
+                    <h3 class="text-[10px] font-bold text-indigo-400 mb-3 uppercase tracking-widest flex items-center"><i class="fa-solid fa-cloud mr-2"></i> Cloud Sync (G-Drive)</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="syncToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup</button>
+                        <button onclick="restoreFromCloud()" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
+                            <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore</button>
+                    </div>
+                    <p class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight">Backup disimpan aman di AppData Google Drive.</p>
+                </div>
+                <div class="border-t border-slate-700 pt-3 mt-2">
+                    <div class="grid grid-cols-2 gap-4"><button onclick="APP.data.exportData()" class="bg-slate-700 text-emerald-400 text-xs py-2 rounded">Backup Manual</button><label class="bg-slate-700 text-blue-400 text-xs py-2 rounded text-center cursor-pointer">Restore Manual<input type="file" id="import-file" class="hidden" onchange="APP.data.importData(this)"></label></div>
+                </div>
+            </div>
+            <div class="mt-6 p-4 rounded-xl border border-red-900/30 bg-red-950/20">
+                <h4 class="text-red-400 font-bold text-[10px] mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Danger Zone</h4>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="APP.data.deleteLogs('today')" class="w-full bg-slate-700 text-slate-300 text-xs py-2 rounded hover:bg-red-900/50 hover:text-red-400 transition text-left px-3 flex justify-between items-center"><span>Hapus Log Hari Ini</span> <i class="fa-solid fa-trash"></i></button>
+                    <div class="flex gap-2">
+                        <input type="date" id="del-date-picker" class="bg-slate-900 text-white text-xs p-2 rounded border border-slate-700 flex-1">
+                        <button onclick="APP.data.deleteLogs('date')" class="bg-slate-700 text-slate-300 text-xs px-3 rounded hover:bg-red-900/50 hover:text-red-400 transition whitespace-nowrap">Hapus Tgl Ini</button>
+                    </div>
+                    <button onclick="APP.data.deleteLogs('all')" class="w-full bg-red-900/30 border border-red-900/50 text-red-400 font-bold text-xs py-3 rounded mt-2 hover:bg-red-900 hover:text-white transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/10"><i class="fa-solid fa-radiation"></i> RESET TOTAL (FRESH START)</button>
                 </div>
             </div>
         </div>
-    </div>                
-        <button onclick="APP.data.saveProfile()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Simpan Profil</button>
     </div>
-    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4">
-    <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase flex justify-between">
-        <span><i class="fa-solid fa-database mr-1"></i> Storage Status</span>
-        <button onclick="APP.showStorageStats()" class="text-blue-400 hover:text-blue-300">
-            <i class="fa-solid fa-rotate"></i>
-        </button>
-    </h4>
-    <div id="storage-stats" class="grid grid-cols-2 gap-2 text-xs">
-        <div class="bg-slate-800 p-2 rounded">
-            <div class="text-slate-500 text-[10px]">Items</div>
-            <div class="text-white font-bold" id="stat-items">--</div>
-        </div>
-        <div class="bg-slate-800 p-2 rounded">
-            <div class="text-slate-500 text-[10px]">Size</div>
-            <div class="text-white font-bold" id="stat-size">--</div>
-        </div>
-        <div class="bg-slate-800 p-2 rounded col-span-2">
-            <div class="text-slate-500 text-[10px]">Usage</div>
-            <div class="flex items-center gap-2">
-                <div class="flex-1 bg-slate-700 rounded-full h-2 overflow-hidden">
-                    <div id="usage-bar" class="bg-emerald-500 h-full transition-all" style="width: 0%"></div>
-                </div>
-                <span class="text-white font-bold text-[10px]" id="stat-usage">0%</span>
+    <div id="weight-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in">
+            <div class="flex justify-between mb-4">
+                <h3 class="font-bold text-white">Weight</h3><button onclick="APP.ui.closeModal('weight')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div>
+            <div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div>
         </div>
     </div>
-</div>
-    
-    <div class="mt-6 p-4 rounded-xl border border-teal-500/40 bg-teal-900/20">
-        <div class="mb-4 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner">
-        <h3 class="text-[10px] font-bold text-indigo-400 mb-3 uppercase tracking-widest flex items-center"><i class="fa-solid fa-cloud mr-2"></i> Cloud Sync (G-Drive)</h3>
-        <div class="grid grid-cols-2 gap-2">
-        <button onclick="syncToCloud()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-        <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup</button>
-        <button onclick="restoreFromCloud()" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1">
-        <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore</button></div>
-        <p class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight">Backup disimpan aman di AppData Google Drive.</p>
+    <div id="bio-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-6 max-h-[80vh] flex flex-col fade-in">
+            <h3 class="font-bold text-white text-lg mb-4 text-emerald-400" id="bio-title"></h3>
+            <div class="overflow-y-auto pr-2 mb-4 no-scrollbar">
+                <p id="bio-text" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed"></p>
+            </div><button onclick="APP.ui.closeModal('bio')" class="w-full bg-slate-700 text-white py-3 rounded-xl font-bold">Tutup</button>
+        </div>
     </div>
-        <div class="border-t border-slate-700 pt-3 mt-2"><div class="grid grid-cols-2 gap-4"><button onclick="APP.data.exportData()" class="bg-slate-700 text-emerald-400 text-xs py-2 rounded">Backup Manual</button><label class="bg-slate-700 text-blue-400 text-xs py-2 rounded text-center cursor-pointer">Restore Manual<input type="file" id="import-file" class="hidden" onchange="APP.data.importData(this)"></label></div></div>
+    <div id="history-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 max-h-[80vh] flex flex-col fade-in">
+            <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
+                <h3 class="font-bold text-white" id="hist-title">History</h3><button onclick="APP.ui.closeModal('history')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="hist-content" class="overflow-y-auto space-y-2 no-scrollbar"></div>
+        </div>
     </div>
-        <div class="mt-6 p-4 rounded-xl border border-red-900/30 bg-red-950/20">
-        <h4 class="text-red-400 font-bold text-[10px] mb-2 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Danger Zone</h4>
-        <div class="grid grid-cols-1 gap-2">
-        <button onclick="APP.data.deleteLogs('today')" class="w-full bg-slate-700 text-slate-300 text-xs py-2 rounded hover:bg-red-900/50 hover:text-red-400 transition text-left px-3 flex justify-between items-center"><span>Hapus Log Hari Ini</span> <i class="fa-solid fa-trash"></i></button>
-        <div class="flex gap-2">
-        <input type="date" id="del-date-picker" class="bg-slate-900 text-white text-xs p-2 rounded border border-slate-700 flex-1">
-        <button onclick="APP.data.deleteLogs('date')" class="bg-slate-700 text-slate-300 text-xs px-3 rounded hover:bg-red-900/50 hover:text-red-400 transition whitespace-nowrap">Hapus Tgl Ini</button>
-    </div>
-        <button onclick="APP.data.deleteLogs('all')" class="w-full bg-red-900/30 border border-red-900/50 text-red-400 font-bold text-xs py-3 rounded mt-2 hover:bg-red-900 hover:text-white transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/10"><i class="fa-solid fa-radiation"></i> RESET TOTAL (FRESH START)</button>
+    <div id="calendar-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-calendar-days text-emerald-400 mr-2"></i>Jurnal & Performa</h3><button onclick="APP.ui.closeModal('calendar')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex justify-between items-center mb-4"><button onclick="APP.ui.changeMonth(-1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button>
+                <h4 id="cal-month-year" class="text-white font-bold text-sm"></h4><button onclick="APP.ui.changeMonth(1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] text-slate-500 font-bold uppercase">
+                <div>Min</div>
+                <div>Sen</div>
+                <div>Sel</div>
+                <div>Rab</div>
+                <div>Kam</div>
+                <div>Jum</div>
+                <div>Sab</div>
+            </div>
+            <div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div>
+            <div id="cal-details" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 min-h-[140px] flex flex-col justify-center overflow-y-auto no-scrollbar">
+                <div class="text-center text-slate-500 opacity-70"><i class="fa-solid fa-hand-pointer mb-2 text-xl"></i>
+                    <p class="text-xs italic">Klik tanggal hijau untuk melihat detail.</p>
                 </div>
             </div>
         </div>
     </div>
-    <div id="weight-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 fade-in"><div class="flex justify-between mb-4"><h3 class="font-bold text-white">Weight</h3><button onclick="APP.ui.closeModal('weight')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div><div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div></div></div>
-    <div id="bio-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-6 max-h-[80vh] flex flex-col fade-in"><h3 class="font-bold text-white text-lg mb-4 text-emerald-400" id="bio-title"></h3><div class="overflow-y-auto pr-2 mb-4 no-scrollbar"><p id="bio-text" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed"></p></div><button onclick="APP.ui.closeModal('bio')" class="w-full bg-slate-700 text-white py-3 rounded-xl font-bold">Tutup</button></div></div>
-    <div id="history-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 max-h-[80vh] flex flex-col fade-in"><div class="flex justify-between border-b border-slate-700 pb-2 mb-2"><h3 class="font-bold text-white" id="hist-title">History</h3><button onclick="APP.ui.closeModal('history')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div id="hist-content" class="overflow-y-auto space-y-2 no-scrollbar"></div></div></div>
-    <div id="calendar-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]"><div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"><h3 class="font-bold text-white"><i class="fa-solid fa-calendar-days text-emerald-400 mr-2"></i>Jurnal & Performa</h3><button onclick="APP.ui.closeModal('calendar')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center mb-4"><button onclick="APP.ui.changeMonth(-1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-left"></i></button><h4 id="cal-month-year" class="text-white font-bold text-sm"></h4><button onclick="APP.ui.changeMonth(1)" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] text-slate-500 font-bold uppercase"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div id="cal-grid" class="grid grid-cols-7 gap-1 mb-4"></div><div id="cal-details" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 min-h-[140px] flex flex-col justify-center overflow-y-auto no-scrollbar"><div class="text-center text-slate-500 opacity-70"><i class="fa-solid fa-hand-pointer mb-2 text-xl"></i><p class="text-xs italic">Klik tanggal hijau untuk melihat detail.</p></div></div></div></div>
     <script>
         const PRESETS = {
             "p1": {
                 label: "Blood Flow",
                 title: "The Blood Flow (Active Recovery)",
                 dynamic: "Arm Circles, Leg Swings",
-                exercises: [
-                    { sets: 3, rest: 60, note: "Constant Tension (No Lockout)", options: [{n:"[Machine] Chest Press", t_r:"15-20", bio:"Lakukan gerakan memompa, jangan kunci siku.", note:"Fokus Pompa Darah"}, {n:"[Cable] Face Pull", t_r:"15-20", bio:"Tarik ke arah dahi, fokus rear delt."}] },
-                    { sets: 3, rest: 60, note: "Slow Eccentric", options: [{n:"[Machine] Leg Extension", t_r:"15-20", bio:"Tahan 1 detik di puncak kontraksi.", note:"Tahan Puncak"}, {n:"[Machine] Leg Curl", t_r:"15-20", bio:"Jaga pinggul tetap menempel di pad."}] }
+                exercises: [{
+                        sets: 3,
+                        rest: 60,
+                        note: "Constant Tension (No Lockout)",
+                        options: [{
+                            n: "[Machine] Chest Press",
+                            t_r: "15-20",
+                            bio: "Lakukan gerakan memompa, jangan kunci siku.",
+                            note: "Fokus Pompa Darah"
+                        }, {
+                            n: "[Cable] Face Pull",
+                            t_r: "15-20",
+                            bio: "Tarik ke arah dahi, fokus rear delt."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 60,
+                        note: "Slow Eccentric",
+                        options: [{
+                            n: "[Machine] Leg Extension",
+                            t_r: "15-20",
+                            bio: "Tahan 1 detik di puncak kontraksi.",
+                            note: "Tahan Puncak"
+                        }, {
+                            n: "[Machine] Leg Curl",
+                            t_r: "15-20",
+                            bio: "Jaga pinggul tetap menempel di pad."
+                        }]
+                    }
                 ]
             },
             "p2": {
                 label: "Mini Pump",
                 title: "Minimalist Pump",
                 dynamic: "Arm Circles",
-                exercises: [
-                    { sets: 3, rest: 90, note: "Squeeze at Top", options: [{n:"[DB] Incline Press", t_r:"10-12", bio:"Tekan dada atas, sudut bangku 30 derajat."}] },
-                    { sets: 3, rest: 90, note: "Full Stretch", options: [{n:"[Cable] Lat Pulldown", t_r:"10-12", bio:"Biarkan lats terulur maksimal di atas."}] },
-                    { sets: 3, rest: 90, note: "Control Weight", options: [{n:"[Machine] Leg Press", t_r:"10-12", bio:"Jangan biarkan lutut goyang (valgus)."}] }
+                exercises: [{
+                        sets: 3,
+                        rest: 90,
+                        note: "Squeeze at Top",
+                        options: [{
+                            n: "[DB] Incline Press",
+                            t_r: "10-12",
+                            bio: "Tekan dada atas, sudut bangku 30 derajat."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 90,
+                        note: "Full Stretch",
+                        options: [{
+                            n: "[Cable] Lat Pulldown",
+                            t_r: "10-12",
+                            bio: "Biarkan lats terulur maksimal di atas."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 90,
+                        note: "Control Weight",
+                        options: [{
+                            n: "[Machine] Leg Press",
+                            t_r: "10-12",
+                            bio: "Jangan biarkan lutut goyang (valgus)."
+                        }]
+                    }
                 ]
             },
             "p3": {
                 label: "Core",
                 title: "Core Stability",
                 dynamic: "Cat-Cow",
-                exercises: [
-                    { sets: 3, rest: 60, note: "Bracing Focus", options: [{n:"[Bodyweight] Plank", t_r:"45s", bio:"Kencangkan perut seperti akan dipukul."}] },
-                    { sets: 3, rest: 60, note: "Control", options: [{n:"[Bodyweight] Deadbug", t_r:"12 reps", bio:"Punggung bawah harus menempel lantai."}] },
-                    { sets: 3, rest: 60, note: "Obliques", options: [{n:"[Bodyweight] Side Plank", t_r:"30s", bio:"Angkat pinggul tinggi, garis lurus."}] }
+                exercises: [{
+                        sets: 3,
+                        rest: 60,
+                        note: "Bracing Focus",
+                        options: [{
+                            n: "[Bodyweight] Plank",
+                            t_r: "45s",
+                            bio: "Kencangkan perut seperti akan dipukul."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 60,
+                        note: "Control",
+                        options: [{
+                            n: "[Bodyweight] Deadbug",
+                            t_r: "12 reps",
+                            bio: "Punggung bawah harus menempel lantai."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 60,
+                        note: "Obliques",
+                        options: [{
+                            n: "[Bodyweight] Side Plank",
+                            t_r: "30s",
+                            bio: "Angkat pinggul tinggi, garis lurus."
+                        }]
+                    }
                 ]
             },
             "p4": {
                 label: "Mobility",
                 title: "Upper Mobility Flow",
                 dynamic: "Arm Swings",
-                exercises: [
-                    { sets: 2, rest: 30, note: "Thoracic Ext.", options: [{n:"[Stretch] Cat-Cow", t_r:"10 reps", bio:"Fokus lengkungan di punggung atas."}] },
-                    { sets: 2, rest: 30, note: "Shoulder ROM", options: [{n:"[Stretch] Band Dislocates", t_r:"10 reps", bio:"Gunakan band elastis, jangan dipaksa."}] },
-                    { sets: 2, rest: 30, note: "Lats Stretch", options: [{n:"[Stretch] Child Pose", t_r:"30s", bio:"Dorong ketiak ke arah lantai."}] }
+                exercises: [{
+                        sets: 2,
+                        rest: 30,
+                        note: "Thoracic Ext.",
+                        options: [{
+                            n: "[Stretch] Cat-Cow",
+                            t_r: "10 reps",
+                            bio: "Fokus lengkungan di punggung atas."
+                        }]
+                    },
+                    {
+                        sets: 2,
+                        rest: 30,
+                        note: "Shoulder ROM",
+                        options: [{
+                            n: "[Stretch] Band Dislocates",
+                            t_r: "10 reps",
+                            bio: "Gunakan band elastis, jangan dipaksa."
+                        }]
+                    },
+                    {
+                        sets: 2,
+                        rest: 30,
+                        note: "Lats Stretch",
+                        options: [{
+                            n: "[Stretch] Child Pose",
+                            t_r: "30s",
+                            bio: "Dorong ketiak ke arah lantai."
+                        }]
+                    }
                 ]
             },
             "p5": {
                 label: "Home",
                 title: "Home Flow (No Gear)",
                 dynamic: "Jumping Jacks",
-                exercises: [
-                    { sets: 3, rest: 60, note: "Chest Focus", options: [{n:"[Bodyweight] Push Up", t_r:"Failure", bio:"Siku 45 derajat dari badan, jangan lebar."}] },
-                    { sets: 3, rest: 60, note: "Quads", options: [{n:"[Bodyweight] Squat", t_r:"20 reps", bio:"Lutut mengikuti arah jari kaki."}] },
-                    { sets: 3, rest: 60, note: "Glutes", options: [{n:"[Bodyweight] Glute Bridge", t_r:"15 reps", bio:"Kunci pantat di atas, jangan over-arch."}] }
+                exercises: [{
+                        sets: 3,
+                        rest: 60,
+                        note: "Chest Focus",
+                        options: [{
+                            n: "[Bodyweight] Push Up",
+                            t_r: "Failure",
+                            bio: "Siku 45 derajat dari badan, jangan lebar."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 60,
+                        note: "Quads",
+                        options: [{
+                            n: "[Bodyweight] Squat",
+                            t_r: "20 reps",
+                            bio: "Lutut mengikuti arah jari kaki."
+                        }]
+                    },
+                    {
+                        sets: 3,
+                        rest: 60,
+                        note: "Glutes",
+                        options: [{
+                            n: "[Bodyweight] Glute Bridge",
+                            t_r: "15 reps",
+                            bio: "Kunci pantat di atas, jangan over-arch."
+                        }]
+                    }
                 ]
             }
         };
@@ -374,128 +871,127 @@
             return false;
         };
 
-    // 📍 START OF PATCH B2
+        // 📍 START OF PATCH B2
         const LS_SAFE = {
-    get: (k) => { 
-        try { 
-            const val = localStorage.getItem(k);
-            return val;
-        } catch(e) { 
-            console.error("LS Get Error:", k, e); 
-            return null; 
-        } 
-    },
-    
-    set: (k, v) => { 
-        try { 
-            // ✅ Validate key
-            if (!k || typeof k !== 'string') {
-                throw new Error("Invalid key");
-            }
-            
-            localStorage.setItem(k, v); 
-            return true;
-        } catch(e) { 
-            if (e.name === 'QuotaExceededError') {
-                alert("â�šï¸ Memori Penuh! Hapus beberapa data di Profil.");
-            } else {
-                console.error("LS Set Error:", k, e);
-            }
-            return false;
-        } 
-    },
-    
-    getJSON: (k, def = null) => {
-        try {
-            const v = localStorage.getItem(k);
-            if (!v) return def;
-            
-            const parsed = JSON.parse(v);
-            return parsed;
-        } catch (e) {
-            console.error("LS Parse Error:", k, e);
-            // ✅ Auto-fix: Remove corrupt data
-            try {
-                localStorage.removeItem(k);
-                console.warn(`[AUTO-FIX] Removed corrupt data: ${k}`);
-            } catch(err) {}
-            return def;
-        }
-    },
-    
-    setJSON: (k, v) => {
-        try {
-            // ✅ Validate data structure
-            if (v === undefined) {
-                throw new Error("Cannot store undefined");
-            }
-            
-            const jsonStr = JSON.stringify(v);
-            
-            // ✅ Size check (warn if > 1MB)
-            const sizeKB = new Blob([jsonStr]).size / 1024;
-            if (sizeKB > 1024) {
-                console.warn(`⚠️ Large data (${sizeKB.toFixed(2)}KB): ${k}`);
-            }
-            
-            localStorage.setItem(k, jsonStr);
-            return true;
-        } catch (e) {
-            if (e.name === 'QuotaExceededError') {
-                alert("Gagal menyimpan: Memori Penuh!");
-            } else {
-                console.error("LS JSON Error:", k, e);
-            }
-            return false;
-        }
-    },
-    
-    remove: (k) => { 
-        try { 
-            localStorage.removeItem(k); 
-            return true;
-        } catch(e){
-            console.error("LS Remove Error:", k, e);
-            return false;
-        } 
-    },
-    
-    clear: () => { 
-        try { 
-            localStorage.clear(); 
-            return true;
-        } catch(e){
-            console.error("LS Clear Error:", e);
-            return false;
-        } 
-    },
-    
-    // ✅ NEW: Get storage usage stats
-    getStats: () => {
-        let totalSize = 0;
-        let itemCount = 0;
-        
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            const value = localStorage.getItem(key);
-            totalSize += key.length + (value ? value.length : 0);
-            itemCount++;
-        }
-        
-        const sizeKB = (totalSize / 1024).toFixed(2);
-        const maxKB = 5120; // ~5MB typical limit
-        const usagePercent = ((totalSize / (maxKB * 1024)) * 100).toFixed(1);
-        
-        return {
-            items: itemCount,
-            sizeKB: sizeKB,
-            usage: usagePercent + '%',
-            remaining: (maxKB - parseFloat(sizeKB)).toFixed(2) + ' KB'
-        };
-    }
-};
+            get: (k) => {
+                try {
+                    const val = localStorage.getItem(k);
+                    return val;
+                } catch (e) {
+                    console.error("LS Get Error:", k, e);
+                    return null;
+                }
+            },
 
-    // END PATCH B2
+            set: (k, v) => {
+                try {
+                    // ✅ Validate key
+                    if (!k || typeof k !== 'string') {
+                        throw new Error("Invalid key");
+                    }
+
+                    localStorage.setItem(k, v);
+                    return true;
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        alert("â�šï¸ Memori Penuh! Hapus beberapa data di Profil.");
+                    } else {
+                        console.error("LS Set Error:", k, e);
+                    }
+                    return false;
+                }
+            },
+
+            getJSON: (k, def = null) => {
+                try {
+                    const v = localStorage.getItem(k);
+                    if (!v) return def;
+
+                    const parsed = JSON.parse(v);
+                    return parsed;
+                } catch (e) {
+                    console.error("LS Parse Error:", k, e);
+                    // ✅ Auto-fix: Remove corrupt data
+                    try {
+                        localStorage.removeItem(k);
+                        console.warn(`[AUTO-FIX] Removed corrupt data: ${k}`);
+                    } catch (err) {}
+                    return def;
+                }
+            },
+
+            setJSON: (k, v) => {
+                try {
+                    // ✅ Validate data structure
+                    if (v === undefined) {
+                        throw new Error("Cannot store undefined");
+                    }
+
+                    const jsonStr = JSON.stringify(v);
+
+                    // ✅ Size check (warn if > 1MB)
+                    const sizeKB = new Blob([jsonStr]).size / 1024;
+                    if (sizeKB > 1024) {
+                        console.warn(`⚠️ Large data (${sizeKB.toFixed(2)}KB): ${k}`);
+                    }
+
+                    localStorage.setItem(k, jsonStr);
+                    return true;
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        alert("Gagal menyimpan: Memori Penuh!");
+                    } else {
+                        console.error("LS JSON Error:", k, e);
+                    }
+                    return false;
+                }
+            },
+
+            remove: (k) => {
+                try {
+                    localStorage.removeItem(k);
+                    return true;
+                } catch (e) {
+                    console.error("LS Remove Error:", k, e);
+                    return false;
+                }
+            },
+
+            clear: () => {
+                try {
+                    localStorage.clear();
+                    return true;
+                } catch (e) {
+                    console.error("LS Clear Error:", e);
+                    return false;
+                }
+            },
+
+            // ✅ NEW: Get storage usage stats
+            getStats: () => {
+                let totalSize = 0;
+                let itemCount = 0;
+
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    totalSize += key.length + (value ? value.length : 0);
+                    itemCount++;
+                }
+
+                const sizeKB = (totalSize / 1024).toFixed(2);
+                const maxKB = 5120; // ~5MB typical limit
+                const usagePercent = ((totalSize / (maxKB * 1024)) * 100).toFixed(1);
+
+                return {
+                    items: itemCount,
+                    sizeKB: sizeKB,
+                    usage: usagePercent + '%',
+                    remaining: (maxKB - parseFloat(sizeKB)).toFixed(2) + ' KB'
+                };
+            }
+        };
+        // END PATCH B2
 
         const DT = {
             formatRelative: (ts) => {
@@ -506,7 +1002,10 @@
                 return (typeof dayjs !== 'undefined') ? dayjs(d).format('D MMM') : d.toLocaleDateString();
             },
             formatMonth: (d) => {
-                return (typeof dayjs !== 'undefined') ? dayjs(d).format("MMMM YYYY") : d.toLocaleDateString([], {month:'long', year:'numeric'});
+                return (typeof dayjs !== 'undefined') ? dayjs(d).format("MMMM YYYY") : d.toLocaleDateString([], {
+                    month: 'long',
+                    year: 'numeric'
+                });
             }
         };
         const APP = {
@@ -517,107 +1016,126 @@
                 spontaneousMode: false,
                 currentCalDate: new Date(),
                 workoutData: {},
-                defaultTemplate: { s1: { label: "SESI 1", title: "Upper A", dynamic: "Arm Circles", exercises: [{ sets: 3, rest: 150, note: "Warm Up", options: [{ n: "Bench Press", vid: "", bio: "" }] }] } }
+                defaultTemplate: {
+                    s1: {
+                        label: "SESI 1",
+                        title: "Upper A",
+                        dynamic: "Arm Circles",
+                        exercises: [{
+                            sets: 3,
+                            rest: 150,
+                            note: "Warm Up",
+                            options: [{
+                                n: "Bench Press",
+                                vid: "",
+                                bio: ""
+                            }]
+                        }]
+                    }
+                }
             },
 
-    // 📍 START OF PATCH B1 (Validation function)
-validation: {
-    // Validate session exists and has exercises
-    validateSession: (sessionId) => {
-        const session = APP.state.workoutData[sessionId];
-        if (!session) {
-            throw new Error(`Session '${sessionId}' tidak ditemukan`);
-        }
-        if (!session.exercises || !Array.isArray(session.exercises)) {
-            throw new Error(`Session '${sessionId}' tidak memiliki exercises array`);
-        }
-        return session;
-    },
-    
-    // Validate exercise index
-    validateExercise: (sessionId, exerciseIdx) => {
-        const session = APP.validation.validateSession(sessionId);
-        const exercise = session.exercises[exerciseIdx];
-        if (!exercise) {
-            throw new Error(`Exercise index ${exerciseIdx} tidak valid (max: ${session.exercises.length - 1})`);
-        }
-        if (!exercise.options || exercise.options.length === 0) {
-            throw new Error(`Exercise ${exerciseIdx} tidak memiliki options`);
-        }
-        return exercise;
-    },
-    
-    // Validate and get safe variant index
-    getSafeVariantIndex: (sessionId, exerciseIdx) => {
-        const exercise = APP.validation.validateExercise(sessionId, exerciseIdx);
-        let savedVar = parseInt(LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0);
-        
-        // Auto-fix if out of bounds
-        if (isNaN(savedVar) || savedVar < 0 || savedVar >= exercise.options.length) {
-            console.warn(`[AUTO-FIX] Invalid variant ${savedVar}, reset to 0`);
-            savedVar = 0;
-            LS_SAFE.set(`pref_${sessionId}_${exerciseIdx}`, 0);
-        }
-        
-        return savedVar;
-    },
-    
-    // Validate localStorage key format
-    isValidSetKey: (key) => {
-        // Expected format: {sessionId}_ex{num}_s{num}_{k|r|rpe|d}
-        const pattern = /^[a-zA-Z0-9_]+_ex\d+_s\d+_[krped]$/;
-        return pattern.test(key);
-    },
-    
-    // Clean corrupt localStorage entries
-    cleanCorruptData: () => {
-        let cleanedCount = 0;
-        const toRemove = [];
-        
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            
-            // Check set keys
-            if (key && key.includes('_ex') && key.includes('_s')) {
-                if (!APP.validation.isValidSetKey(key)) {
-                    toRemove.push(key);
-                    cleanedCount++;
+            // 📍 START OF PATCH B1 (Validation function)
+            validation: {
+                // Validate session exists and has exercises
+                validateSession: (sessionId) => {
+                    const session = APP.state.workoutData[sessionId];
+                    if (!session) {
+                        throw new Error(`Session '${sessionId}' tidak ditemukan`);
+                    }
+                    if (!session.exercises || !Array.isArray(session.exercises)) {
+                        throw new Error(`Session '${sessionId}' tidak memiliki exercises array`);
+                    }
+                    return session;
+                },
+
+                // Validate exercise index
+                validateExercise: (sessionId, exerciseIdx) => {
+                    const session = APP.validation.validateSession(sessionId);
+                    const exercise = session.exercises[exerciseIdx];
+                    if (!exercise) {
+                        throw new Error(`Exercise index ${exerciseIdx} tidak valid (max: ${session.exercises.length - 1})`);
+                    }
+                    if (!exercise.options || exercise.options.length === 0) {
+                        throw new Error(`Exercise ${exerciseIdx} tidak memiliki options`);
+                    }
+                    return exercise;
+                },
+
+                // Validate and get safe variant index
+                getSafeVariantIndex: (sessionId, exerciseIdx) => {
+                    const exercise = APP.validation.validateExercise(sessionId, exerciseIdx);
+                    let savedVar = parseInt(LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0);
+
+                    // Auto-fix if out of bounds
+                    if (isNaN(savedVar) || savedVar < 0 || savedVar >= exercise.options.length) {
+                        console.warn(`[AUTO-FIX] Invalid variant ${savedVar}, reset to 0`);
+                        savedVar = 0;
+                        LS_SAFE.set(`pref_${sessionId}_${exerciseIdx}`, 0);
+                    }
+
+                    return savedVar;
+                },
+
+                // Validate localStorage key format
+                isValidSetKey: (key) => {
+                    // Expected format: {sessionId}_ex{num}_s{num}_{k|r|rpe|d}
+                    const pattern = /^[a-zA-Z0-9_]+_ex\d+_s\d+_[krped]$/;
+                    return pattern.test(key);
+                },
+
+                // Clean corrupt localStorage entries
+                cleanCorruptData: () => {
+                    let cleanedCount = 0;
+                    const toRemove = [];
+
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+
+                        // Check set keys
+                        if (key && key.includes('_ex') && key.includes('_s')) {
+                            if (!APP.validation.isValidSetKey(key)) {
+                                toRemove.push(key);
+                                cleanedCount++;
+                            }
+                        }
+                    }
+
+                    toRemove.forEach(k => LS_SAFE.remove(k));
+
+                    if (cleanedCount > 0) {
+                        console.log(`[CLEANUP] Removed ${cleanedCount} corrupt entries`);
+                    }
+
+                    return cleanedCount;
+                },
+
+                // Validate number input
+                sanitizeNumber: (value, min = 0, max = 999, defaultVal = 0) => {
+                    const num = parseFloat(value);
+                    if (isNaN(num)) return defaultVal;
+                    if (num < min) return min;
+                    if (num > max) return max;
+                    return num;
                 }
-            }
-        }
-        
-        toRemove.forEach(k => LS_SAFE.remove(k));
-        
-        if (cleanedCount > 0) {
-            console.log(`[CLEANUP] Removed ${cleanedCount} corrupt entries`);
-        }
-        
-        return cleanedCount;
-    },
-    
-    // Validate number input
-    sanitizeNumber: (value, min = 0, max = 999, defaultVal = 0) => {
-        const num = parseFloat(value);
-        if (isNaN(num)) return defaultVal;
-        if (num < min) return min;
-        if (num > max) return max;
-        return num;
-    }
-},
-    //END OF PATCH B1
+            },
+            //END OF PATCH B1
 
             init: function() {
                 try {
-                    if(typeof dayjs!=='undefined') { dayjs.extend(window.dayjs_plugin_relativeTime); dayjs.locale('id'); }
-                    
-    // 📍 START OF PATCH B4
+                    if (typeof dayjs !== 'undefined') {
+                        dayjs.extend(window.dayjs_plugin_relativeTime);
+                        dayjs.locale('id');
+                    }
+
+                    // 📍 START OF PATCH B4
                     if (APP.validation && APP.validation.cleanCorruptData) {
-            const cleaned = APP.validation.cleanCorruptData();
-            if (cleaned > 0) {
-                console.log(`[STARTUP] Cleaned ${cleaned} corrupt entries`);
-            }
-        }
-    // END OF PATCH B4
+                        const cleaned = APP.validation.cleanCorruptData();
+                        if (cleaned > 0) {
+                            console.log(`[STARTUP] Cleaned ${cleaned} corrupt entries`);
+                        }
+                    }
+                    // END OF PATCH B4
                     const stored = LS_SAFE.getJSON("cscs_program_v10");
                     if (stored) {
                         this.state.workoutData = stored;
@@ -627,32 +1145,40 @@ validation: {
                     }
                     this.data.loadProfile();
                     this.nav.renderDashboard();
-                    if(typeof Chart !== 'undefined') this.stats.init();
+                    if (typeof Chart !== 'undefined') this.stats.init();
                     this.core.requestWakeLock();
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'visible') this.core.requestWakeLock();
                     });
-                } catch(e) {
+                } catch (e) {
                     this.debug.showFatalError("Init Error", e);
                 }
             },
             core: {
                 saveProgram: () => LS_SAFE.setJSON("cscs_program_v10", APP.state.workoutData),
-                requestWakeLock: async () => { try { if ('wakeLock' in navigator) APP.state.wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} },
+                requestWakeLock: async () => {
+                    try {
+                        if ('wakeLock' in navigator) APP.state.wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {}
+                },
                 finishSession: () => {
                     try {
                         const now = new Date();
                         const durationMins = 45;
-                        let totalVol = 0, totalSets = 0;
+                        let totalVol = 0,
+                            totalSets = 0;
                         const sessId = APP.state.currentSessionId;
                         const d = APP.state.workoutData[sessId];
-                        d.exercises.forEach((ex,i) => {
-                            for(let j=1; j<=ex.sets; j++){
+                        d.exercises.forEach((ex, i) => {
+                            for (let j = 1; j <= ex.sets; j++) {
                                 const s = `${sessId}_ex${i}_s${j}`;
-                                const k = parseFloat(LS_SAFE.get(`${s}_k`)||0);
-                                const re = parseFloat(LS_SAFE.get(`${s}_r`)||0);
-                                const do_ = LS_SAFE.get(`${s}_d`)==="true";
-                                if(do_ && k>0 && re>0) { totalVol += k*re; totalSets++; }
+                                const k = parseFloat(LS_SAFE.get(`${s}_k`) || 0);
+                                const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
+                                const do_ = LS_SAFE.get(`${s}_d`) === "true";
+                                if (do_ && k > 0 && re > 0) {
+                                    totalVol += k * re;
+                                    totalSets++;
+                                }
                             }
                         });
                         let inputDur = prompt(`Selesai Latihan?\n\nVolume: ${totalVol} kg\nSets: ${totalSets}\n\nMasukkan Durasi Latihan (menit):`, durationMins);
@@ -660,32 +1186,51 @@ validation: {
                         const finalDur = parseInt(inputDur) || durationMins;
                         const ds = DT.formatDate(now);
                         const h = LS_SAFE.getJSON("gym_hist", []);
-                        d.exercises.forEach((ex,i)=>{
+                        d.exercises.forEach((ex, i) => {
                             const optIdx = LS_SAFE.get(`pref_${sessId}_${i}`) || 0;
                             const opt = ex.options[optIdx] || ex.options[0];
                             const currentNote = opt.note || ex.note || "";
-                            let v=0, t=0, r=[];
-                            for(let j=1; j<=ex.sets; j++){
+                            let v = 0,
+                                t = 0,
+                                r = [];
+                            for (let j = 1; j <= ex.sets; j++) {
                                 const s = `${sessId}_ex${i}_s${j}`;
-                                const k = parseFloat(LS_SAFE.get(`${s}_k`)||0);
-                                const re = parseFloat(LS_SAFE.get(`${s}_r`)||0);
-                                const rpe = LS_SAFE.get(`${s}_rpe`)||"";
-                                const do_ = LS_SAFE.get(`${s}_d`)==="true";
-                                if(do_ && k>0 && re>0){
-                                    v += k*re;
-                                    if(k > t) t = k;
-                                    r.push({k, r:re, rpe: rpe});
+                                const k = parseFloat(LS_SAFE.get(`${s}_k`) || 0);
+                                const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
+                                const rpe = LS_SAFE.get(`${s}_rpe`) || "";
+                                const do_ = LS_SAFE.get(`${s}_d`) === "true";
+                                if (do_ && k > 0 && re > 0) {
+                                    v += k * re;
+                                    if (k > t) t = k;
+                                    r.push({
+                                        k,
+                                        r: re,
+                                        rpe: rpe
+                                    });
                                     LS_SAFE.set(`${s}_d`, "false");
                                 }
                             }
-                            if(r.length) h.push({date:ds, ts:now.getTime(), ex:opt.n, vol:v, top:t, d:r, src: sessId, title: d.title, dur: finalDur, note: currentNote});
+                            if (r.length) h.push({
+                                date: ds,
+                                ts: now.getTime(),
+                                ex: opt.n,
+                                vol: v,
+                                top: t,
+                                d: r,
+                                src: sessId,
+                                title: d.title,
+                                dur: finalDur,
+                                note: currentNote
+                            });
                         });
                         LS_SAFE.setJSON("gym_hist", h);
                         if (sessId !== 'spontaneous') {
                             LS_SAFE.set(`last_${sessId}`, now.getTime());
                         }
                         APP.nav.switchView("dashboard");
-                    } catch(e) { APP.debug.showFatalError("Finish Session", e); }
+                    } catch (e) {
+                        APP.debug.showFatalError("Finish Session", e);
+                    }
                 }
             },
             nav: {
@@ -693,153 +1238,178 @@ validation: {
                     document.getElementById("dashboard-view").classList.add("hidden");
                     document.getElementById("workout-view").classList.add("hidden");
                     document.getElementById(`${v}-view`).classList.remove("hidden");
-                    if(v==="dashboard") APP.nav.renderDashboard();
+                    if (v === "dashboard") APP.nav.renderDashboard();
                 },
+
+                // 📍 PATCH C.1: APP.nav.renderDashboard
                 renderDashboard: () => {
                     try {
                         const list = document.getElementById("schedule-list");
+
+                        // ✅ DOM NULL GUARD
+                        if (!list) {
+                            console.error("[DOM ERROR] schedule-list element not found");
+                            return;
+                        }
+
                         let htmlBuffer = "";
                         let oldest = Infinity;
                         let recommended = "s1";
                         const wData = APP.state.workoutData;
                         Object.keys(wData).forEach(k => {
-                            if(k === 'spontaneous') return;
+                            if (k === 'spontaneous') return;
                             const t = parseInt(LS_SAFE.get(`last_${k}`) || 0);
-                            if(t < oldest) {oldest = t; recommended = k; }
+                            if (t < oldest) {
+                                oldest = t;
+                                recommended = k;
+                            }
                         });
                         Object.keys(wData).forEach(k => {
-                            if(k === 'spontaneous') return;
+                            if (k === 'spontaneous') return;
                             const d = wData[k];
                             const last = LS_SAFE.get(`last_${k}`);
                             const timeStr = DT.formatRelative(last);
                             const isRec = k === recommended;
                             htmlBuffer += `
-                            <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
-                                <div>
-                                    <div class="flex items-center mb-1">
-                                        <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${d.label}</span>
-                                        ${isRec?'<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>':''}
-                                    </div>
-                                    <h3 class="font-bold text-white text-lg flex items-center gap-2">${d.title} <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3>
-                                    <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div>
-                                </div>
-                                <div class="flex flex-col items-end gap-2">
-                                    <button onclick="APP.data.deleteSession(event, '${k}')" class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition" title="Hapus Sesi"><i class="fa-solid fa-trash text-xs"></i></button>
-                                    <i class="fa-solid fa-chevron-right text-slate-500"></i>
-                                </div>
-                            </div>`;
+            <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${isRec?'border-emerald-500/50 pulse-border':'border-slate-700'} active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
+                <div>
+                    <div class="flex items-center mb-1">
+                        <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${d.label}</span>
+                        ${isRec?'<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>':''}
+                    </div>
+                    <h3 class="font-bold text-white text-lg flex items-center gap-2">${d.title} <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3>
+                    <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <button onclick="APP.data.deleteSession(event, '${k}')" class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition" title="Hapus Sesi"><i class="fa-solid fa-trash text-xs"></i></button>
+                    <i class="fa-solid fa-chevron-right text-slate-500"></i>
+                </div>
+            </div>`;
                         });
                         list.innerHTML = htmlBuffer;
-                    } catch(e) { APP.debug.showFatalError("Render Dashboard", e); }
+                    } catch (e) {
+                        APP.debug.showFatalError("Render Dashboard", e);
+                    }
                 },
+                // END OF PATCH C.1
 
-                // 📍 START OF START OF PATCH A1
-loadWorkout: (id) => {
-    try {
-        APP.state.currentSessionId = id;
-        APP.state.focusMode = false;
-        APP.ui.updateFocusBtn();
-        
-        const isSpon = id === 'spontaneous';
-        const badge = document.getElementById("spontaneous-badge");
-        isSpon ? badge.classList.remove("hidden") : badge.classList.add("hidden");
-        isSpon ? badge.classList.add("flex") : badge.classList.remove("flex");
-        
-        // ✅ SAFETY: Validate session exists
-        const data = APP.state.workoutData[id];
-        if (!data) {
-            alert(`Session '${id}' tidak ditemukan!`);
-            APP.nav.switchView('dashboard');
-            return;
-        }
-        
-        // ✅ SAFETY: Validate exercises array
-        if (!data.exercises || !Array.isArray(data.exercises)) {
-            alert(`Data sesi corrupt! Exercises tidak valid.`);
-            APP.nav.switchView('dashboard');
-            return;
-        }
-        
-        const wGeneral = document.getElementById("warmup-general");
-        const wDynamic = document.getElementById("warmup-dynamic");
-        if(wGeneral) wGeneral.innerText = "Jalan Cepat 5 Menit.";
-        if(wDynamic) wDynamic.innerText = data.dynamic || "Arm Circles";
-        
-        const exList = document.getElementById("exercise-list");
-        let htmlBuffer = "";
-        
-        data.exercises.forEach((ex, idx) => {
-            // ✅ GUARD 1: Skip if no options
-            if (!ex.options || ex.options.length === 0) {
-                console.warn(`[SKIP] Exercise ${idx} has no options`);
-                return;
-            }
-            
-            // ✅ GUARD 2: Validate saved variant index
-            let savedVar = parseInt(LS_SAFE.get(`pref_${id}_${idx}`) || 0);
-            if (isNaN(savedVar) || savedVar < 0 || savedVar >= ex.options.length) {
-                console.warn(`[RESET] Invalid variant ${savedVar} for exercise ${idx}, reset to 0`);
-                savedVar = 0;
-                LS_SAFE.set(`pref_${id}_${idx}`, 0);
-            }
-            
-            // ✅ GUARD 3: Final null check
-            const opt = ex.options[savedVar];
-            if (!opt) {
-                console.error(`[CRITICAL] Option not found at index ${savedVar} for exercise ${idx}`);
-                return;
-            }
-            
-            // ✅ SAFETY: Default values for opt properties
-            const optName = opt.n || "Unknown Exercise";
-            const optVid = opt.vid || "";
-            const optBio = opt.bio || "No description";
-            const optNote = opt.note || ex.note || "Edit Note";
-            const optTargetK = opt.t_k || "-";
-            const optTargetR = opt.t_r || "-";
-            
-            // Snapshot variables (prevent closure issues)
-            const _id = id;
-            const _idx = idx;
-            const _savedVar = savedVar;
-            
-            const vidKey = `vid_ovr_${_id}_${_idx}_${_savedVar}`;
-            const vidUrl = LS_SAFE.get(vidKey) || optVid;
-            
-            let optHtml = ex.options.map((o, i) => 
-                `<option value="${i}" ${i==_savedVar?'selected':''}>${o.n || 'Option ' + i}</option>`
-            ).join('');
-            
-            const historySuggestion = APP.data.getSuggestion(optName);
-            
-            let targetBadge = "";
-            if (optTargetK !== "-" || optTargetR !== "-") {
-                targetBadge = `<div class="text-[10px] text-blue-300 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-900/50 flex items-center gap-1 shadow-sm shrink-0 whitespace-nowrap"><i class="fa-solid fa-crosshairs text-blue-400"></i> Target: <b class="text-white">${optTargetK}kg</b> x <b class="text-white">${optTargetR}</b></div>`;
-            }
-            
-            let setsHtml = "";
-            for(let i=1; i<=ex.sets; i++) {
-                const sid = `${_id}_ex${_idx}_s${i}`;
-                const k = LS_SAFE.get(`${sid}_k`)||"";
-                const r = LS_SAFE.get(`${sid}_r`)||"";
-                const rpe = LS_SAFE.get(`${sid}_rpe`)||"";
-                const done = LS_SAFE.get(`${sid}_d`)==="true";
-                
-                let rpeColor = "text-white";
-                const rpeVal = parseFloat(rpe);
-                if(rpeVal <= 7) rpeColor = "text-yellow-400";
-                else if(rpeVal >= 8 && rpeVal <= 9) rpeColor = "text-emerald-400";
-                else if(rpeVal >= 9.5) rpeColor = "text-red-400";
-                
-                let rpeOpts = `<option value="">RPE</option>`;
-                for(let v=6;v<=10;v+=0.5) {
-                    rpeOpts+=`<option value="${v}" ${rpe==v?'selected':''} class="${v<=7?'text-yellow-400':(v>=9.5?'text-red-400':'text-emerald-400')}">${v}</option>`;
-                }
-                
-                setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-emerald-900/20':''}" id="row_${sid}"><div class="col-span-1 text-center text-slate-500 text-xs font-bold">${i}</div><div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${done?'checked':''} onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
-            }
-            
-            htmlBuffer += `
+                // 📍 START OF PATCH A1
+                loadWorkout: (id) => {
+                    try {
+                        APP.state.currentSessionId = id;
+                        APP.state.focusMode = false;
+                        APP.ui.updateFocusBtn();
+
+                        const isSpon = id === 'spontaneous';
+                        const badge = document.getElementById("spontaneous-badge");
+                        isSpon ? badge.classList.remove("hidden") : badge.classList.add("hidden");
+                        isSpon ? badge.classList.add("flex") : badge.classList.remove("flex");
+
+                        // ✅ SAFETY: Validate session exists
+                        const data = APP.state.workoutData[id];
+                        if (!data) {
+                            alert(`Session '${id}' tidak ditemukan!`);
+                            APP.nav.switchView('dashboard');
+                            return;
+                        }
+
+                        // ✅ SAFETY: Validate exercises array
+                        if (!data.exercises || !Array.isArray(data.exercises)) {
+                            alert(`Data sesi corrupt! Exercises tidak valid.`);
+                            APP.nav.switchView('dashboard');
+                            return;
+                        }
+
+                        const wGeneral = document.getElementById("warmup-general");
+                        const wDynamic = document.getElementById("warmup-dynamic");
+                        if (wGeneral) wGeneral.innerText = "Jalan Cepat 5 Menit.";
+                        if (wDynamic) wDynamic.innerText = data.dynamic || "Arm Circles";
+
+                        const exList = document.getElementById("exercise-list");
+
+                        // 📍 PATCH C.2: APP.nav.loadWorkout - Add exList null guard
+                        // ✅ DOM NULL GUARD
+                        if (!exList) {
+                            console.error("[DOM ERROR] exercise-list element not found");
+                            alert("Error: Exercise list tidak ditemukan. Refresh halaman.");
+                            APP.nav.switchView('dashboard');
+                            return;
+                        }
+                        // END OF PATCH C.2
+                        let htmlBuffer = "";
+
+                        data.exercises.forEach((ex, idx) => {
+                            // ✅ GUARD 1: Skip if no options
+                            if (!ex.options || ex.options.length === 0) {
+                                console.warn(`[SKIP] Exercise ${idx} has no options`);
+                                return;
+                            }
+
+                            // ✅ GUARD 2: Validate saved variant index
+                            let savedVar = parseInt(LS_SAFE.get(`pref_${id}_${idx}`) || 0);
+                            if (isNaN(savedVar) || savedVar < 0 || savedVar >= ex.options.length) {
+                                console.warn(`[RESET] Invalid variant ${savedVar} for exercise ${idx}, reset to 0`);
+                                savedVar = 0;
+                                LS_SAFE.set(`pref_${id}_${idx}`, 0);
+                            }
+
+                            // ✅ GUARD 3: Final null check
+                            const opt = ex.options[savedVar];
+                            if (!opt) {
+                                console.error(`[CRITICAL] Option not found at index ${savedVar} for exercise ${idx}`);
+                                return;
+                            }
+
+                            // ✅ SAFETY: Default values for opt properties
+                            const optName = opt.n || "Unknown Exercise";
+                            const optVid = opt.vid || "";
+                            const optBio = opt.bio || "No description";
+                            const optNote = opt.note || ex.note || "Edit Note";
+                            const optTargetK = opt.t_k || "-";
+                            const optTargetR = opt.t_r || "-";
+
+                            // Snapshot variables (prevent closure issues)
+                            const _id = id;
+                            const _idx = idx;
+                            const _savedVar = savedVar;
+
+                            const vidKey = `vid_ovr_${_id}_${_idx}_${_savedVar}`;
+                            const vidUrl = LS_SAFE.get(vidKey) || optVid;
+
+                            let optHtml = ex.options.map((o, i) =>
+                                `<option value="${i}" ${i==_savedVar?'selected':''}>${o.n || 'Option ' + i}</option>`
+                            ).join('');
+
+                            const historySuggestion = APP.data.getSuggestion(optName);
+
+                            let targetBadge = "";
+                            if (optTargetK !== "-" || optTargetR !== "-") {
+                                targetBadge = `<div class="text-[10px] text-blue-300 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-900/50 flex items-center gap-1 shadow-sm shrink-0 whitespace-nowrap"><i class="fa-solid fa-crosshairs text-blue-400"></i> Target: <b class="text-white">${optTargetK}kg</b> x <b class="text-white">${optTargetR}</b></div>`;
+                            }
+
+                            let setsHtml = "";
+                            for (let i = 1; i <= ex.sets; i++) {
+                                const sid = `${_id}_ex${_idx}_s${i}`;
+                                const k = LS_SAFE.get(`${sid}_k`) || "";
+                                const r = LS_SAFE.get(`${sid}_r`) || "";
+                                const rpe = LS_SAFE.get(`${sid}_rpe`) || "";
+                                const done = LS_SAFE.get(`${sid}_d`) === "true";
+
+                                let rpeColor = "text-white";
+                                const rpeVal = parseFloat(rpe);
+                                if (rpeVal <= 7) rpeColor = "text-yellow-400";
+                                else if (rpeVal >= 8 && rpeVal <= 9) rpeColor = "text-emerald-400";
+                                else if (rpeVal >= 9.5) rpeColor = "text-red-400";
+
+                                let rpeOpts = `<option value="">RPE</option>`;
+                                for (let v = 6; v <= 10; v += 0.5) {
+                                    rpeOpts += `<option value="${v}" ${rpe==v?'selected':''} class="${v<=7?'text-yellow-400':(v>=9.5?'text-red-400':'text-emerald-400')}">${v}</option>`;
+                                }
+
+                                setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-emerald-900/20':''}" id="row_${sid}"><div class="col-span-1 text-center text-slate-500 text-xs font-bold">${i}</div><div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${done?'checked':''} onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
+                            }
+
+                            htmlBuffer += `
             <div class="exercise-card bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-md mb-4 transition-all duration-300" id="card-${_idx}">
                 <div class="p-3 border-b border-slate-700 bg-slate-800/50">
                     <div class="flex justify-between items-center mb-1">
@@ -883,16 +1453,16 @@ loadWorkout: (id) => {
                     </div>
                 </div>
             </div>`;
-        });
-        
-        exList.innerHTML = htmlBuffer;
-        APP.ui.checkActiveCard();
-        APP.nav.switchView("workout");
-        
-    } catch(e) { 
-        APP.debug.showFatalError("Load Workout Error", e); 
-    }
-}
+                        });
+
+                        exList.innerHTML = htmlBuffer;
+                        APP.ui.checkActiveCard();
+                        APP.nav.switchView("workout");
+
+                    } catch (e) {
+                        APP.debug.showFatalError("Load Workout Error", e);
+                    }
+                }
             },
             // END OF PATCH A1
 
@@ -921,7 +1491,9 @@ loadWorkout: (id) => {
                         APP.state.workoutData['spontaneous'].label = "SPONTANEOUS";
                         APP.ui.closeModal('spontaneous');
                         APP.nav.loadWorkout('spontaneous');
-                    } catch(e) { alert("JSON Invalid: " + e.message); }
+                    } catch (e) {
+                        alert("JSON Invalid: " + e.message);
+                    }
                 },
                 saveToPresets: () => {
                     const jsonStr = document.getElementById("spon-json-input").value;
@@ -929,12 +1501,15 @@ loadWorkout: (id) => {
                     const name = prompt("Nama Preset:");
                     if (!name) return;
                     const presets = LS_SAFE.getJSON("cscs_spon_presets", []);
-                    presets.push({ name, data: JSON.parse(jsonStr) });
+                    presets.push({
+                        name,
+                        data: JSON.parse(jsonStr)
+                    });
                     LS_SAFE.setJSON("cscs_spon_presets", presets);
                     APP.spontaneous.renderPresets();
                 },
                 deletePreset: (idx) => {
-                    if(!confirm("Hapus preset ini?")) return;
+                    if (!confirm("Hapus preset ini?")) return;
                     const presets = LS_SAFE.getJSON("cscs_spon_presets", []);
                     presets.splice(idx, 1);
                     LS_SAFE.setJSON("cscs_spon_presets", presets);
@@ -977,7 +1552,10 @@ loadWorkout: (id) => {
                 }
             },
             data: {
-                saveSet: (id, t, v) => { LS_SAFE.set(`${id}_${t}`, v); if(t==='rpe') APP.nav.loadWorkout(APP.state.currentSessionId); },
+                saveSet: (id, t, v) => {
+                    LS_SAFE.set(`${id}_${t}`, v);
+                    if (t === 'rpe') APP.nav.loadWorkout(APP.state.currentSessionId);
+                },
                 toggleDone: (id, el, idx) => {
                     LS_SAFE.set(`${id}_d`, el.checked);
                     document.getElementById(`row_${id}`).className = `grid grid-cols-12 gap-1 mb-1 items-center ${el.checked ? 'bg-emerald-900/20' : ''}`;
@@ -992,8 +1570,8 @@ loadWorkout: (id) => {
                 },
                 getSuggestion: (exName) => {
                     const h = LS_SAFE.getJSON("gym_hist", []);
-                    const filtered = h.filter(x => x && x.ex === exName).sort((a,b) => b.ts - a.ts);
-                    if(filtered.length === 0) return "";
+                    const filtered = h.filter(x => x && x.ex === exName).sort((a, b) => b.ts - a.ts);
+                    if (filtered.length === 0) return "";
                     const lastLog = filtered[0];
                     let msg = `Last: ${lastLog.top || 0}kg`;
                     if (lastLog.d && lastLog.d.length > 0) {
@@ -1007,169 +1585,217 @@ loadWorkout: (id) => {
                     return msg;
                 },
 
-            // 📍 START OF PATCH 2: APP.data.changeVariant
-changeVariant: (d, i, v) => {
-    try {
-        // ✅ SAFETY: Validate session exists
-        const session = APP.state.workoutData[d];
-        if (!session) {
-            throw new Error(`Session '${d}' not found`);
-        }
-        
-        // ✅ SAFETY: Validate exercise index
-        if (!session.exercises || !session.exercises[i]) {
-            throw new Error(`Exercise index ${i} invalid`);
-        }
-        
-        // ✅ SAFETY: Validate variant index
-        const newVar = parseInt(v);
-        if (isNaN(newVar) || newVar < 0 || newVar >= session.exercises[i].options.length) {
-            throw new Error(`Variant index ${newVar} out of bounds (max: ${session.exercises[i].options.length - 1})`);
-        }
-        
-        LS_SAFE.set(`pref_${d}_${i}`, newVar);
-        APP.nav.loadWorkout(d);
-        
-    } catch(e) {
-        console.error("changeVariant Error:", e);
-        alert(`Error: ${e.message}`);
-    }
-},
-    // END OF PATCH A2                
-                addCustomVariant: (d, i) => { const n=prompt("Name:"); if(n){ APP.state.workoutData[d].exercises[i].options.push({n,vid:"",bio:""}); APP.core.saveProgram(); APP.data.changeVariant(d,i,APP.state.workoutData[d].exercises[i].options.length-1); } },
-              
-    // 📍 START OF PATCH A4
-modifySet: (d, i, v) => {
-    try {
-        // ✅ SAFETY: Validate data
-        const session = APP.state.workoutData[d];
-        if (!session || !session.exercises[i]) {
-            throw new Error("Invalid session or exercise");
-        }
-        
-        const newSets = session.exercises[i].sets + v;
-        
-        // ✅ SAFETY: Min 1 set, max 10 sets
-        if (newSets < 1) {
-            alert("Minimum 1 set!");
-            return;
-        }
-        if (newSets > 10) {
-            alert("Maximum 10 sets!");
-            return;
-        }
-        
-        session.exercises[i].sets = newSets;
-        APP.core.saveProgram();
-        APP.nav.loadWorkout(d);
-        
-    } catch(e) {
-        console.error("modifySet Error:", e);
-        alert(`Error: ${e.message}`);
-    }
-},
-    // END OF PATCH A4
+                // 📍 START OF PATCH 2: APP.data.changeVariant
+                changeVariant: (d, i, v) => {
+                    try {
+                        // ✅ SAFETY: Validate session exists
+                        const session = APP.state.workoutData[d];
+                        if (!session) {
+                            throw new Error(`Session '${d}' not found`);
+                        }
 
-    // 📍 START OF PATCH A5
-deleteCard: (d, i) => {
-    try {
-        // ✅ SAFETY: Validate data
-        const session = APP.state.workoutData[d];
-        if (!session || !session.exercises[i]) {
-            throw new Error("Invalid session or exercise");
-        }
-        
-        const exName = session.exercises[i].options[0]?.n || "Exercise";
-        
-        if(confirm(`Hapus gerakan "${exName}"?`)){
-            session.exercises.splice(i, 1);
-            APP.core.saveProgram();
-            APP.nav.loadWorkout(d);
-        }
-        
-    } catch(e) {
-        console.error("deleteCard Error:", e);
-        alert(`Error: ${e.message}`);
-    }
-}, 
-    // END OF PATCH A5
-    
-    // 📍 START OF PATCH A6
-moveCard: (d, i, v) => {
-    try {
-        // ✅ SAFETY: Validate data
-        const session = APP.state.workoutData[d];
-        if (!session || !session.exercises) {
-            throw new Error("Invalid session");
-        }
-        
-        const exercises = session.exercises;
-        const newIndex = i + v;
-        
-        // ✅ SAFETY: Bounds check
-        if (newIndex < 0 || newIndex >= exercises.length) {
-            console.log("Cannot move: out of bounds");
-            return;
-        }
-        
-        // Swap
-        [exercises[i], exercises[newIndex]] = [exercises[newIndex], exercises[i]];
-        APP.core.saveProgram();
-        APP.nav.loadWorkout(d);
-        
-    } catch(e) {
-        console.error("moveCard Error:", e);
-        alert(`Error: ${e.message}`);
-    }
-},
-    // END PATCH A6
+                        // ✅ SAFETY: Validate exercise index
+                        if (!session.exercises || !session.exercises[i]) {
+                            throw new Error(`Exercise index ${i} invalid`);
+                        }
 
-                addNewExerciseCard: () => { const n=prompt("Exercise Name:"); if(n){ APP.state.workoutData[APP.state.currentSessionId].exercises.push({sets:3,rest:90,note:"Custom",options:[{n,vid:"",bio:""}]}); APP.core.saveProgram(); APP.nav.loadWorkout(APP.state.currentSessionId); } },
- 
-    // 📍 START OF PATCH A3
-editNote: (d, i) => {
-    try {
-        // ✅ SAFETY: Validate data
-        const session = APP.state.workoutData[d];
-        if (!session || !session.exercises[i]) {
-            throw new Error("Invalid session or exercise");
-        }
-        
-        const optIdx = parseInt(LS_SAFE.get(`pref_${d}_${i}`) || 0);
-        
-        // ✅ SAFETY: Validate option exists
-        if (!session.exercises[i].options[optIdx]) {
-            throw new Error("Selected variant not found");
-        }
-        
-        const currentNote = session.exercises[i].options[optIdx].note || session.exercises[i].note || "";
-        const n = prompt("Note (untuk variasi ini):", currentNote);
-        
-        if(n !== null){
-            session.exercises[i].options[optIdx].note = n;
-            APP.core.saveProgram();
-            APP.nav.loadWorkout(d);
-        }
-        
-    } catch(e) {
-        console.error("editNote Error:", e);
-        alert(`Error: ${e.message}`);
-    }
-},
-    //END OF PATCH A3
+                        // ✅ SAFETY: Validate variant index
+                        const newVar = parseInt(v);
+                        if (isNaN(newVar) || newVar < 0 || newVar >= session.exercises[i].options.length) {
+                            throw new Error(`Variant index ${newVar} out of bounds (max: ${session.exercises[i].options.length - 1})`);
+                        }
 
-                editSessionTitle: (e, k) => { e.stopPropagation(); const n=prompt("Rename:",APP.state.workoutData[k].title); if(n){ APP.state.workoutData[k].title=n; APP.core.saveProgram(); APP.nav.renderDashboard(); } },
+                        LS_SAFE.set(`pref_${d}_${i}`, newVar);
+                        APP.nav.loadWorkout(d);
+
+                    } catch (e) {
+                        console.error("changeVariant Error:", e);
+                        alert(`Error: ${e.message}`);
+                    }
+                },
+                // END OF PATCH A2                
+                addCustomVariant: (d, i) => {
+                    const n = prompt("Name:");
+                    if (n) {
+                        APP.state.workoutData[d].exercises[i].options.push({
+                            n,
+                            vid: "",
+                            bio: ""
+                        });
+                        APP.core.saveProgram();
+                        APP.data.changeVariant(d, i, APP.state.workoutData[d].exercises[i].options.length - 1);
+                    }
+                },
+
+                // 📍 START OF PATCH A4
+                modifySet: (d, i, v) => {
+                    try {
+                        // ✅ SAFETY: Validate data
+                        const session = APP.state.workoutData[d];
+                        if (!session || !session.exercises[i]) {
+                            throw new Error("Invalid session or exercise");
+                        }
+
+                        const newSets = session.exercises[i].sets + v;
+
+                        // ✅ SAFETY: Min 1 set, max 10 sets
+                        if (newSets < 1) {
+                            alert("Minimum 1 set!");
+                            return;
+                        }
+                        if (newSets > 10) {
+                            alert("Maximum 10 sets!");
+                            return;
+                        }
+
+                        session.exercises[i].sets = newSets;
+                        APP.core.saveProgram();
+                        APP.nav.loadWorkout(d);
+
+                    } catch (e) {
+                        console.error("modifySet Error:", e);
+                        alert(`Error: ${e.message}`);
+                    }
+                },
+                // END OF PATCH A4
+
+                // 📍 START OF PATCH A5
+                deleteCard: (d, i) => {
+                    try {
+                        // ✅ SAFETY: Validate data
+                        const session = APP.state.workoutData[d];
+                        if (!session || !session.exercises[i]) {
+                            throw new Error("Invalid session or exercise");
+                        }
+
+                        const exName = session.exercises[i].options[0]?.n || "Exercise";
+
+                        if (confirm(`Hapus gerakan "${exName}"?`)) {
+                            session.exercises.splice(i, 1);
+                            APP.core.saveProgram();
+                            APP.nav.loadWorkout(d);
+                        }
+
+                    } catch (e) {
+                        console.error("deleteCard Error:", e);
+                        alert(`Error: ${e.message}`);
+                    }
+                },
+                // END OF PATCH A5
+
+                // 📍 START OF PATCH A6
+                moveCard: (d, i, v) => {
+                    try {
+                        // ✅ SAFETY: Validate data
+                        const session = APP.state.workoutData[d];
+                        if (!session || !session.exercises) {
+                            throw new Error("Invalid session");
+                        }
+
+                        const exercises = session.exercises;
+                        const newIndex = i + v;
+
+                        // ✅ SAFETY: Bounds check
+                        if (newIndex < 0 || newIndex >= exercises.length) {
+                            console.log("Cannot move: out of bounds");
+                            return;
+                        }
+
+                        // Swap
+                        [exercises[i], exercises[newIndex]] = [exercises[newIndex], exercises[i]];
+                        APP.core.saveProgram();
+                        APP.nav.loadWorkout(d);
+
+                    } catch (e) {
+                        console.error("moveCard Error:", e);
+                        alert(`Error: ${e.message}`);
+                    }
+                },
+                // END PATCH A6
+
+                addNewExerciseCard: () => {
+                    const n = prompt("Exercise Name:");
+                    if (n) {
+                        APP.state.workoutData[APP.state.currentSessionId].exercises.push({
+                            sets: 3,
+                            rest: 90,
+                            note: "Custom",
+                            options: [{
+                                n,
+                                vid: "",
+                                bio: ""
+                            }]
+                        });
+                        APP.core.saveProgram();
+                        APP.nav.loadWorkout(APP.state.currentSessionId);
+                    }
+                },
+
+                // 📍 START OF PATCH A3
+                editNote: (d, i) => {
+                    try {
+                        // ✅ SAFETY: Validate data
+                        const session = APP.state.workoutData[d];
+                        if (!session || !session.exercises[i]) {
+                            throw new Error("Invalid session or exercise");
+                        }
+
+                        const optIdx = parseInt(LS_SAFE.get(`pref_${d}_${i}`) || 0);
+
+                        // ✅ SAFETY: Validate option exists
+                        if (!session.exercises[i].options[optIdx]) {
+                            throw new Error("Selected variant not found");
+                        }
+
+                        const currentNote = session.exercises[i].options[optIdx].note || session.exercises[i].note || "";
+                        const n = prompt("Note (untuk variasi ini):", currentNote);
+
+                        if (n !== null) {
+                            session.exercises[i].options[optIdx].note = n;
+                            APP.core.saveProgram();
+                            APP.nav.loadWorkout(d);
+                        }
+
+                    } catch (e) {
+                        console.error("editNote Error:", e);
+                        alert(`Error: ${e.message}`);
+                    }
+                },
+                //END OF PATCH A3
+
+                editSessionTitle: (e, k) => {
+                    e.stopPropagation();
+                    const n = prompt("Rename:", APP.state.workoutData[k].title);
+                    if (n) {
+                        APP.state.workoutData[k].title = n;
+                        APP.core.saveProgram();
+                        APP.nav.renderDashboard();
+                    }
+                },
                 deleteSession: (e, k) => {
                     e.stopPropagation();
-                    if(confirm(`Hapus Sesi "${APP.state.workoutData[k].title}"?\n\nPERINGATAN: Sesi ini akan hilang permanen dari program.`)){
+                    if (confirm(`Hapus Sesi "${APP.state.workoutData[k].title}"?\n\nPERINGATAN: Sesi ini akan hilang permanen dari program.`)) {
                         delete APP.state.workoutData[k];
                         APP.core.saveProgram();
                         APP.nav.renderDashboard();
                         alert("Sesi berhasil dihapus.");
                     }
                 },
-                editVideo: (k) => { const n=prompt("URL:",LS_SAFE.get(k)||""); if(n!==null){ n.trim()==="" ? LS_SAFE.remove(k) : LS_SAFE.set(k,n.trim()); APP.nav.loadWorkout(APP.state.currentSessionId); } },
-                editWarmup: (t) => { const n=prompt("Warmup:",APP.state.workoutData[APP.state.currentSessionId].dynamic||""); if(n!==null){ APP.state.workoutData[APP.state.currentSessionId].dynamic=n; APP.core.saveProgram(); APP.nav.loadWorkout(APP.state.currentSessionId); } },
+                editVideo: (k) => {
+                    const n = prompt("URL:", LS_SAFE.get(k) || "");
+                    if (n !== null) {
+                        n.trim() === "" ? LS_SAFE.remove(k) : LS_SAFE.set(k, n.trim());
+                        APP.nav.loadWorkout(APP.state.currentSessionId);
+                    }
+                },
+                editWarmup: (t) => {
+                    const n = prompt("Warmup:", APP.state.workoutData[APP.state.currentSessionId].dynamic || "");
+                    if (n !== null) {
+                        APP.state.workoutData[APP.state.currentSessionId].dynamic = n;
+                        APP.core.saveProgram();
+                        APP.nav.loadWorkout(APP.state.currentSessionId);
+                    }
+                },
                 saveProfile: () => {
                     const p = {
                         name: document.getElementById("prof-name").value,
@@ -1181,39 +1807,46 @@ editNote: (d, i) => {
                     LS_SAFE.setJSON("profile", p);
                     const w = LS_SAFE.getJSON("weights", []);
                     const kg = w.length > 0 ? parseFloat(w[0].v) : 80;
-                    let bmr = (10*kg) + (6.25*p.h) - (5*p.a) + (p.g==='male'?5:-161);
+                    let bmr = (10 * kg) + (6.25 * p.h) - (5 * p.a) + (p.g === 'male' ? 5 : -161);
                     const tdee = Math.round(bmr * p.act);
                     LS_SAFE.set("tdee", tdee);
                     APP.data.loadProfile();
                 },
                 loadProfile: () => {
-                    const p = LS_SAFE.getJSON("profile", {name:"Dok"});
+                    const p = LS_SAFE.getJSON("profile", {
+                        name: "Dok"
+                    });
                     const w = LS_SAFE.getJSON("weights", []);
                     const tdee = LS_SAFE.get("tdee");
                     document.getElementById("display-name").innerText = p.name;
                     document.getElementById("dashboard-bw").innerText = `${w.length?w[0].v:"--"} kg`;
-                    if(tdee) {
+                    if (tdee) {
                         document.getElementById("dashboard-tdee").innerHTML = `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
                         document.getElementById("tdee-box").classList.remove("hidden");
                         document.getElementById("tdee-val").innerText = tdee;
-                        document.getElementById("bulk-val").innerText = parseInt(tdee)+300;
-                        document.getElementById("cut-val").innerText = parseInt(tdee)-500;
+                        document.getElementById("bulk-val").innerText = parseInt(tdee) + 300;
+                        document.getElementById("cut-val").innerText = parseInt(tdee) - 500;
                     }
-                    if(document.getElementById("prof-name")) {
+                    if (document.getElementById("prof-name")) {
                         document.getElementById("prof-name").value = p.name || "";
-                        if(p.h) document.getElementById("prof-height").value = p.h;
-                        if(p.a) document.getElementById("prof-age").value = p.a;
-                        if(p.g) document.getElementById("prof-gender").value = p.g;
-                        if(p.act) document.getElementById("prof-active").value = p.act;
-                        if(p.act) {document.getElementById("prof-active").value = p.act.toString();}
+                        if (p.h) document.getElementById("prof-height").value = p.h;
+                        if (p.a) document.getElementById("prof-age").value = p.a;
+                        if (p.g) document.getElementById("prof-gender").value = p.g;
+                        if (p.act) document.getElementById("prof-active").value = p.act;
+                        if (p.act) {
+                            document.getElementById("prof-active").value = p.act.toString();
+                        }
                     }
                 },
                 addWeight: () => {
                     const v = document.getElementById("new-weight").value;
-                    if(!v) return;
+                    if (!v) return;
                     const w = LS_SAFE.getJSON("weights", []);
                     const d = DT.formatDate(new Date());
-                    w.unshift({v,d});
+                    w.unshift({
+                        v,
+                        d
+                    });
                     LS_SAFE.setJSON("weights", w);
                     document.getElementById("new-weight").value = "";
                     APP.ui.renderWeight();
@@ -1221,45 +1854,43 @@ editNote: (d, i) => {
                 },
                 deleteLogs: (mode) => {
                     let logs = LS_SAFE.getJSON("gym_hist", []);
-                    if(!logs.length) return alert("Log sudah kosong.");
+                    if (!logs.length) return alert("Log sudah kosong.");
                     const resetSessionTimestamp = (dateStr) => {
-                          Object.keys(APP.state.workoutData).forEach(sid => {
-                             const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
-                             if(lastTs > 0) {
-                                 const lastDate = DT.formatDate(new Date(lastTs));
-                                 if(lastDate === dateStr) {
-                                     LS_SAFE.remove(`last_${sid}`);
-                                 }
-                             }
-                          });
+                        Object.keys(APP.state.workoutData).forEach(sid => {
+                            const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
+                            if (lastTs > 0) {
+                                const lastDate = DT.formatDate(new Date(lastTs));
+                                if (lastDate === dateStr) {
+                                    LS_SAFE.remove(`last_${sid}`);
+                                }
+                            }
+                        });
                     };
-                    if(mode === 'today') {
+                    if (mode === 'today') {
                         const today = DT.formatDate(new Date());
-                        if(!confirm(`Hapus semua log latihan hari ini (${today})?`)) return;
+                        if (!confirm(`Hapus semua log latihan hari ini (${today})?`)) return;
                         const newLogs = logs.filter(l => l.date !== today);
                         LS_SAFE.setJSON("gym_hist", newLogs);
                         resetSessionTimestamp(today);
                         alert("Log hari ini dihapus. Rotasi sesi dikembalikan.");
-                    }
-                    else if(mode === 'date') {
+                    } else if (mode === 'date') {
                         const inputDate = document.getElementById("del-date-picker").value;
-                        if(!inputDate) return alert("Pilih tanggal dulu.");
+                        if (!inputDate) return alert("Pilih tanggal dulu.");
                         const targetDate = DT.formatDate(new Date(inputDate));
-                        if(!confirm(`Hapus semua log tanggal ${targetDate}?`)) return;
+                        if (!confirm(`Hapus semua log tanggal ${targetDate}?`)) return;
                         const initialLen = logs.length;
                         const newLogs = logs.filter(l => l.date !== targetDate);
-                        if(newLogs.length === initialLen) return alert("Tidak ada data di tanggal tersebut.");
+                        if (newLogs.length === initialLen) return alert("Tidak ada data di tanggal tersebut.");
                         LS_SAFE.setJSON("gym_hist", newLogs);
                         resetSessionTimestamp(targetDate);
                         alert(`Data tanggal ${targetDate} dihapus.`);
-                    }
-                    else if(mode === 'all') {
-                        if(!confirm("⚠️ FRESH START ⚠️\n\nHapus SEMUA history & reset program ke awal?")) return;
+                    } else if (mode === 'all') {
+                        if (!confirm("⚠️ FRESH START ⚠️\n\nHapus SEMUA history & reset program ke awal?")) return;
                         LS_SAFE.remove("gym_hist");
                         const toRemove = [];
-                        for(let i=0; i<localStorage.length; i++){
+                        for (let i = 0; i < localStorage.length; i++) {
                             const k = localStorage.key(i);
-                            if( (k.includes('_ex') && (k.endsWith('_k') || k.endsWith('_r') || k.endsWith('_rpe') || k.endsWith('_d'))) || k.startsWith('last_') ) {
+                            if ((k.includes('_ex') && (k.endsWith('_k') || k.endsWith('_r') || k.endsWith('_rpe') || k.endsWith('_d'))) || k.startsWith('last_')) {
                                 toRemove.push(k);
                             }
                         }
@@ -1272,12 +1903,14 @@ editNote: (d, i) => {
                 },
                 exportData: () => {
                     const d = {};
-                    for(let i=0; i<localStorage.length; i++){
+                    for (let i = 0; i < localStorage.length; i++) {
                         const k = localStorage.key(i);
                         d[k] = localStorage.getItem(k);
                     }
                     const a = document.createElement('a');
-                    a.href = URL.createObjectURL(new Blob([JSON.stringify(d)],{type:"application/json"}));
+                    a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], {
+                        type: "application/json"
+                    }));
                     a.download = `cscs_bkp_${Date.now()}.json`;
                     a.click();
                 },
@@ -1287,34 +1920,40 @@ editNote: (d, i) => {
                         try {
                             const d = JSON.parse(e.target.result);
                             LS_SAFE.clear();
-                            for(let k in d) LS_SAFE.set(k, d[k]);
+                            for (let k in d) LS_SAFE.set(k, d[k]);
                             location.reload();
-                        } catch { alert("File Corrupt/Invalid"); }
+                        } catch {
+                            alert("File Corrupt/Invalid");
+                        }
                     };
                     r.readAsText(i.files[0]);
                 },
                 saveToLibrary: () => {
                     const dName = `Program ${DT.formatDate(new Date())}`;
                     const name = prompt("Nama Program:", dName);
-                    if(!name) return;
+                    if (!name) return;
                     const lib = LS_SAFE.getJSON("cscs_library", []);
-                    lib.push({name, date: Date.now(), data: APP.state.workoutData});
+                    lib.push({
+                        name,
+                        date: Date.now(),
+                        data: APP.state.workoutData
+                    });
                     LS_SAFE.setJSON("cscs_library", lib);
                     APP.ui.renderLibrary();
                     alert("Tersimpan!");
                 },
                 loadFromLibrary: (idx) => {
                     const lib = LS_SAFE.getJSON("cscs_library", []);
-                    if(confirm(`Load "${lib[idx].name}"?`)){
+                    if (confirm(`Load "${lib[idx].name}"?`)) {
                         APP.state.workoutData = lib[idx].data;
                         APP.core.saveProgram();
                         location.reload();
                     }
                 },
                 deleteFromLibrary: (idx) => {
-                    if(!confirm("Hapus?")) return;
+                    if (!confirm("Hapus?")) return;
                     const lib = LS_SAFE.getJSON("cscs_library", []);
-                    lib.splice(idx,1);
+                    lib.splice(idx, 1);
                     LS_SAFE.setJSON("cscs_library", lib);
                     APP.ui.renderLibrary();
                 },
@@ -1325,7 +1964,7 @@ editNote: (d, i) => {
                         const keys = Object.keys(newData);
                         const validKeys = ['s1', 's2', 's3', 's4', 'spontaneous'];
                         const isValid = keys.some(k => validKeys.includes(k));
-                        if(isValid && confirm("Terapkan pembaruan resep? (Sesi lain aman)")){
+                        if (isValid && confirm("Terapkan pembaruan resep? (Sesi lain aman)")) {
                             APP.state.workoutData = {
                                 ...APP.state.workoutData,
                                 ...newData
@@ -1336,7 +1975,9 @@ editNote: (d, i) => {
                         } else {
                             alert("Format JSON tidak dikenali (Harus mengandung key s1/s2/s3/s4).");
                         }
-                    } catch (e) { alert("JSON Invalid: " + e.message); }
+                    } catch (e) {
+                        alert("JSON Invalid: " + e.message);
+                    }
                 },
                 copyProgramToClipboard: () => {
                     const txt = JSON.stringify(APP.state.workoutData, null, 2);
@@ -1376,7 +2017,7 @@ editNote: (d, i) => {
                     rep += `--- LOG LATIHAN TERAKHIR ---\n`;
                     uniqueDates.forEach(d => {
                         const dayLogs = h.filter(x => x.date === d);
-                        const titles = [...new Set(dayLogs.map(l => l.title || (l.src==='spontaneous'?'Spontaneous':l.src)))].join(" & ");
+                        const titles = [...new Set(dayLogs.map(l => l.title || (l.src === 'spontaneous' ? 'Spontaneous' : l.src)))].join(" & ");
                         const dur = dayLogs[0].dur ? `${dayLogs[0].dur} menit` : 'N/A';
                         const totalSessionVol = dayLogs.reduce((acc, curr) => acc + curr.vol, 0);
                         rep += `\n📅 ${d} | 🏷️ ${titles}\n`;
@@ -1390,12 +2031,14 @@ editNote: (d, i) => {
                     rep += `\n--- END ---`;
                     APP.ui.openModal('library');
                     const b = document.getElementById('ai-input');
-                    b.value = rep; b.focus(); b.select();
-                    if(navigator.clipboard) navigator.clipboard.writeText(rep).then(()=>alert("Copied!"));
+                    b.value = rep;
+                    b.focus();
+                    b.select();
+                    if (navigator.clipboard) navigator.clipboard.writeText(rep).then(() => alert("Copied!"));
                 }
             },
             ui: {
-                showToast: (msg, type="success") => {
+                showToast: (msg, type = "success") => {
                     const con = document.getElementById("toast-container");
                     const t = document.createElement("div");
                     t.className = `toast toast-${type}`;
@@ -1403,23 +2046,26 @@ editNote: (d, i) => {
                     t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight">${msg}</div>`;
                     con.appendChild(t);
                     requestAnimationFrame(() => t.classList.add("show"));
-                    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 4000);
+                    setTimeout(() => {
+                        t.classList.remove("show");
+                        setTimeout(() => t.remove(), 300);
+                    }, 4000);
                 },
                 toggleFocusMode: () => {
                     APP.state.focusMode = !APP.state.focusMode;
                     APP.ui.updateFocusBtn();
                     const el = document.getElementById("exercise-list");
                     APP.state.focusMode ? el.classList.add("focus-active") : el.classList.remove("focus-active");
-                    if(APP.state.focusMode) APP.ui.checkActiveCard();
+                    if (APP.state.focusMode) APP.ui.checkActiveCard();
                 },
                 updateFocusBtn: () => {
                     const btn = document.getElementById("focus-btn");
-                    if(APP.state.focusMode) {
-                        btn.className="text-xs bg-emerald-600 text-white border border-emerald-500 px-3 py-1.5 rounded-full transition flex items-center gap-2 shadow-lg shadow-emerald-500/20";
-                        btn.innerHTML=`<i class="fa-solid fa-eye-slash"></i> Exit Focus`;
+                    if (APP.state.focusMode) {
+                        btn.className = "text-xs bg-emerald-600 text-white border border-emerald-500 px-3 py-1.5 rounded-full transition flex items-center gap-2 shadow-lg shadow-emerald-500/20";
+                        btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Exit Focus`;
                     } else {
-                        btn.className="text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2";
-                        btn.innerHTML=`<i class="fa-solid fa-eye"></i> Focus Mode`;
+                        btn.className = "text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2";
+                        btn.innerHTML = `<i class="fa-solid fa-eye"></i> Focus Mode`;
                     }
                 },
                 checkActiveCard: () => {
@@ -1429,14 +2075,19 @@ editNote: (d, i) => {
                         c.classList.remove("active-card");
                         const chks = c.querySelectorAll(".checkbox-done");
                         let all = true;
-                        chks.forEach(k => { if(!k.checked) all = false; });
-                        if(all) {
-                            c.classList.add("opacity-50","scale-95","grayscale");
+                        chks.forEach(k => {
+                            if (!k.checked) all = false;
+                        });
+                        if (all) {
+                            c.classList.add("opacity-50", "scale-95", "grayscale");
                         } else {
-                            c.classList.remove("opacity-50","scale-95","grayscale");
-                            if(!found) {
+                            c.classList.remove("opacity-50", "scale-95", "grayscale");
+                            if (!found) {
                                 c.classList.add("active-card");
-                                if(APP.state.focusMode) c.scrollIntoView({behavior:"smooth",block:"center"});
+                                if (APP.state.focusMode) c.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "center"
+                                });
                                 found = true;
                             }
                         }
@@ -1445,27 +2096,48 @@ editNote: (d, i) => {
                 toggleWarmup: () => document.getElementById("warmup-content").classList.toggle("hidden"),
                 openModal: (n) => {
                     document.getElementById(`${n}-modal`).classList.remove("hidden");
-                    if(n==='weight') APP.ui.renderWeight();
-                    if(n==='profile') APP.data.loadProfile();
-                    if(n==='stats') APP.stats.loadOptions();
-                    if(n==='library') APP.ui.renderLibrary();
-                    if(n==='calendar') { APP.state.currentCalDate = new Date(); APP.ui.renderCalendar(); }
-                    if(n==='spontaneous') { if(APP.spontaneous) APP.spontaneous.renderPresets(); else alert("Error: Module Spontaneous Missing"); }
+                    if (n === 'weight') APP.ui.renderWeight();
+                    if (n === 'profile') APP.data.loadProfile();
+                    if (n === 'stats') APP.stats.loadOptions();
+                    if (n === 'library') APP.ui.renderLibrary();
+                    if (n === 'calendar') {
+                        APP.state.currentCalDate = new Date();
+                        APP.ui.renderCalendar();
+                    }
+                    if (n === 'spontaneous') {
+                        if (APP.spontaneous) APP.spontaneous.renderPresets();
+                        else alert("Error: Module Spontaneous Missing");
+                    }
                 },
                 closeModal: (n) => document.getElementById(`${n}-modal`).classList.add("hidden"),
-                openBio: (t,b) => { document.getElementById("bio-title").innerText=t; document.getElementById("bio-text").innerText=b; APP.ui.openModal('bio'); },
+                openBio: (t, b) => {
+                    document.getElementById("bio-title").innerText = t;
+                    document.getElementById("bio-text").innerText = b;
+                    APP.ui.openModal('bio');
+                },
                 openHist: (n) => {
-                    document.getElementById("hist-title").innerText=n;
+                    document.getElementById("hist-title").innerText = n;
                     const b = document.getElementById("hist-content");
+                    if (!b) {
+                        console.error("[DOM ERROR] hist-content element not found");
+                        return;
+                    }
                     const h = LS_SAFE.getJSON("gym_hist", []);
-                    const l = h.filter(x=>x.ex===n).sort((a,b)=>b.ts-a.ts);
+                    const l = h.filter(x => x.ex === n).sort((a, b) => b.ts - a.ts);
                     let html = l.length ? "" : `<p class='text-slate-500 text-center text-xs'>No Data.</p>`;
                     l.forEach(x => {
-                        let bestSet = {k:0, r:0};
+                        let bestSet = {
+                            k: 0,
+                            r: 0
+                        };
                         let maxLoad = 0;
                         x.d.forEach(s => {
-                            if (s.k > maxLoad) { maxLoad = s.k; bestSet = s; }
-                            else if (s.k === maxLoad && s.r > bestSet.r) { bestSet = s; }
+                            if (s.k > maxLoad) {
+                                maxLoad = s.k;
+                                bestSet = s;
+                            } else if (s.k === maxLoad && s.r > bestSet.r) {
+                                bestSet = s;
+                            }
                         });
                         html += `
                         <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 mb-2">
@@ -1482,41 +2154,75 @@ editNote: (d, i) => {
                             </div>
                         </div>`;
                     });
-                    b.innerHTML=html; APP.ui.openModal('history');
+                    b.innerHTML = html;
+                    APP.ui.openModal('history');
                 },
                 openCalc: (idx) => {
                     const inputs = document.querySelectorAll(`#card-${idx} .input-k`);
                     let maxK = 0;
-                    inputs.forEach(i => { const v = parseFloat(i.value); if(v>maxK) maxK=v; });
-                    if(maxK===0) return alert("Isi beban (KG) dulu!");
+                    inputs.forEach(i => {
+                        const v = parseFloat(i.value);
+                        if (v > maxK) maxK = v;
+                    });
+                    if (maxK === 0) return alert("Isi beban (KG) dulu!");
                     const sData = APP.state.workoutData[APP.state.currentSessionId];
-                    const sOpt = parseInt(LS_SAFE.get(`pref_${APP.state.currentSessionId}_${idx}`)||0);
+                    const sOpt = parseInt(LS_SAFE.get(`pref_${APP.state.currentSessionId}_${idx}`) || 0);
                     const name = sData.exercises[idx].options[sOpt].n.toUpperCase();
                     const isNonBarbell = name.includes("DUMBBELL") || name.includes("DB") || name.includes("MACHINE") || name.includes("CABLE") || name.includes("PRESS") || name.includes("FLY");
                     let useBar = true;
                     if (isNonBarbell && !name.includes("BARBELL")) useBar = false;
                     let baseBar = 20;
                     let forcePlate = false;
-                    if (name.includes("LEG PRESS") || name.includes("HACK SQUAT")) { forcePlate = true; baseBar = 0; }
+                    if (name.includes("LEG PRESS") || name.includes("HACK SQUAT")) {
+                        forcePlate = true;
+                        baseBar = 0;
+                    }
                     document.getElementById("calc-target").innerText = maxK;
                     const badge = document.getElementById("calc-type-badge");
-                    badge.innerText = (useBar || forcePlate) ? (baseBar===20 ? "Barbell Protocol" : "Plate Loaded") : "Standard Machine/DB";
+                    badge.innerText = (useBar || forcePlate) ? (baseBar === 20 ? "Barbell Protocol" : "Plate Loaded") : "Standard Machine/DB";
                     badge.className = (useBar || forcePlate) ? "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-400" : "px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-900 text-indigo-400";
                     const steps = document.getElementById("calc-steps");
-                    let sets = useBar ?
-                        [{p:0,r:10,l:"Bar Kosong"},{p:0.5,r:5,l:"Warm 1"},{p:0.7,r:3,l:"Warm 2"},{p:0.9,r:1,l:"Potentiation"}] :
-                        [{p:0.5,r:8,l:"Warm 1"},{p:0.7,r:3,l:"Warm 2"},{p:0.9,r:1,l:"Potentiation"}];
+                    let sets = useBar ? [{
+                        p: 0,
+                        r: 10,
+                        l: "Bar Kosong"
+                    }, {
+                        p: 0.5,
+                        r: 5,
+                        l: "Warm 1"
+                    }, {
+                        p: 0.7,
+                        r: 3,
+                        l: "Warm 2"
+                    }, {
+                        p: 0.9,
+                        r: 1,
+                        l: "Potentiation"
+                    }] : [{
+                        p: 0.5,
+                        r: 8,
+                        l: "Warm 1"
+                    }, {
+                        p: 0.7,
+                        r: 3,
+                        l: "Warm 2"
+                    }, {
+                        p: 0.9,
+                        r: 1,
+                        l: "Potentiation"
+                    }];
                     let html = "";
                     sets.forEach(s => {
-                        let w = Math.round((maxK * s.p)/2.5)*2.5;
-                        if(useBar && s.p===0) w=20;
-                        if(s.p>0 && w>=maxK) return;
-                        if(w===0 && !useBar && !forcePlate) return;
+                        let w = Math.round((maxK * s.p) / 2.5) * 2.5;
+                        if (useBar && s.p === 0) w = 20;
+                        if (s.p > 0 && w >= maxK) return;
+                        if (w === 0 && !useBar && !forcePlate) return;
                         let pHTML = "";
-                        if((useBar && w>20) || (forcePlate && w>0)) pHTML = `<div class="mt-1">${APP.ui.getPlates(w, baseBar)}</div>`;
+                        if ((useBar && w > 20) || (forcePlate && w > 0)) pHTML = `<div class="mt-1">${APP.ui.getPlates(w, baseBar)}</div>`;
                         html += `<div class="bg-slate-700/50 p-2 rounded text-sm mb-2 border border-slate-700/50"><div class="flex justify-between items-center"><span class="text-slate-400">${s.l}</span><span class="font-mono font-bold text-white">${w}kg <span class="text-emerald-400 text-xs">x${s.r}</span></span></div>${pHTML}</div>`;
                     });
-                    steps.innerHTML = html; APP.ui.openModal('calc');
+                    steps.innerHTML = html;
+                    APP.ui.openModal('calc');
                 },
                 getPlates: (target, base) => {
                     if (target <= base) return "";
@@ -1526,24 +2232,50 @@ editNote: (d, i) => {
                     for (let p of pArr) {
                         while (w >= p) {
                             let c = "plate-20";
-                            if(p===15) c="plate-15"; else if(p===10) c="plate-10"; else if(p===5) c="plate-5"; else if(p===2.5) c="plate-2_5"; else if(p===1.25) c="plate-1_25";
+                            if (p === 15) c = "plate-15";
+                            else if (p === 10) c = "plate-10";
+                            else if (p === 5) c = "plate-5";
+                            else if (p === 2.5) c = "plate-2_5";
+                            else if (p === 1.25) c = "plate-1_25";
                             html += `<span class="plate-badge ${c}">${p}</span>`;
                             w -= p;
                         }
                     }
                     return html;
                 },
+
+                // 📍 PATCH C.3: APP.ui.renderWeight
                 renderWeight: () => {
                     const l = document.getElementById("weight-list");
+
+                    // ✅ DOM NULL GUARD
+                    if (!l) {
+                        console.error("[DOM ERROR] weight-list element not found");
+                        return;
+                    }
+
                     const w = LS_SAFE.getJSON("weights", []);
                     let html = "";
-                    w.forEach(x => html+=`<div class="flex justify-between p-2 bg-slate-900/50 rounded mb-1 text-xs"><span class="text-white font-bold">${x.v} kg</span><span class="text-slate-500">${x.d}</span></div>`);
+                    w.forEach(x => html += `<div class="flex justify-between p-2 bg-slate-900/50 rounded mb-1 text-xs"><span class="text-white font-bold">${x.v} kg</span><span class="text-slate-500">${x.d}</span></div>`);
                     l.innerHTML = html;
                 },
+                // END OF PATCH C.3
+                // 📍 PATCH C.4: APP.ui.renderLibrary
                 renderLibrary: () => {
                     const lib = LS_SAFE.getJSON("cscs_library", []);
                     const el = document.getElementById("library-list");
-                    if(!lib.length) return el.innerHTML=`<p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p>`;
+
+                    // ✅ DOM NULL GUARD
+                    if (!el) {
+                        console.error("[DOM ERROR] library-list element not found");
+                        return;
+                    }
+
+                    if (!lib.length) {
+                        el.innerHTML = `<p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p>`;
+                        return;
+                    }
+
                     let html = "";
                     lib.forEach((item, i) => {
                         const dStr = DT.formatDate(new Date(item.date));
@@ -1551,18 +2283,31 @@ editNote: (d, i) => {
                     });
                     el.innerHTML = html;
                 },
+                // END OF PATCH C.4
+                // 📍 PATCH C.5: APP.ui.renderCalendar
                 renderCalendar: () => {
                     const g = document.getElementById("cal-grid");
                     const hText = document.getElementById("cal-month-year");
+
+                    // ✅ DOM NULL GUARD
+                    if (!g || !hText) {
+                        console.error("[DOM ERROR] Calendar elements not found", {
+                            g: !!g,
+                            hText: !!hText
+                        });
+                        return;
+                    }
+
                     const curr = APP.state.currentCalDate;
-                    const y = curr.getFullYear(), m = curr.getMonth();
+                    const y = curr.getFullYear(),
+                        m = curr.getMonth();
                     hText.innerText = DT.formatMonth(curr);
                     const firstDay = new Date(y, m, 1).getDay();
-                    const daysInMonth = new Date(y, m+1, 0).getDate();
+                    const daysInMonth = new Date(y, m + 1, 0).getDate();
                     let html = "";
-                    for(let i=0; i<firstDay; i++) html += `<div></div>`;
+                    for (let i = 0; i < firstDay; i++) html += `<div></div>`;
                     const hist = LS_SAFE.getJSON("gym_hist", []);
-                    for(let d=1; d<=daysInMonth; d++) {
+                    for (let d = 1; d <= daysInMonth; d++) {
                         const dateObj = new Date(y, m, d);
                         const dStr = DT.formatDate(dateObj);
                         const logs = hist.filter(x => x.date === dStr && new Date(x.ts).getMonth() === m);
@@ -1577,26 +2322,39 @@ editNote: (d, i) => {
                     }
                     g.innerHTML = html;
                 },
-                changeMonth: (d) => { APP.state.currentCalDate.setMonth(APP.state.currentCalDate.getMonth()+d); APP.ui.renderCalendar(); },
+                // END OF PATCH C.5
+                changeMonth: (d) => {
+                    APP.state.currentCalDate.setMonth(APP.state.currentCalDate.getMonth() + d);
+                    APP.ui.renderCalendar();
+                },
                 viewDay: (dStr) => {
                     const box = document.getElementById("cal-details");
+                    if (!box) {
+                        console.error("[DOM ERROR] cal-details element not found");
+                        return;
+                    }
                     const m = APP.state.currentCalDate.getMonth();
                     const hist = LS_SAFE.getJSON("gym_hist", []);
                     const logs = hist.filter(x => x.date === dStr && new Date(x.ts).getMonth() === m);
-                    if(!logs.length) return box.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50"><i class="fa-solid fa-bed mb-1 text-xl"></i><span class="text-xs italic">Rest Day</span></div>`;
+                    if (!logs.length) return box.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-slate-500 opacity-50"><i class="fa-solid fa-bed mb-1 text-xl"></i><span class="text-xs italic">Rest Day</span></div>`;
                     const sessionTitle = logs[0].title || (logs[0].src === 'spontaneous' ? 'Spontaneous' : logs[0].src);
                     const duration = logs[0].dur || 0;
                     const totalVol = logs.reduce((acc, curr) => acc + curr.vol, 0).toLocaleString();
                     let maxRPE = 0;
                     logs.forEach(l => {
                         l.d.forEach(s => {
-                            if(s.rpe && parseFloat(s.rpe) > maxRPE) maxRPE = parseFloat(s.rpe);
+                            if (s.rpe && parseFloat(s.rpe) > maxRPE) maxRPE = parseFloat(s.rpe);
                         });
                     });
                     let fatigueStatus = "Low";
                     let fatigueColor = "text-emerald-400";
-                    if(maxRPE >= 9.5) { fatigueStatus = "High Fatigue"; fatigueColor = "text-red-400"; }
-                    else if(maxRPE >= 8) { fatigueStatus = "Optimal"; fatigueColor = "text-yellow-400"; }
+                    if (maxRPE >= 9.5) {
+                        fatigueStatus = "High Fatigue";
+                        fatigueColor = "text-red-400";
+                    } else if (maxRPE >= 8) {
+                        fatigueStatus = "Optimal";
+                        fatigueColor = "text-yellow-400";
+                    }
                     let html = `
                     <div class="mb-3 border-b border-slate-700 pb-2">
                         <div class="flex justify-between items-center mb-1">
@@ -1616,9 +2374,9 @@ editNote: (d, i) => {
                     </div>
                     <div class="space-y-1 max-h-[120px] overflow-y-auto no-scrollbar">`;
                     logs.forEach(l => {
-                        const prevLogs = hist.filter(h => h.ex === l.ex && h.ts < l.ts && (l.src === 'spontaneous' || h.src !== 'spontaneous')).sort((a,b)=>b.ts - a.ts);
+                        const prevLogs = hist.filter(h => h.ex === l.ex && h.ts < l.ts && (l.src === 'spontaneous' || h.src !== 'spontaneous')).sort((a, b) => b.ts - a.ts);
                         let badge = "";
-                        if(prevLogs.length > 0) {
+                        if (prevLogs.length > 0) {
                             const prev = prevLogs[0];
                             const allHistory = hist.filter(h => h.ex === l.ex && h.ts < l.ts);
                             const globalMaxLoad = Math.max(...allHistory.map(h => h.top));
@@ -1647,7 +2405,9 @@ editNote: (d, i) => {
                 showManualCopy: (txt) => {
                     APP.ui.openModal('library');
                     const b = document.getElementById('ai-input');
-                    b.value = txt; b.focus(); b.select();
+                    b.value = txt;
+                    b.focus();
+                    b.select();
                     alert("Auto-copy blocked. Silakan copy manual teks di bawah.");
                 }
             },
@@ -1656,11 +2416,18 @@ editNote: (d, i) => {
                 init: () => APP.stats.loadOptions(),
                 loadOptions: () => {
                     const h = LS_SAFE.getJSON("gym_hist", []);
-                    const u = [...new Set(h.filter(x => x && x.ex).map(x=>x.ex))].sort();
+                    const u = [...new Set(h.filter(x => x && x.ex).map(x => x.ex))].sort();
                     const s = document.getElementById("stats-select");
-                    if (!s) return;s.innerHTML = "";
+                    if (!s) {
+                        console.error("[DOM ERROR] stats-select element not found");
+                        return;
+                    }
+                    s.innerHTML = "";
                     if (u.length === 0) {
-                    s.innerHTML = '<option value="">No Data</option>';return;} u.forEach(x => s.innerHTML+=`<option value="${x}">${x}</option>`);
+                        s.innerHTML = '<option value="">No Data</option>';
+                        return;
+                    }
+                    u.forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
                     if (u.length > 0) APP.stats.updateChart();
                 },
                 switchTab: (t) => {
@@ -1668,54 +2435,129 @@ editNote: (d, i) => {
                     const tb = document.getElementById("stats-table-view");
                     const bC = document.getElementById("tab-chart");
                     const bT = document.getElementById("tab-table");
-                    if(t==='chart'){ ch.classList.remove("hidden"); tb.classList.add("hidden"); bC.className="tab-btn active flex-1"; bT.className="tab-btn inactive flex-1"; }
-                    else { ch.classList.add("hidden"); tb.classList.remove("hidden"); bC.className="tab-btn inactive flex-1"; bT.className="tab-btn active flex-1"; }
+                    if (t === 'chart') {
+                        ch.classList.remove("hidden");
+                        tb.classList.add("hidden");
+                        bC.className = "tab-btn active flex-1";
+                        bT.className = "tab-btn inactive flex-1";
+                    } else {
+                        ch.classList.add("hidden");
+                        tb.classList.remove("hidden");
+                        bC.className = "tab-btn inactive flex-1";
+                        bT.className = "tab-btn active flex-1";
+                    }
                 },
                 updateChart: () => {
-                    if(typeof Chart === 'undefined') return;
+                    if (typeof Chart === 'undefined') return;
                     const sel = document.getElementById("stats-select").value;
-                    if(!sel) return;
-                    const h = LS_SAFE.getJSON("gym_hist", []).filter(x => x.ex === sel).sort((a,b)=>a.ts-b.ts);
+                    if (!sel) return;
+                    const h = LS_SAFE.getJSON("gym_hist", []).filter(x => x.ex === sel).sort((a, b) => a.ts - b.ts);
                     const msg = document.getElementById("no-data-msg");
                     const vital = document.getElementById("vital-signs");
                     const tbody = document.getElementById("hist-table-body");
-                    if(!h.length) {
-                        if(APP.stats.chart) { APP.stats.chart.destroy(); APP.stats.chart=null; }
-                        msg.classList.remove("hidden"); vital.classList.add("hidden"); tbody.innerHTML="";
+
+                    if (!h.length) {
+                        if (APP.stats.chart) {
+                            APP.stats.chart.destroy();
+                            APP.stats.chart = null;
+                        }
+                        if (msg) msg.classList.remove("hidden");
+                        if (vital) vital.classList.add("hidden");
+                        if (tbody) tbody.innerHTML = "";
                         return;
                     }
-                    msg.classList.add("hidden"); vital.classList.remove("hidden");
-                    let mx=0, tv=0;
+
+                    if (msg) msg.classList.add("hidden");
+                    if (vital) vital.classList.remove("hidden");
+
+                    let mx = 0,
+                        tv = 0;
                     let tHtml = "";
-                    [...h].sort((a,b)=>b.ts-a.ts).forEach(l => {
-                        if(l.top > mx) mx = l.top;
+                    [...h].sort((a, b) => b.ts - a.ts).forEach(l => {
+                        if (l.top > mx) mx = l.top;
                         tv += l.vol;
                         l.d.forEach(s => {
-                             tHtml += `<tr><td class="text-slate-400">${l.date}</td><td class="font-bold text-white">${s.k}kg</td><td class="text-emerald-400">x${s.r}</td><td class="text-yellow-400 font-bold">${s.rpe||'-'}</td><td class="text-blue-400">${s.k*s.r}</td></tr>`;
+                            tHtml += `<tr><td class="text-slate-400">${l.date}</td><td class="font-bold text-white">${s.k}kg</td><td class="text-emerald-400">x${s.r}</td><td class="text-yellow-400 font-bold">${s.rpe||'-'}</td><td class="text-blue-400">${s.k*s.r}</td></tr>`;
                         });
                     });
-                    tbody.innerHTML = tHtml;
-                    document.getElementById("stat-pr").innerText = mx;
-                    document.getElementById("stat-vol").innerText = Math.round(tv/h.length);
-                    document.getElementById("stat-count").innerText = h.length;
-                    const ctx = document.getElementById('progressChart').getContext('2d');
-                    if(APP.stats.chart) APP.stats.chart.destroy();
-                    APP.stats.chart = new Chart(ctx, {
+
+                    if (tbody) tbody.innerHTML = tHtml;
+
+                    const prEl = document.getElementById("stat-pr");
+                    const volEl = document.getElementById("stat-vol");
+                    const countEl = document.getElementById("stat-count");
+                    if (prEl) prEl.innerText = mx;
+                    if (volEl) volEl.innerText = Math.round(tv / h.length);
+                    if (countEl) countEl.innerText = h.length;
+
+                    const ctx = document.getElementById('progressChart');
+
+                    // ✅ DOM NULL GUARD
+                    if (!ctx) {
+                        console.error("[DOM ERROR] progressChart canvas not found");
+                        return;
+                    }
+
+                    const context = ctx.getContext('2d');
+                    if (!context) {
+                        console.error("[DOM ERROR] Cannot get 2d context from canvas");
+                        return;
+                    }
+
+                    if (APP.stats.chart) APP.stats.chart.destroy();
+                    APP.stats.chart = new Chart(context, {
                         type: 'line',
                         data: {
-                            labels: h.map(d=>d.date),
-                            datasets: [
-                                { label: 'Top Set', data: h.map(d=>d.top), borderColor: '#10b981', backgroundColor: '#10b981', yAxisID: 'y', tension: 0.3 },
-                                { label: 'Volume', data: h.map(d=>d.vol), type: 'bar', yAxisID: 'y1', backgroundColor: 'rgba(59,130,246,0.2)' }
+                            labels: h.map(d => d.date),
+                            datasets: [{
+                                    label: 'Top Set',
+                                    data: h.map(d => d.top),
+                                    borderColor: '#10b981',
+                                    backgroundColor: '#10b981',
+                                    yAxisID: 'y',
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Volume',
+                                    data: h.map(d => d.vol),
+                                    type: 'bar',
+                                    yAxisID: 'y1',
+                                    backgroundColor: 'rgba(59,130,246,0.2)'
+                                }
                             ]
                         },
                         options: {
-                            responsive: true, maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
                             scales: {
-                                y: { display: true, position: 'left', grid: { color: '#334155' } },
-                                y1: { display: true, position: 'right', grid: { display: false } },
-                                x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 5 } }
+                                y: {
+                                    display: true,
+                                    position: 'left',
+                                    grid: {
+                                        color: '#334155'
+                                    }
+                                },
+                                y1: {
+                                    display: true,
+                                    position: 'right',
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#94a3b8',
+                                        maxTicksLimit: 5
+                                    }
+                                }
                             }
                         }
                     });
@@ -1727,182 +2569,215 @@ editNote: (d, i) => {
                 stop: () => {},
             },
 
-    // 📍 START OF PATCH B3
-    showStorageStats: () => {
-    const stats = LS_SAFE.getStats();
-    document.getElementById('stat-items').innerText = stats.items;
-    document.getElementById('stat-size').innerText = stats.sizeKB + ' KB';
-    document.getElementById('stat-usage').innerText = stats.usage;
-    
-    const usagePercent = parseFloat(stats.usage);
-    const bar = document.getElementById('usage-bar');
-    bar.style.width = usagePercent + '%';
-    
-    // Color code
-    if (usagePercent > 80) {
-        bar.className = 'bg-red-500 h-full transition-all';
-    } else if (usagePercent > 50) {
-        bar.className = 'bg-yellow-500 h-full transition-all';
-    } else {
-        bar.className = 'bg-emerald-500 h-full transition-all';
-    }
-    
-    console.log('Storage Stats:', stats);
-},
-    // END OF PATCH B3
+            // 📍 START OF PATCH B3
+            showStorageStats: () => {
+                const stats = LS_SAFE.getStats();
+                document.getElementById('stat-items').innerText = stats.items;
+                document.getElementById('stat-size').innerText = stats.sizeKB + ' KB';
+                document.getElementById('stat-usage').innerText = stats.usage;
+
+                const usagePercent = parseFloat(stats.usage);
+                const bar = document.getElementById('usage-bar');
+                bar.style.width = usagePercent + '%';
+
+                // Color code
+                if (usagePercent > 80) {
+                    bar.className = 'bg-red-500 h-full transition-all';
+                } else if (usagePercent > 50) {
+                    bar.className = 'bg-yellow-500 h-full transition-all';
+                } else {
+                    bar.className = 'bg-emerald-500 h-full transition-all';
+                }
+
+                console.log('Storage Stats:', stats);
+            },
+            // END OF PATCH B3
 
             debug: {
-                showFatalError: (ctx, err, extra="") => {
+                showFatalError: (ctx, err, extra = "") => {
                     document.getElementById("error-modal").classList.remove("hidden");
                     document.getElementById("error-log-text").value = `[LOG V20.9]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
                 },
                 copyErrorLog: () => {
                     const t = document.getElementById("error-log-text");
                     t.select();
-                    navigator.clipboard.writeText(t.value).then(()=>alert("Copied!"));
+                    navigator.clipboard.writeText(t.value).then(() => alert("Copied!"));
                 }
             }
         };
         window.onload = () => APP.init();
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('SW Registered'))
-        .catch(err => console.log('SW Registration Failed', err));
-    });
-}
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Registration Failed', err));
+            });
+        }
     </script>
-<script>
-    const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
-    let tokenClient;
-    function gapiLoaded() {
-        gapi.load('client', async () => {
-            await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
-            console.log('GAPI Ready');
-        });
-    }
-    function gsiLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
-        console.log('GSI Ready');
-    }
-    function triggerManualDownload(jsonString) {
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `backup_cloud_fisik_${new Date().getTime()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-    async function syncToCloud() {
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
-            const backupData = {};
-            let itemCount = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('gapi') || key.startsWith('google')) continue;
-                backupData[key] = localStorage.getItem(key);
-                itemCount++;
-            }
-            if (itemCount === 0) {
-                if(!confirm('⚠️ Data lokal 0 item. Lanjutkan Backup?')) return;
-            }
-            const rawData = JSON.stringify(backupData);
-            const fileName = 'the-grind-design-backup.json';
-            const accessToken = gapi.client.getToken().access_token;
-            try {
-                const search = await gapi.client.drive.files.list({
-                    q: `name = '${fileName}'`,
-                    spaces: 'appDataFolder',
-                    fields: 'files(id)'
+    <script>
+        const CLIENT_ID = '803066941400-pelvk18jb4s7jsqajbic3ig6e4g2c37p.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+        let tokenClient;
+
+        function gapiLoaded() {
+            gapi.load('client', async () => {
+                await gapi.client.init({
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 });
-                let fileId;
-                if (search.result.files.length > 0) {
-                    fileId = search.result.files[0].id;
-                    console.log("File ditemukan, ID:", fileId);
-                } else {
-                    console.log("File tidak ada, membuat wadah baru...");
-                    const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-                        method: 'POST',
+                console.log('GAPI Ready');
+            });
+        }
+
+        function gsiLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: ''
+            });
+            console.log('GSI Ready');
+        }
+
+        function triggerManualDownload(jsonString) {
+            const blob = new Blob([jsonString], {
+                type: "application/json"
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_cloud_fisik_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        async function syncToCloud() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) throw (resp);
+                const backupData = {};
+                let itemCount = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('gapi') || key.startsWith('google')) continue;
+                    backupData[key] = localStorage.getItem(key);
+                    itemCount++;
+                }
+                if (itemCount === 0) {
+                    if (!confirm('⚠️ Data lokal 0 item. Lanjutkan Backup?')) return;
+                }
+                const rawData = JSON.stringify(backupData);
+                const fileName = 'the-grind-design-backup.json';
+                const accessToken = gapi.client.getToken().access_token;
+                try {
+                    const search = await gapi.client.drive.files.list({
+                        q: `name = '${fileName}'`,
+                        spaces: 'appDataFolder',
+                        fields: 'files(id)'
+                    });
+                    let fileId;
+                    if (search.result.files.length > 0) {
+                        fileId = search.result.files[0].id;
+                        console.log("File ditemukan, ID:", fileId);
+                    } else {
+                        console.log("File tidak ada, membuat wadah baru...");
+                        const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: fileName,
+                                parents: ['appDataFolder']
+                            })
+                        });
+                        const createJson = await createRes.json();
+                        fileId = createJson.id;
+                    }
+                    console.log("Mengupload konten ke ID:", fileId);
+                    const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                        method: 'PATCH',
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            name: fileName,
-                            parents: ['appDataFolder']
-                        })
+                        body: rawData
                     });
-                    const createJson = await createRes.json();
-                    fileId = createJson.id;
+                    if (!uploadRes.ok) throw new Error(`Upload Gagal: ${uploadRes.status}`);
+                    alert(`✅ Backup Sukses! ${itemCount} item data diamankan di Cloud.`);
+                } catch (err) {
+                    console.error("BACKUP ERROR:", err);
+                    alert(`❌ Gagal Backup: ${err.message}`);
                 }
-                console.log("Mengupload konten ke ID:", fileId);
-                const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: rawData
-                });
-                if (!uploadRes.ok) throw new Error(`Upload Gagal: ${uploadRes.status}`);
-                alert(`✅ Backup Sukses! ${itemCount} item data diamankan di Cloud.`);
-            } catch (err) {
-                console.error("BACKUP ERROR:", err);
-                alert(`❌ Gagal Backup: ${err.message}`);
-            }
-        };
-        tokenClient.requestAccessToken({ prompt: '' });
-    }
-    async function restoreFromCloud() {
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
-            try {
-                const search = await gapi.client.drive.files.list({ q: "name = 'the-grind-design-backup.json'", spaces: 'appDataFolder' });
-                if (search.result.files.length === 0) { alert('Tidak ada backup di Cloud.'); return; }
-                const fileId = search.result.files[0].id;
-                if (!confirm('PERINGATAN: Data HP akan DITIMPA. Lanjutkan?')) return;
-                const accessToken = gapi.client.getToken().access_token;
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                const rawText = await response.text();
-                if (!rawText || rawText.length < 5) {
-                    alert("⚠️ File Cloud Kosong (Zombie). Silakan Backup ulang.");
-                    return;
-                }
-                triggerManualDownload(rawText);
-                let cloudData;
-                try { cloudData = JSON.parse(rawText); } catch(e) { alert("Format JSON Rusak."); return; }
-                if (typeof cloudData === 'string') {
-                    try { cloudData = JSON.parse(cloudData); } catch(e) {}
-                }
-                localStorage.clear();
-                let restoreCount = 0;
-                for (const key in cloudData) {
-                    if (cloudData.hasOwnProperty(key)) {
-                        let val = cloudData[key];
-                        if (typeof val === 'object') val = JSON.stringify(val);
-                        localStorage.setItem(key, val);
-                        restoreCount++;
+            };
+            tokenClient.requestAccessToken({
+                prompt: ''
+            });
+        }
+        async function restoreFromCloud() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) throw (resp);
+                try {
+                    const search = await gapi.client.drive.files.list({
+                        q: "name = 'the-grind-design-backup.json'",
+                        spaces: 'appDataFolder'
+                    });
+                    if (search.result.files.length === 0) {
+                        alert('Tidak ada backup di Cloud.');
+                        return;
                     }
+                    const fileId = search.result.files[0].id;
+                    if (!confirm('PERINGATAN: Data HP akan DITIMPA. Lanjutkan?')) return;
+                    const accessToken = gapi.client.getToken().access_token;
+                    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    });
+                    const rawText = await response.text();
+                    if (!rawText || rawText.length < 5) {
+                        alert("⚠️ File Cloud Kosong (Zombie). Silakan Backup ulang.");
+                        return;
+                    }
+                    triggerManualDownload(rawText);
+                    let cloudData;
+                    try {
+                        cloudData = JSON.parse(rawText);
+                    } catch (e) {
+                        alert("Format JSON Rusak.");
+                        return;
+                    }
+                    if (typeof cloudData === 'string') {
+                        try {
+                            cloudData = JSON.parse(cloudData);
+                        } catch (e) {}
+                    }
+                    localStorage.clear();
+                    let restoreCount = 0;
+                    for (const key in cloudData) {
+                        if (cloudData.hasOwnProperty(key)) {
+                            let val = cloudData[key];
+                            if (typeof val === 'object') val = JSON.stringify(val);
+                            localStorage.setItem(key, val);
+                            restoreCount++;
+                        }
+                    }
+                    setTimeout(() => {
+                        alert(`✅ Restore Berhasil! File backup juga telah didownload ke perangkat Anda.\nAplikasi akan dimuat ulang...`);
+                        location.reload();
+                    }, 1000);
+                } catch (err) {
+                    console.error("RESTORE ERROR:", err);
+                    alert(`❌ Error: ${err.message}`);
                 }
-                setTimeout(() => {
-                    alert(`✅ Restore Berhasil! File backup juga telah didownload ke perangkat Anda.\nAplikasi akan dimuat ulang...`);
-                    location.reload();
-                }, 1000);
-            } catch (err) {
-                console.error("RESTORE ERROR:", err);
-                alert(`❌ Error: ${err.message}`);
-            }
-        };
-        tokenClient.requestAccessToken({ prompt: '' });
-    }
-    window.addEventListener('load', () => { gapiLoaded(); gsiLoaded(); });
-</script>
+            };
+            tokenClient.requestAccessToken({
+                prompt: ''
+            });
+        }
+        window.addEventListener('load', () => {
+            gapiLoaded();
+            gsiLoaded();
+        });
+    </script>
 </body>
 </html>
