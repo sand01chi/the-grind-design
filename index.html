@@ -18,6 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/id.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="exercises-library.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -468,7 +469,7 @@
                         <p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada program tersimpan.</p>
                     </div>
                 </div>
-                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4">
                     <p class="text-xs text-slate-400 mb-2 font-bold uppercase">Terapkan Resep Baru (Output Gemini)</p>
                     <textarea id="ai-input" class="w-full bg-slate-950 text-emerald-400 font-mono text-[10px] p-3 rounded-lg border border-slate-700 h-20 focus:border-emerald-500 mb-3" placeholder='Paste JSON baru dari Gemini di sini (Satu Sesi atau Full)...'></textarea>
                     <button onclick="APP.data.applyAIProgram()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i> Terapkan Program</button>
@@ -640,6 +641,24 @@
             </div>
             <div class="flex gap-2 mb-4"><input type="number" id="new-weight" placeholder="00.0" class="flex-1 bg-slate-900 text-white p-3 rounded-lg text-center font-bold border-slate-700"><button onclick="APP.data.addWeight()" class="bg-emerald-600 text-white px-5 rounded-lg"><i class="fa-solid fa-plus"></i></button></div>
             <div id="weight-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar"></div>
+        </div>
+    </div>
+    <div id="exercise-picker-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target.id === 'exercise-picker-modal') APP.ui.closeModal('exercise-picker')">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-dumbbell text-emerald-400 mr-2"></i>Exercise Library</h3>
+                <button onclick="APP.ui.closeModal('exercise-picker')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark fa-lg"></i></button>
+            </div>
+            <div class="mb-3">
+                <input type="text" id="exercise-search" placeholder="Cari exercise..." class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded mb-2" onkeyup="APP.ui.filterExercises()">
+                <div class="flex gap-2 flex-wrap" id="category-filter">
+                    <button onclick="APP.ui.filterByCategory('all')" class="text-[10px] px-2 py-1 rounded bg-emerald-600 text-white font-bold active-category">All</button>
+                </div>
+            </div>
+            <div id="exercise-list" class="space-y-2 overflow-y-auto no-scrollbar flex-1"></div>
+            <div class="mt-3 pt-3 border-t border-slate-700">
+                <button onclick="APP.ui.closeModal('exercise-picker')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 py-2 rounded-lg font-bold text-sm transition"><i class="fa-solid fa-arrow-left mr-2"></i>Kembali</button>
+            </div>
         </div>
     </div>
     <div id="bio-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
@@ -1417,8 +1436,9 @@
                         <div class="bg-slate-700/50 px-2 py-0.5 rounded text-[10px] text-slate-400 font-medium border border-slate-600"><i class="fa-solid fa-stopwatch mr-1"></i> Rest: ${ex.rest}s</div>
                     </div>
                     <div class="flex items-center gap-2 mb-2">
-                        <select onchange="APP.data.changeVariant('${_id}',${_idx},this.value)" class="bg-slate-900 border border-slate-600 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
-                        <button onclick="APP.data.addCustomVariant('${_id}',${_idx})" class="text-emerald-500 px-3 py-2 rounded bg-emerald-500/10 text-xs shrink-0 h-full"><i class="fa-solid fa-plus"></i></button>
+                        <select id="variant-select-${_idx}" onchange="APP.data.changeVariant('${_id}',${_idx},this.value)" class="bg-slate-900 border border-slate-600 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
+                        <button onclick="APP.data.addCustomVariant('${_id}',${_idx})" class="text-emerald-500 px-3 py-2 rounded bg-emerald-500/10 text-xs shrink-0 h-full hover:bg-emerald-500/20 transition" title="Tambah alternatif"><i class="fa-solid fa-plus"></i></button>
+                        ${ex.options.length > 1 ? `<button onclick="APP.data.deleteVariant('${_id}',${_idx},document.getElementById('variant-select-${_idx}').value)" class="text-red-500 px-3 py-2 rounded bg-red-500/10 text-xs shrink-0 h-full hover:bg-red-500/20 transition" title="Hapus alternatif"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                     <div class="grid grid-cols-2 gap-2 px-1 mb-2">
                         <div class="flex gap-1 bg-red-900/20 rounded border border-red-900/30 overflow-hidden">
@@ -1615,15 +1635,49 @@
                 },
                 // END OF PATCH A2                
                 addCustomVariant: (d, i) => {
-                    const n = prompt("Name:");
-                    if (n) {
-                        APP.state.workoutData[d].exercises[i].options.push({
-                            n,
-                            vid: "",
-                            bio: ""
-                        });
+                    APP.ui.openExercisePicker('variant', d, i);
+                },
+
+                // 📍 DELETE VARIANT FUNCTION
+                deleteVariant: (d, i, v) => {
+                    try {
+                        const variantIdx = parseInt(v);
+                        
+                        // ✅ SAFETY: Validate data
+                        const session = APP.state.workoutData[d];
+                        if (!session || !session.exercises[i]) {
+                            throw new Error("Invalid session or exercise");
+                        }
+
+                        const exercise = session.exercises[i];
+                        
+                        // ✅ Don't allow deletion if only 1 variant left
+                        if (exercise.options.length <= 1) {
+                            alert("Minimal harus ada 1 alternatif gerakan!");
+                            return;
+                        }
+
+                        // ✅ Confirm before delete
+                        if (!confirm(`Hapus "${exercise.options[variantIdx].n}"?`)) {
+                            return;
+                        }
+
+                        // Delete the variant
+                        exercise.options.splice(variantIdx, 1);
+
+                        // If deleted variant was selected, switch to first available
+                        const currentPref = parseInt(LS_SAFE.get(`pref_${d}_${i}`) || 0);
+                        if (currentPref >= exercise.options.length) {
+                            LS_SAFE.set(`pref_${d}_${i}`, 0);
+                        }
+
                         APP.core.saveProgram();
-                        APP.data.changeVariant(d, i, APP.state.workoutData[d].exercises[i].options.length - 1);
+                        APP.nav.loadWorkout(d);
+                        APP.ui.showToast(`✅ Gerakan alternatif dihapus`, "success");
+
+                    } catch (e) {
+                        console.error("deleteVariant Error:", e);
+                        alert(`Error: ${e.message}`);
                     }
                 },
 
@@ -1714,21 +1768,7 @@
                 // END PATCH A6
 
                 addNewExerciseCard: () => {
-                    const n = prompt("Exercise Name:");
-                    if (n) {
-                        APP.state.workoutData[APP.state.currentSessionId].exercises.push({
-                            sets: 3,
-                            rest: 90,
-                            note: "Custom",
-                            options: [{
-                                n,
-                                vid: "",
-                                bio: ""
-                            }]
-                        });
-                        APP.core.saveProgram();
-                        APP.nav.loadWorkout(APP.state.currentSessionId);
-                    }
+                    APP.ui.openExercisePicker('new', null, null);
                 },
 
                 // 📍 START OF PATCH A3
@@ -2410,201 +2450,409 @@
                     b.select();
                     alert("Auto-copy blocked. Silakan copy manual teks di bawah.");
                 }
+            }
+        };
+        
+        // 📍 STATS OBJECT (moved outside ui)
+        APP.stats = {
+            chart: null,
+            init: () => APP.stats.loadOptions(),
+            loadOptions: () => {
+                const h = LS_SAFE.getJSON("gym_hist", []);
+                const u = [...new Set(h.filter(x => x && x.ex).map(x => x.ex))].sort();
+                const s = document.getElementById("stats-select");
+                if (!s) {
+                    console.error("[DOM ERROR] stats-select element not found");
+                    return;
+                }
+                s.innerHTML = "";
+                if (u.length === 0) {
+                    s.innerHTML = '<option value="">No Data</option>';
+                    return;
+                }
+                u.forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
+                if (u.length > 0) APP.stats.updateChart();
             },
-            stats: {
-                chart: null,
-                init: () => APP.stats.loadOptions(),
-                loadOptions: () => {
-                    const h = LS_SAFE.getJSON("gym_hist", []);
-                    const u = [...new Set(h.filter(x => x && x.ex).map(x => x.ex))].sort();
-                    const s = document.getElementById("stats-select");
-                    if (!s) {
-                        console.error("[DOM ERROR] stats-select element not found");
-                        return;
-                    }
-                    s.innerHTML = "";
-                    if (u.length === 0) {
-                        s.innerHTML = '<option value="">No Data</option>';
-                        return;
-                    }
-                    u.forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
-                    if (u.length > 0) APP.stats.updateChart();
-                },
-                switchTab: (t) => {
-                    const ch = document.getElementById("stats-chart-view");
-                    const tb = document.getElementById("stats-table-view");
-                    const bC = document.getElementById("tab-chart");
-                    const bT = document.getElementById("tab-table");
-                    if (t === 'chart') {
-                        ch.classList.remove("hidden");
-                        tb.classList.add("hidden");
-                        bC.className = "tab-btn active flex-1";
-                        bT.className = "tab-btn inactive flex-1";
-                    } else {
-                        ch.classList.add("hidden");
-                        tb.classList.remove("hidden");
-                        bC.className = "tab-btn inactive flex-1";
-                        bT.className = "tab-btn active flex-1";
-                    }
-                },
-                updateChart: () => {
-                    if (typeof Chart === 'undefined') return;
-                    const sel = document.getElementById("stats-select").value;
-                    if (!sel) return;
-                    const h = LS_SAFE.getJSON("gym_hist", []).filter(x => x.ex === sel).sort((a, b) => a.ts - b.ts);
-                    const msg = document.getElementById("no-data-msg");
-                    const vital = document.getElementById("vital-signs");
-                    const tbody = document.getElementById("hist-table-body");
+            switchTab: (t) => {
+                const ch = document.getElementById("stats-chart-view");
+                const tb = document.getElementById("stats-table-view");
+                const bC = document.getElementById("tab-chart");
+                const bT = document.getElementById("tab-table");
+                if (t === 'chart') {
+                    ch.classList.remove("hidden");
+                    tb.classList.add("hidden");
+                    bC.className = "tab-btn active flex-1";
+                    bT.className = "tab-btn inactive flex-1";
+                } else {
+                    ch.classList.add("hidden");
+                    tb.classList.remove("hidden");
+                    bC.className = "tab-btn inactive flex-1";
+                    bT.className = "tab-btn active flex-1";
+                }
+            },
+            updateChart: () => {
+                if (typeof Chart === 'undefined') return;
+                const sel = document.getElementById("stats-select").value;
+                if (!sel) return;
+                const h = LS_SAFE.getJSON("gym_hist", []).filter(x => x.ex === sel).sort((a, b) => a.ts - b.ts);
+                const msg = document.getElementById("no-data-msg");
+                const vital = document.getElementById("vital-signs");
+                const tbody = document.getElementById("hist-table-body");
 
-                    if (!h.length) {
-                        if (APP.stats.chart) {
-                            APP.stats.chart.destroy();
-                            APP.stats.chart = null;
-                        }
-                        if (msg) msg.classList.remove("hidden");
-                        if (vital) vital.classList.add("hidden");
-                        if (tbody) tbody.innerHTML = "";
-                        return;
+                if (!h.length) {
+                    if (APP.stats.chart) {
+                        APP.stats.chart.destroy();
+                        APP.stats.chart = null;
                     }
+                    if (msg) msg.classList.remove("hidden");
+                    if (vital) vital.classList.add("hidden");
+                    if (tbody) tbody.innerHTML = "";
+                    return;
+                }
 
-                    if (msg) msg.classList.add("hidden");
-                    if (vital) vital.classList.remove("hidden");
+                if (msg) msg.classList.add("hidden");
+                if (vital) vital.classList.remove("hidden");
 
-                    let mx = 0,
-                        tv = 0;
-                    let tHtml = "";
-                    [...h].sort((a, b) => b.ts - a.ts).forEach(l => {
-                        if (l.top > mx) mx = l.top;
-                        tv += l.vol;
-                        l.d.forEach(s => {
-                            tHtml += `<tr><td class="text-slate-400">${l.date}</td><td class="font-bold text-white">${s.k}kg</td><td class="text-emerald-400">x${s.r}</td><td class="text-yellow-400 font-bold">${s.rpe||'-'}</td><td class="text-blue-400">${s.k*s.r}</td></tr>`;
-                        });
+                let mx = 0,
+                    tv = 0;
+                let tHtml = "";
+                [...h].sort((a, b) => b.ts - a.ts).forEach(l => {
+                    if (l.top > mx) mx = l.top;
+                    tv += l.vol;
+                    l.d.forEach(s => {
+                        tHtml += `<tr><td class="text-slate-400">${l.date}</td><td class="font-bold text-white">${s.k}kg</td><td class="text-emerald-400">x${s.r}</td><td class="text-yellow-400 font-bold">${s.rpe||'-'}</td><td class="text-blue-400">${s.k*s.r}</td></tr>`;
                     });
+                });
 
-                    if (tbody) tbody.innerHTML = tHtml;
+                if (tbody) tbody.innerHTML = tHtml;
 
-                    const prEl = document.getElementById("stat-pr");
-                    const volEl = document.getElementById("stat-vol");
-                    const countEl = document.getElementById("stat-count");
-                    if (prEl) prEl.innerText = mx;
-                    if (volEl) volEl.innerText = Math.round(tv / h.length);
-                    if (countEl) countEl.innerText = h.length;
+                const prEl = document.getElementById("stat-pr");
+                const volEl = document.getElementById("stat-vol");
+                const countEl = document.getElementById("stat-count");
+                if (prEl) prEl.innerText = mx;
+                if (volEl) volEl.innerText = Math.round(tv / h.length);
+                if (countEl) countEl.innerText = h.length;
 
-                    const ctx = document.getElementById('progressChart');
+                const ctx = document.getElementById('progressChart');
 
-                    // ✅ DOM NULL GUARD
-                    if (!ctx) {
-                        console.error("[DOM ERROR] progressChart canvas not found");
-                        return;
-                    }
+                // ✅ DOM NULL GUARD
+                if (!ctx) {
+                    console.error("[DOM ERROR] progressChart canvas not found");
+                    return;
+                }
 
-                    const context = ctx.getContext('2d');
-                    if (!context) {
-                        console.error("[DOM ERROR] Cannot get 2d context from canvas");
-                        return;
-                    }
+                const context = ctx.getContext('2d');
+                if (!context) {
+                    console.error("[DOM ERROR] Cannot get 2d context from canvas");
+                    return;
+                }
 
-                    if (APP.stats.chart) APP.stats.chart.destroy();
-                    APP.stats.chart = new Chart(context, {
-                        type: 'line',
-                        data: {
-                            labels: h.map(d => d.date),
-                            datasets: [{
-                                    label: 'Top Set',
-                                    data: h.map(d => d.top),
-                                    borderColor: '#10b981',
-                                    backgroundColor: '#10b981',
-                                    yAxisID: 'y',
-                                    tension: 0.3
-                                },
-                                {
-                                    label: 'Volume',
-                                    data: h.map(d => d.vol),
-                                    type: 'bar',
-                                    yAxisID: 'y1',
-                                    backgroundColor: 'rgba(59,130,246,0.2)'
-                                }
-                            ]
+                if (APP.stats.chart) APP.stats.chart.destroy();
+                APP.stats.chart = new Chart(context, {
+                    type: 'line',
+                    data: {
+                        labels: h.map(d => d.date),
+                        datasets: [{
+                                label: 'Top Set',
+                                data: h.map(d => d.top),
+                                borderColor: '#10b981',
+                                backgroundColor: '#10b981',
+                                yAxisID: 'y',
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Volume',
+                                data: h.map(d => d.vol),
+                                type: 'bar',
+                                yAxisID: 'y1',
+                                backgroundColor: 'rgba(59,130,246,0.2)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
+                        scales: {
+                            y: {
+                                display: true,
+                                position: 'left',
+                                grid: {
+                                    color: '#334155'
+                                }
+                            },
+                            y1: {
+                                display: true,
+                                position: 'right',
+                                grid: {
                                     display: false
                                 }
                             },
-                            scales: {
-                                y: {
-                                    display: true,
-                                    position: 'left',
-                                    grid: {
-                                        color: '#334155'
-                                    }
+                            x: {
+                                grid: {
+                                    display: false
                                 },
-                                y1: {
-                                    display: true,
-                                    position: 'right',
-                                    grid: {
-                                        display: false
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    },
-                                    ticks: {
-                                        color: '#94a3b8',
-                                        maxTicksLimit: 5
-                                    }
+                                ticks: {
+                                    color: '#94a3b8',
+                                    maxTicksLimit: 5
                                 }
                             }
                         }
-                    });
-                }
-            },
-            timer: {
-                startTime: 0,
-                start: (s) => {},
-                stop: () => {},
-            },
-
-            // 📍 START OF PATCH B3
-            showStorageStats: () => {
-                const stats = LS_SAFE.getStats();
-                document.getElementById('stat-items').innerText = stats.items;
-                document.getElementById('stat-size').innerText = stats.sizeKB + ' KB';
-                document.getElementById('stat-usage').innerText = stats.usage;
-
-                const usagePercent = parseFloat(stats.usage);
-                const bar = document.getElementById('usage-bar');
-                bar.style.width = usagePercent + '%';
-
-                // Color code
-                if (usagePercent > 80) {
-                    bar.className = 'bg-red-500 h-full transition-all';
-                } else if (usagePercent > 50) {
-                    bar.className = 'bg-yellow-500 h-full transition-all';
-                } else {
-                    bar.className = 'bg-emerald-500 h-full transition-all';
-                }
-
-                console.log('Storage Stats:', stats);
-            },
-            // END OF PATCH B3
-
-            debug: {
-                showFatalError: (ctx, err, extra = "") => {
-                    document.getElementById("error-modal").classList.remove("hidden");
-                    document.getElementById("error-log-text").value = `[LOG V20.9]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
-                },
-                copyErrorLog: () => {
-                    const t = document.getElementById("error-log-text");
-                    t.select();
-                    navigator.clipboard.writeText(t.value).then(() => alert("Copied!"));
-                }
+                    }
+                });
             }
         };
+        
+        // 📍 TIMER OBJECT (moved outside ui)
+        APP.timer = {
+            startTime: 0,
+            start: (s) => {},
+            stop: () => {},
+        };
+        
+        // 📍 SHOW STORAGE STATS (moved outside ui)
+        APP.ui.showStorageStats = () => {
+            const stats = LS_SAFE.getStats();
+            document.getElementById('stat-items').innerText = stats.items;
+            document.getElementById('stat-size').innerText = stats.sizeKB + ' KB';
+            document.getElementById('stat-usage').innerText = stats.usage;
+
+            const usagePercent = parseFloat(stats.usage);
+            const bar = document.getElementById('usage-bar');
+            bar.style.width = usagePercent + '%';
+
+            // Color code
+            if (usagePercent > 80) {
+                bar.className = 'bg-red-500 h-full transition-all';
+            } else if (usagePercent > 50) {
+                bar.className = 'bg-yellow-500 h-full transition-all';
+            } else {
+                bar.className = 'bg-emerald-500 h-full transition-all';
+            }
+
+            console.log('Storage Stats:', stats);
+        };
+        
+        // 📍 EXERCISE PICKER (moved outside ui)
+        APP.ui.exercisePicker = {
+            mode: null,  // 'new' atau 'variant'
+            sessionId: null,
+            exerciseIndex: null,
+            allExercises: [],
+            filteredExercises: [],
+            currentFilter: 'all'
+        };
+
+        APP.ui.openExercisePicker = (mode, sessionId, exerciseIndex) => {
+            console.log("[DEBUG] openExercisePicker called with mode:", mode);
+            try {
+                APP.ui.exercisePicker.mode = mode;
+                APP.ui.exercisePicker.sessionId = sessionId;
+                APP.ui.exercisePicker.exerciseIndex = exerciseIndex;
+                APP.ui.exercisePicker.currentFilter = 'all';
+
+                // Collect all exercises from library
+                let allExercises = [];
+                if (typeof EXERCISES_LIBRARY !== 'undefined') {
+                    const categories = EXERCISES_LIBRARY.getCategories();
+                    categories.forEach(cat => {
+                        const exercises = EXERCISES_LIBRARY[cat] || [];
+                        exercises.forEach(ex => {
+                            allExercises.push({
+                                category: cat,
+                                ...ex
+                            });
+                        });
+                    });
+                }
+
+                APP.ui.exercisePicker.allExercises = allExercises;
+                APP.ui.exercisePicker.filteredExercises = allExercises;
+
+                // Render categories
+                const categoryFilter = document.getElementById('category-filter');
+                if (categoryFilter) {
+                    categoryFilter.innerHTML = '<button onclick="APP.ui.filterByCategory(\'all\')" class="text-[10px] px-2 py-1 rounded bg-emerald-600 text-white font-bold active-category">All</button>';
+                    
+                    if (typeof EXERCISES_LIBRARY !== 'undefined') {
+                        const categories = EXERCISES_LIBRARY.getCategories();
+                        categories.forEach(cat => {
+                            const btn = document.createElement('button');
+                            btn.className = 'text-[10px] px-2 py-1 rounded bg-slate-700 text-slate-300 font-bold hover:bg-slate-600 transition';
+                            btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+                            btn.onclick = () => APP.ui.filterByCategory(cat);
+                            categoryFilter.appendChild(btn);
+                        });
+                    }
+                }
+
+                // Render exercise list
+                APP.ui.renderExerciseList();
+
+                // Open modal
+                APP.ui.openModal('exercise-picker');
+
+            } catch (e) {
+                console.error("openExercisePicker Error:", e);
+                alert("Error loading exercise library: " + e.message);
+            }
+        };
+
+        APP.ui.filterByCategory = (category) => {
+            APP.ui.exercisePicker.currentFilter = category;
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('#category-filter button');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase() === category.toLowerCase() || 
+                    (category === 'all' && btn.textContent === 'All')) {
+                    btn.className = 'text-[10px] px-2 py-1 rounded bg-emerald-600 text-white font-bold active-category';
+                } else {
+                    btn.className = 'text-[10px] px-2 py-1 rounded bg-slate-700 text-slate-300 font-bold hover:bg-slate-600 transition';
+                }
+            });
+
+            // Filter exercises
+            if (category === 'all') {
+                APP.ui.exercisePicker.filteredExercises = APP.ui.exercisePicker.allExercises;
+            } else {
+                APP.ui.exercisePicker.filteredExercises = APP.ui.exercisePicker.allExercises.filter(ex => ex.category === category);
+            }
+
+            APP.ui.renderExerciseList();
+        };
+
+        APP.ui.filterExercises = () => {
+            const search = document.getElementById('exercise-search')?.value.toLowerCase() || '';
+            
+            if (APP.ui.exercisePicker.currentFilter === 'all') {
+                APP.ui.exercisePicker.filteredExercises = APP.ui.exercisePicker.allExercises.filter(ex => 
+                    ex.n.toLowerCase().includes(search)
+                );
+            } else {
+                APP.ui.exercisePicker.filteredExercises = APP.ui.exercisePicker.allExercises.filter(ex => 
+                    ex.category === APP.ui.exercisePicker.currentFilter && ex.n.toLowerCase().includes(search)
+                );
+            }
+
+            APP.ui.renderExerciseList();
+        };
+
+        APP.ui.renderExerciseList = () => {
+            const listEl = document.getElementById('exercise-list');
+            if (!listEl) return;
+
+            const exercises = APP.ui.exercisePicker.filteredExercises;
+
+            if (exercises.length === 0) {
+                listEl.innerHTML = '<p class="text-center text-sm text-slate-500 italic py-4">Tidak ada exercise ditemukan.</p>';
+                return;
+            }
+
+            let html = '';
+            exercises.forEach((ex, idx) => {
+                const displayName = ex.n || 'Unnamed';
+                const category = (ex.category || 'other').charAt(0).toUpperCase() + (ex.category || 'other').slice(1);
+                html += `
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 hover:border-emerald-500/50 transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <span class="text-sm font-bold text-white">${displayName}</span>
+                                <span class="text-[9px] bg-emerald-900/30 text-emerald-400 px-2 py-0.5 rounded border border-emerald-900 ml-2">${category}</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mb-1"><strong>Reps:</strong> ${ex.t_r || '-'}</div>
+                        <div class="text-[10px] text-slate-400 mb-2 line-clamp-2">${ex.bio || 'Tidak ada deskripsi'}</div>
+                        ${ex.note ? `<div class="text-[9px] text-slate-500 mb-2 italic">📌 ${ex.note}</div>` : ''}
+                        <button onclick="APP.ui.selectExercise('${displayName.replace(/'/g, "\\'")}', '${ex.t_r || ''}', '${ex.bio ? ex.bio.replace(/'/g, "\\'") : ''}', '${ex.note ? ex.note.replace(/'/g, "\\'") : ''}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded transition"><i class="fa-solid fa-check mr-1"></i>Pilih</button>
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = html;
+        };
+
+        APP.ui.selectExercise = (name, targetReps, bio, note) => {
+            try {
+                const mode = APP.ui.exercisePicker.mode;
+
+                if (mode === 'new') {
+                    // Add new exercise card
+                    const sessionId = APP.state.currentSessionId;
+                    APP.state.workoutData[sessionId].exercises.push({
+                        sets: 3,
+                        rest: 90,
+                        note: note || "Library",
+                        options: [{
+                            n: name,
+                            t_r: targetReps,
+                            bio: bio,
+                            vid: "",
+                            note: note || ""
+                        }]
+                    });
+                    APP.core.saveProgram();
+                    APP.nav.loadWorkout(sessionId);
+                    APP.ui.showToast(`✅ "${name}" ditambahkan`, "success");
+                    // Modal tetap terbuka agar user bisa memilih exercise lainnya
+
+                } else if (mode === 'variant') {
+                    // Add new variant to existing exercise
+                    const sessionId = APP.ui.exercisePicker.sessionId;
+                    const exIdx = APP.ui.exercisePicker.exerciseIndex;
+                    
+                    APP.state.workoutData[sessionId].exercises[exIdx].options.push({
+                        n: name,
+                        t_r: targetReps,
+                        bio: bio,
+                        vid: "",
+                        note: note || ""
+                    });
+                    
+                    APP.core.saveProgram();
+                    APP.data.changeVariant(sessionId, exIdx, APP.state.workoutData[sessionId].exercises[exIdx].options.length - 1);
+                    APP.ui.showToast(`✅ "${name}" ditambahkan sebagai alternatif`, "success");
+                    // Modal tetap terbuka agar user bisa memilih alternatif lainnya
+                }
+
+            } catch (e) {
+                console.error("selectExercise Error:", e);
+                alert("Error: " + e.message);
+            }
+        };
+        // END EXERCISE PICKER
+
+        // 📍 DEBUG OBJECT (moved outside ui)
+        APP.debug = {
+            showFatalError: (ctx, err, extra) => {
+                if (extra === undefined) extra = "";
+                document.getElementById("error-modal").classList.remove("hidden");
+                document.getElementById("error-log-text").value = `[LOG V20.9]\nCTX: ${ctx}\nERR: ${err.message||err}\n${extra}`;
+            },
+            copyErrorLog: () => {
+                const t = document.getElementById("error-log-text");
+                t.select();
+                navigator.clipboard.writeText(t.value).then(() => alert("Copied!"));
+            }
+        };
+
+        // Expose APP to the global window to ensure inline handlers and devtools can access it
+        try { window.APP = APP; } catch (e) { console.warn('Could not assign window.APP', e); }
+        
+        // Safety: Ensure critical ui methods exist (fallback if parsing issue)
+        if (!APP.ui) APP.ui = {};
+        if (typeof APP.ui.openExercisePicker !== 'function') {
+            APP.ui.openExercisePicker = (mode, sessionId, exerciseIndex) => {
+                alert('Exercise Picker not fully loaded. Please refresh the page.');
+                console.error('openExercisePicker is not properly defined. Check for parsing errors in ui object.');
+            };
+        }
+        
+        console.log("[DEBUG] APP.ui.openExercisePicker available:", typeof APP.ui.openExercisePicker);
         window.onload = () => APP.init();
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
