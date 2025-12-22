@@ -235,6 +235,91 @@
             border-radius: 6px;
             object-fit: cover;
         }
+        /* Volume Counter Styles */
+.volume-counter {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.volume-diff-up {
+    color: #10b981;
+    animation: bounce 0.5s ease-out;
+}
+
+.volume-diff-down {
+    color: #ef4444;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Set Note Styles */
+.set-note-icon {
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+}
+
+.set-note-icon:hover {
+    color: #fbbf24;
+    transform: scale(1.1);
+}
+
+.set-note-icon.has-note {
+    color: #fbbf24;
+}
+
+.set-note-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(10px);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Completed Sets Collapse */
+.completed-sets-summary {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.completed-sets-summary:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.set-row-completed {
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.sets-collapsed .set-row-completed {
+    display: none;
+}
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -1413,7 +1498,7 @@
                                 const r = LS_SAFE.get(`${sid}_r`) || "";
                                 const rpe = LS_SAFE.get(`${sid}_rpe`) || "";
                                 const done = LS_SAFE.get(`${sid}_d`) === "true";
-
+                                const note = APP.data.getSetNote(_id, _idx, i);
                                 let rpeColor = "text-white";
                                 const rpeVal = parseFloat(rpe);
                                 if (rpeVal <= 7) rpeColor = "text-yellow-400";
@@ -1425,7 +1510,11 @@
                                     rpeOpts += `<option value="${v}" ${rpe==v?'selected':''} class="${v<=7?'text-yellow-400':(v>=9.5?'text-red-400':'text-emerald-400')}">${v}</option>`;
                                 }
 
-                                setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-emerald-900/20':''}" id="row_${sid}"><div class="col-span-1 text-center text-slate-500 text-xs font-bold">${i}</div><div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${done?'checked':''} onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
+setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-emerald-900/20 set-row-completed':''}" id="row_${sid}">
+    <div class="col-span-1 text-center relative">
+        <span class="text-slate-500 text-xs font-bold">${i}</span>
+        <i class="fa-solid fa-message set-note-icon ${note?'has-note':''} absolute -top-1 -right-1 text-[8px]" onclick="APP.data.openSetNoteModal('${_id}',${_idx},${i})" title="${note || 'Add note'}"></i>
+    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${done?'checked':''} onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
                             }
 
                             htmlBuffer += `
@@ -1435,8 +1524,12 @@
                         <span class="text-emerald-500 font-bold text-sm">#${_idx+1}</span>
                         <div class="flex items-center gap-2">
                             <div class="bg-slate-700/50 px-2 py-0.5 rounded text-[10px] text-slate-400 font-medium border border-slate-600"><i class="fa-solid fa-stopwatch mr-1"></i> Rest: ${ex.rest}s</div>
+                            <button onclick="APP.data.smartAutoFill('${_id}',${_idx},1)" class="text-blue-400 px-2.5 py-1.5 rounded bg-blue-500/10 text-xs hover:bg-blue-500/20 transition" title="Smart Auto-Fill">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
+</button>
                             <button onclick="APP.data.addCustomVariant('${_id}',${_idx})" class="text-emerald-500 px-2.5 py-1.5 rounded bg-emerald-500/10 text-xs hover:bg-emerald-500/20 transition" title="Tambah alternatif"><i class="fa-solid fa-plus"></i></button>
                             ${ex.options.length > 1 ? `<button onclick="APP.data.deleteVariant('${_id}',${_idx},document.getElementById('variant-select-${_idx}').value)" class="text-red-500 px-2.5 py-1.5 rounded bg-red-500/10 text-xs hover:bg-red-500/20 transition" title="Hapus alternatif"><i class="fa-solid fa-trash"></i></button>` : ''}
+
                         </div>
                     </div>
                     <div class="flex items-center gap-2 mb-2">
@@ -1459,9 +1552,11 @@
     </div>
 </div>
                 </div>
-                <div class="p-3">
-                    <div class="grid grid-cols-12 gap-1 text-[10px] text-slate-500 font-bold text-center mb-1">
-                        <div class="col-span-1">#</div><div class="col-span-4">KG</div><div class="col-span-3">REPS</div><div class="col-span-2">RPE</div><div class="col-span-2">OK</div>
+<div class="p-3 sets-container">
+    <div class="volume-counter" id="volume-counter-${_idx}">
+        <div class="text-xs text-slate-400 text-center">Complete sets to see volume</div>
+    </div>
+    <div class="grid grid-cols-12 gap-1 text-[10px] text-slate-500 font-bold text-center mb-1">                        <div class="col-span-1">#</div><div class="col-span-4">KG</div><div class="col-span-3">REPS</div><div class="col-span-2">RPE</div><div class="col-span-2">OK</div>
                     </div>
                     ${setsHtml}
                 </div>
@@ -1480,8 +1575,14 @@
                         });
 
                         exList.innerHTML = htmlBuffer;
-                        APP.ui.checkActiveCard();
-                        APP.nav.switchView("workout");
+APP.ui.checkActiveCard();
+
+// Initialize volume counters for all exercises
+data.exercises.forEach((ex, idx) => {
+    APP.data.updateVolumeCounter(id, idx);
+});
+
+APP.nav.switchView("workout");
 
                     } catch (e) {
                         APP.debug.showFatalError("Load Workout Error", e);
@@ -1581,17 +1682,163 @@
                     if (t === 'rpe') APP.nav.loadWorkout(APP.state.currentSessionId);
                 },
                 toggleDone: (id, el, idx) => {
-                    LS_SAFE.set(`${id}_d`, el.checked);
-                    document.getElementById(`row_${id}`).className = `grid grid-cols-12 gap-1 mb-1 items-center ${el.checked ? 'bg-emerald-900/20' : ''}`;
-                    if (el.checked) {
-                        const rpeVal = parseFloat(LS_SAFE.get(`${id}_rpe`));
-                        if (!isNaN(rpeVal)) {
-                            if (rpeVal <= 7) APP.ui.showToast(`RPE ${rpeVal} (Ringan). Naik beban set depan? 📼`, "success");
-                            else if (rpeVal >= 9.5) APP.ui.showToast(`RPE ${rpeVal} (Maksimal). Pertahankan/Turun beban ⚠️`, "warning");
-                        }
+    LS_SAFE.set(`${id}_d`, el.checked);
+    document.getElementById(`row_${id}`).className = `grid grid-cols-12 gap-1 mb-1 items-center ${el.checked ? 'bg-emerald-900/20 set-row-completed' : ''}`;
+    if (el.checked) {
+        const rpeVal = parseFloat(LS_SAFE.get(`${id}_rpe`));
+        if (!isNaN(rpeVal)) {
+            if (rpeVal <= 7) APP.ui.showToast(`RPE ${rpeVal} (Ringan). Naik beban set depan? 📼`, "success");
+            else if (rpeVal >= 9.5) APP.ui.showToast(`RPE ${rpeVal} (Maksimal). Pertahankan/Turun beban ⚠️`, "warning");
+        }
+    }
+    APP.ui.checkActiveCard();
+    APP.data.updateVolumeCounter(APP.state.currentSessionId, idx);
+    APP.ui.updateCompletedSetsCollapse(idx);
+},
+            updateVolumeCounter: (sessionId, exerciseIdx) => {
+            const volumeEl = document.getElementById(`volume-counter-${exerciseIdx}`);
+            if (!volumeEl) return;
+            
+            const session = APP.state.workoutData[sessionId];
+            if (!session || !session.exercises[exerciseIdx]) return;
+            
+            const ex = session.exercises[exerciseIdx];
+            let totalVol = 0, completedSets = 0;
+            
+            for (let i = 1; i <= ex.sets; i++) {
+                const sid = `${sessionId}_ex${exerciseIdx}_s${i}`;
+                const k = parseFloat(LS_SAFE.get(`${sid}_k`) || 0);
+                const r = parseFloat(LS_SAFE.get(`${sid}_r`) || 0);
+                const done = LS_SAFE.get(`${sid}_d`) === "true";
+                
+                if (done && k > 0 && r > 0) {
+                    totalVol += k * r;
+                    completedSets++;
+                }
+            }
+            
+            // Get last session volume for comparison
+            const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
+            const opt = ex.options[optIdx] || ex.options[0];
+            const h = LS_SAFE.getJSON("gym_hist", []);
+            const lastLog = h.filter(x => x.ex === opt.n).sort((a, b) => b.ts - a.ts)[0];
+            
+            let diffHtml = '';
+            if (lastLog && completedSets > 0) {
+                const diff = totalVol - lastLog.vol;
+                if (diff > 0) {
+                    diffHtml = `<span class="volume-diff-up">+${diff}kg 📈</span>`;
+                } else if (diff < 0) {
+                    diffHtml = `<span class="volume-diff-down">${diff}kg 📉</span>`;
+                } else {
+                    diffHtml = `<span class="text-slate-400">±0kg ➡️</span>`;
+                }
+            }
+            
+            volumeEl.innerHTML = `
+                <div class="flex justify-between items-center text-xs">
+                    <div>
+                        <span class="text-emerald-400 font-bold text-lg">${totalVol}</span>
+                        <span class="text-slate-400"> kg</span>
+                        <span class="text-slate-500 text-[10px] ml-2">(${completedSets}/${ex.sets} sets)</span>
+                    </div>
+                    ${lastLog ? `<div class="text-right"><div class="text-[10px] text-slate-500">Last: ${lastLog.vol}kg</div><div class="text-[10px] font-bold">${diffHtml}</div></div>` : ''}
+                </div>
+            `;
+        },
+        
+        // 🆕 FITUR 2: Set Notes
+        getSetNote: (sessionId, exerciseIdx, setNum) => {
+            return LS_SAFE.get(`note_${sessionId}_ex${exerciseIdx}_s${setNum}`) || '';
+        },
+        
+        saveSetNote: (sessionId, exerciseIdx, setNum, note) => {
+            const key = `note_${sessionId}_ex${exerciseIdx}_s${setNum}`;
+            if (note.trim() === '') {
+                LS_SAFE.remove(key);
+            } else {
+                LS_SAFE.set(key, note.trim());
+            }
+            APP.nav.loadWorkout(sessionId);
+        },
+        
+        openSetNoteModal: (sessionId, exerciseIdx, setNum) => {
+            const currentNote = APP.data.getSetNote(sessionId, exerciseIdx, setNum);
+            const modal = document.createElement('div');
+            modal.className = 'set-note-popup';
+            modal.innerHTML = `
+                <div class="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
+                    <h3 class="text-white font-bold text-sm">📝 Note Set #${setNum}</h3>
+                    <button onclick="this.closest('.set-note-popup').remove()" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <textarea id="set-note-input" class="w-full bg-slate-900 text-white p-3 rounded-lg border border-slate-700 focus:border-emerald-500 mb-3 text-sm" rows="3" placeholder="Catatan set ini...">${currentNote}</textarea>
+                <div class="flex gap-2">
+                    <button onclick="APP.data.saveSetNote('${sessionId}', ${exerciseIdx}, ${setNum}, document.getElementById('set-note-input').value); this.closest('.set-note-popup').remove();" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-sm">
+                        <i class="fa-solid fa-check mr-1"></i>Simpan
+                    </button>
+                    <button onclick="this.closest('.set-note-popup').remove()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg text-sm">
+                        Batal
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('set-note-input').focus();
+        },
+        
+        // 🆕 FITUR 3: Smart Auto-Fill
+        smartAutoFill: (sessionId, exerciseIdx, setNum) => {
+            const session = APP.state.workoutData[sessionId];
+            if (!session || !session.exercises[exerciseIdx]) return;
+            
+            const ex = session.exercises[exerciseIdx];
+            const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
+            const opt = ex.options[optIdx] || ex.options[0];
+            
+            // Get last session data
+            const h = LS_SAFE.getJSON("gym_hist", []);
+            const lastLogs = h.filter(x => x.ex === opt.n).sort((a, b) => b.ts - a.ts);
+            
+            if (lastLogs.length === 0) return;
+            
+            const lastLog = lastLogs[0];
+            const lastSetData = lastLog.d[setNum - 1] || lastLog.d[lastLog.d.length - 1];
+            
+            if (!lastSetData) return;
+            
+            let suggestedWeight = lastSetData.k;
+            let suggestedReps = lastSetData.r;
+            let suggestedRPE = lastSetData.rpe || '';
+            
+            // Smart progression logic
+            if (lastSetData.rpe) {
+                const rpe = parseFloat(lastSetData.rpe);
+                if (rpe <= 7) {
+                    // Easy - increase weight
+                    suggestedWeight = Math.round((lastSetData.k + 2.5) * 2) / 2;
+                    suggestedRPE = '8';
+                } else if (rpe >= 9.5) {
+                    // Too hard - decrease weight
+                    suggestedWeight = Math.round((lastSetData.k - 2.5) * 2) / 2;
+                    suggestedRPE = '8';
+                } else {
+                    // Good - maintain or slight increase
+                    if (rpe < 8.5) {
+                        suggestedWeight = Math.round((lastSetData.k + 1.25) * 4) / 4;
                     }
-                    APP.ui.checkActiveCard();
-                },
+                }
+            }
+            
+            // Apply suggestions
+            const sid = `${sessionId}_ex${exerciseIdx}_s${setNum}`;
+            LS_SAFE.set(`${sid}_k`, suggestedWeight);
+            LS_SAFE.set(`${sid}_r`, suggestedReps);
+            if (suggestedRPE) LS_SAFE.set(`${sid}_rpe`, suggestedRPE);
+            
+            APP.nav.loadWorkout(sessionId);
+            APP.ui.showToast(`⚡ Auto-fill: ${suggestedWeight}kg x ${suggestedReps}`, "success");
+        },
                 getSuggestion: (exName) => {
                     const h = LS_SAFE.getJSON("gym_hist", []);
                     const filtered = h.filter(x => x && x.ex === exName).sort((a, b) => b.ts - a.ts);
@@ -2137,7 +2384,66 @@
                         }
                     });
                 },
-                toggleWarmup: () => document.getElementById("warmup-content").classList.toggle("hidden"),
+toggleWarmup: () => document.getElementById("warmup-content").classList.toggle("hidden"),
+
+// 🆕 FITUR 4: Collapse Completed Sets
+updateCompletedSetsCollapse: (exerciseIdx) => {
+    const card = document.getElementById(`card-${exerciseIdx}`);
+    if (!card) return;
+    
+    const allRows = card.querySelectorAll('[id^="row_"]');
+    let completedCount = 0;
+    let totalSets = allRows.length;
+    
+    allRows.forEach(row => {
+        if (row.classList.contains('set-row-completed')) {
+            completedCount++;
+        }
+    });
+    
+    const summaryEl = card.querySelector('.completed-sets-summary');
+    const setsContainer = card.querySelector('.sets-container');
+    
+    if (completedCount > 0 && completedCount < totalSets) {
+        // Show collapse option
+        if (!summaryEl) {
+            const summary = document.createElement('div');
+            summary.className = 'completed-sets-summary';
+            summary.innerHTML = `
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-emerald-400 font-bold">
+                        <i class="fa-solid fa-check-circle mr-1"></i>
+                        ${completedCount} set selesai
+                    </span>
+                    <button class="text-slate-400 hover:text-white" onclick="APP.ui.toggleCompletedSets(${exerciseIdx})">
+                        <i class="fa-solid fa-chevron-up" id="collapse-icon-${exerciseIdx}"></i>
+                    </button>
+                </div>
+            `;
+            setsContainer.insertBefore(summary, setsContainer.firstChild);
+        } else {
+            summaryEl.querySelector('.text-emerald-400').innerHTML = `
+                <i class="fa-solid fa-check-circle mr-1"></i>
+                ${completedCount} set selesai
+            `;
+        }
+    } else if (summaryEl && completedCount === 0) {
+        summaryEl.remove();
+    }
+},
+
+toggleCompletedSets: (exerciseIdx) => {
+    const setsContainer = document.querySelector(`#card-${exerciseIdx} .sets-container`);
+    const icon = document.getElementById(`collapse-icon-${exerciseIdx}`);
+    
+    if (setsContainer.classList.contains('sets-collapsed')) {
+        setsContainer.classList.remove('sets-collapsed');
+        icon.className = 'fa-solid fa-chevron-up';
+    } else {
+        setsContainer.classList.add('sets-collapsed');
+        icon.className = 'fa-solid fa-chevron-down';
+    }
+},                
                 openModal: (n) => {
                     document.getElementById(`${n}-modal`).classList.remove("hidden");
                     if (n === 'weight') APP.ui.renderWeight();
@@ -2844,6 +3150,7 @@
                 console.error("selectExercise Error:", e);
                 alert("Error: " + e.message);
             }
+
         };
         // END EXERCISE PICKER
 
