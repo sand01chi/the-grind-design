@@ -2285,13 +2285,31 @@ APP.nav.switchView("workout");
                     promptText += `BAGIAN 1: MISI ANALISIS & AUDIT\nLakukan analisis mendalam sebelum menulis kode, dengan parameter:\n1. Analisis Progres (Progressive Overload): Bandingkan volume/beban antar sesi.\n2. Audit Klinis (Fatigue Management): Deteksi Systemic Fatigue atau Junk Volume.\n3. Protokol Spontan: Jika log bertanda 'Spontan', abaikan tuntutan overload.\n\n`;
                     promptText += `BAGIAN 2: ATURAN UPDATE RESEP JSON (EKSEKUSI)\n1. Struktur Imutabel: DILARANG MENGHAPUS gerakan utama.\n2. Kalibrasi Parameter: Perbarui t_k (Target Beban), t_r (Target Reps), rest (Istirahat), dan note.\n3. Metadata Wajib: Tag Alat, Link Video, Bio Note, Note.\n\n`;
                     promptText += `NOTE: Aplikasi mendukung Partial JSON Update. Anda tidak perlu menulis ulang seluruh sesi jika hanya mengubah satu Sesi. Cukup outputkan JSON objek sesi tersebut (contoh: { 's2': { ... } }).\n\n`;
-                    promptText += `DATA SAYA:\n\n[RESEP SAAT INI (JSON)]\n${JSON.stringify(APP.state.workoutData, null, 2)}\n\n`;
-                    promptText += `[LOG TERAKHIR]\nTanggal: ${lastLog.date}\nSesi: ${lastLog.title}\nTotal Vol: ${lastLog.vol}kg\nDurasi: ${lastLog.dur} menit\n\nRincian Gerakan:\n`;
+// 🆕 Filter out spontaneous session dari export
+const programForExport = {};
+Object.keys(APP.state.workoutData).forEach(key => {
+    if (key !== 'spontaneous') {
+        programForExport[key] = APP.state.workoutData[key];
+    }
+});
+
+promptText += `DATA SAYA:\n\n[RESEP SAAT INI (JSON)]\n${JSON.stringify(programForExport, null, 2)}\n\n`;                    promptText += `[LOG TERAKHIR]\nTanggal: ${lastLog.date}\nSesi: ${lastLog.title}\nTotal Vol: ${lastLog.vol}kg\nDurasi: ${lastLog.dur} menit\n\nRincian Gerakan:\n`;
                     const sessionLogs = h.filter(x => x.date === lastLog.date && x.src === lastLog.src);
-                    sessionLogs.forEach(l => {
-                        const setDetails = l.d.map(s => `${s.k}x${s.r}${s.rpe ? '@'+s.rpe : ''}`).join(", ");
-                        promptText += `- ${l.ex}: ${setDetails}\n`;
-                    });
+sessionLogs.forEach((l, exerciseIdx) => {
+    promptText += `\n${exerciseIdx + 1}. ${l.ex}:\n`;
+    l.d.forEach((s, setIdx) => {
+        let setLine = `   Set ${setIdx + 1}: ${s.k}kg x ${s.r}`;
+        if (s.rpe) setLine += ` @ RPE ${s.rpe}`;
+        
+        // 🆕 Ambil set note jika ada
+        const setNote = APP.data.getSetNote(l.src, exerciseIdx, setIdx + 1);
+        if (setNote) {
+            setLine += ` [📝 ${setNote}]`;
+        }
+        
+        promptText += setLine + '\n';
+    });
+});
                     APP.ui.showManualCopy(promptText);
                     alert("Data Audit Siap! Salin teks di bawah dan paste ke Gemini.");
                 },
