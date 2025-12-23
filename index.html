@@ -296,30 +296,7 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-/* Completed Sets Collapse */
-.completed-sets-summary {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
 
-.completed-sets-summary:hover {
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
-}
-
-.set-row-completed {
-    opacity: 0.6;
-    transition: opacity 0.3s;
-}
-
-.sets-collapsed .set-row-completed {
-    display: none;
-}
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -2433,28 +2410,7 @@ updateCompletedSetsCollapse: (exerciseIdx) => {
     const setsContainer = card.querySelector('.sets-container');
     
     if (completedCount > 0 && completedCount < totalSets) {
-        // Show collapse option
-        if (!summaryEl) {
-            const summary = document.createElement('div');
-            summary.className = 'completed-sets-summary';
-            summary.innerHTML = `
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-emerald-400 font-bold">
-                        <i class="fa-solid fa-check-circle mr-1"></i>
-                        ${completedCount} set selesai
-                    </span>
-                    <button class="text-slate-400 hover:text-white" onclick="APP.ui.toggleCompletedSets(${exerciseIdx})">
-                        <i class="fa-solid fa-chevron-up" id="collapse-icon-${exerciseIdx}"></i>
-                    </button>
-                </div>
-            `;
-            setsContainer.insertBefore(summary, setsContainer.firstChild);
-        } else {
-            summaryEl.querySelector('.text-emerald-400').innerHTML = `
-                <i class="fa-solid fa-check-circle mr-1"></i>
-                ${completedCount} set selesai
-            `;
-        }
+       
     } else if (summaryEl && completedCount === 0) {
         summaryEl.remove();
     }
