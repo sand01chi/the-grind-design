@@ -1546,9 +1546,14 @@ setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${done?'bg-em
                     </div>
                     <div class="flex flex-col gap-2 mb-1 px-1">
     <div onclick="APP.data.editNote('${_id}',${_idx})" class="text-[10px] text-yellow-500 font-bold cursor-pointer hover:text-white leading-relaxed break-words"><i class="fa-solid fa-pen-to-square mr-1"></i> ${optNote}</div>
-    <div class="flex justify-between items-center gap-2">
-        <div class="text-[9px] text-slate-500 font-mono flex-shrink-0">${historySuggestion}</div>
-        ${targetBadge}
+    <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+            <div class="text-[9px] text-slate-500 font-mono">${historySuggestion}</div>
+            <div id="last-volume-${_idx}" class="text-[9px] text-slate-500 font-mono"></div>
+        </div>
+        <div class="flex justify-end">
+            ${targetBadge}
+        </div>
     </div>
 </div>
                 </div>
@@ -1745,6 +1750,11 @@ APP.nav.switchView("workout");
                     ${lastLog ? `<div class="text-right"><div class="text-[10px] text-slate-500">Last: ${lastLog.vol}kg</div><div class="text-[10px] font-bold">${diffHtml}</div></div>` : ''}
                 </div>
             `;
+            // 🆕 Update last volume info di card header
+    const lastVolumeEl = document.getElementById(`last-volume-${exerciseIdx}`);
+    if (lastVolumeEl && lastLog) {
+        lastVolumeEl.innerHTML = `Last Volume: ${lastLog.vol}kg ${diffHtml}`;
+    }
         },
         
         // 🆕 FITUR 2: Set Notes
@@ -1844,7 +1854,7 @@ APP.nav.switchView("workout");
                     const filtered = h.filter(x => x && x.ex === exName).sort((a, b) => b.ts - a.ts);
                     if (filtered.length === 0) return "";
                     const lastLog = filtered[0];
-                    let msg = `Last: ${lastLog.top || 0}kg`;
+                    let msg = `Last Weight: ${lastLog.top || 0}kg`;
                     if (lastLog.d && lastLog.d.length > 0) {
                         const lastSet = lastLog.d[lastLog.d.length - 1];
                         if (lastSet.rpe) {
