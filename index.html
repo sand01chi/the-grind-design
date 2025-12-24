@@ -241,7 +241,7 @@
         border-radius: 6px;
         object-fit: cover;
       }
-      /* ✅ Volume Counter Styles - PRIORITY TINGGI */
+
       .volume-counter {
         background: linear-gradient(
           135deg,
@@ -257,7 +257,6 @@
         z-index: 10;
       }
 
-      /* ✅ COMPLETED SUMMARY - TERANG & MENONJOL */
       .completed-card-summary {
         background: linear-gradient(
           135deg,
@@ -268,9 +267,9 @@
         padding: 20px !important;
         animation: completePulse 0.5s ease-out !important;
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
-        opacity: 1 !important; /* ✅ FORCE OPACITY 100% */
+        opacity: 1 !important;
         position: relative;
-        z-index: 20; /* ✅ Di atas parent */
+        z-index: 20;
       }
 
       @keyframes completePulse {
@@ -299,7 +298,6 @@
         }
       }
 
-      /* ✅ COLLAPSED SETS - HIDE */
       .sets-container.sets-collapsed > div[id^="row_"] {
         display: none !important;
       }
@@ -308,9 +306,8 @@
         display: none !important;
       }
 
-      /* ✅ CARD COMPLETED - GELAP TAPI VOLUME TETAP CERAH */
       .exercise-card.all-completed {
-        opacity: 0.5; /* Card gelap */
+        opacity: 0.5;
         transition: opacity 0.3s;
       }
 
@@ -318,13 +315,11 @@
         opacity: 0.8;
       }
 
-      /* ✅ FORCE VOLUME COUNTER CERAH DI CARD COMPLETED */
       .exercise-card.all-completed .volume-counter.completed-card-summary {
-        opacity: 1 !important; /* ✅ OVERRIDE parent opacity */
-        filter: brightness(1.2); /* ✅ Lebih cerah */
+        opacity: 1 !important;
+        filter: brightness(1.2);
       }
 
-      /* ✅ Volume diff indicators */
       .volume-diff-up {
         color: #10b981;
         animation: bounce 0.5s ease-out;
@@ -344,6 +339,60 @@
         50% {
           transform: translateY(-3px);
         }
+      }
+      .set-note-icon {
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #64748b;
+      }
+
+      .set-note-icon:hover {
+        color: #fbbf24;
+        transform: scale(1.1);
+      }
+
+      .set-note-icon.has-note {
+        color: #fbbf24;
+      }
+
+      .set-note-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(10px);
+        border: 1px solid #334155;
+        border-radius: 16px;
+        padding: 20px;
+        z-index: 1000;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      }
+
+      .completed-sets-summary {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .completed-sets-summary:hover {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.3);
+      }
+
+      .set-row-completed {
+        opacity: 0.6;
+        transition: opacity 0.3s;
+      }
+
+      .sets-collapsed .set-row-completed {
+        display: none;
       }
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1735,7 +1784,6 @@
         return false;
       };
 
-      // 📍 START OF PATCH B2
       const LS_SAFE = {
         get: (k) => {
           try {
@@ -1749,7 +1797,6 @@
 
         set: (k, v) => {
           try {
-            // ✅ Validate key
             if (!k || typeof k !== "string") {
               throw new Error("Invalid key");
             }
@@ -1775,7 +1822,7 @@
             return parsed;
           } catch (e) {
             console.error("LS Parse Error:", k, e);
-            // ✅ Auto-fix: Remove corrupt data
+
             try {
               localStorage.removeItem(k);
               console.warn(`[AUTO-FIX] Removed corrupt data: ${k}`);
@@ -1786,14 +1833,12 @@
 
         setJSON: (k, v) => {
           try {
-            // ✅ Validate data structure
             if (v === undefined) {
               throw new Error("Cannot store undefined");
             }
 
             const jsonStr = JSON.stringify(v);
 
-            // ✅ Size check (warn if > 1MB)
             const sizeKB = new Blob([jsonStr]).size / 1024;
             if (sizeKB > 1024) {
               console.warn(`⚠️ Large data (${sizeKB.toFixed(2)}KB): ${k}`);
@@ -1831,7 +1876,6 @@
           }
         },
 
-        // ✅ NEW: Get storage usage stats
         getStats: () => {
           let totalSize = 0;
           let itemCount = 0;
@@ -1844,7 +1888,7 @@
           }
 
           const sizeKB = (totalSize / 1024).toFixed(2);
-          const maxKB = 5120; // ~5MB typical limit
+          const maxKB = 5120;
           const usagePercent = ((totalSize / (maxKB * 1024)) * 100).toFixed(1);
 
           return {
@@ -1855,7 +1899,6 @@
           };
         },
       };
-      // END PATCH B2
 
       const DT = {
         formatRelative: (ts) => {
@@ -1909,9 +1952,7 @@
           },
         },
 
-        // 📍 START OF PATCH B1 (Validation function)
         validation: {
-          // Validate session exists and has exercises
           validateSession: (sessionId) => {
             const session = APP.state.workoutData[sessionId];
             if (!session) {
@@ -1925,7 +1966,6 @@
             return session;
           },
 
-          // Validate exercise index
           validateExercise: (sessionId, exerciseIdx) => {
             const session = APP.validation.validateSession(sessionId);
             const exercise = session.exercises[exerciseIdx];
@@ -1942,7 +1982,6 @@
             return exercise;
           },
 
-          // Validate and get safe variant index
           getSafeVariantIndex: (sessionId, exerciseIdx) => {
             const exercise = APP.validation.validateExercise(
               sessionId,
@@ -1952,7 +1991,6 @@
               LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0
             );
 
-            // Auto-fix if out of bounds
             if (
               isNaN(savedVar) ||
               savedVar < 0 ||
@@ -1968,14 +2006,11 @@
             return savedVar;
           },
 
-          // Validate localStorage key format
           isValidSetKey: (key) => {
-            // Expected format: {sessionId}_ex{num}_s{num}_{k|r|rpe|d}
             const pattern = /^[a-zA-Z0-9_]+_ex\d+_s\d+_[krped]$/;
             return pattern.test(key);
           },
 
-          // Clean corrupt localStorage entries
           cleanCorruptData: () => {
             let cleanedCount = 0;
             const toRemove = [];
@@ -1983,7 +2018,6 @@
             for (let i = 0; i < localStorage.length; i++) {
               const key = localStorage.key(i);
 
-              // Check set keys
               if (key && key.includes("_ex") && key.includes("_s")) {
                 if (!APP.validation.isValidSetKey(key)) {
                   toRemove.push(key);
@@ -2001,7 +2035,6 @@
             return cleanedCount;
           },
 
-          // Validate number input
           sanitizeNumber: (value, min = 0, max = 999, defaultVal = 0) => {
             const num = parseFloat(value);
             if (isNaN(num)) return defaultVal;
@@ -2010,7 +2043,6 @@
             return num;
           },
         },
-        //END OF PATCH B1
 
         init: function () {
           try {
@@ -2019,14 +2051,13 @@
               dayjs.locale("id");
             }
 
-            // 📍 START OF PATCH B4
             if (APP.validation && APP.validation.cleanCorruptData) {
               const cleaned = APP.validation.cleanCorruptData();
               if (cleaned > 0) {
                 console.log(`[STARTUP] Cleaned ${cleaned} corrupt entries`);
               }
             }
-            // END OF PATCH B4
+
             const stored = LS_SAFE.getJSON("cscs_program_v10");
             if (stored) {
               this.state.workoutData = stored;
@@ -2139,12 +2170,10 @@
             if (v === "dashboard") APP.nav.renderDashboard();
           },
 
-          // 📍 PATCH C.1: APP.nav.renderDashboard
           renderDashboard: () => {
             try {
               const list = document.getElementById("schedule-list");
 
-              // ✅ DOM NULL GUARD
               if (!list) {
                 console.error("[DOM ERROR] schedule-list element not found");
                 return;
@@ -2201,9 +2230,7 @@
               APP.debug.showFatalError("Render Dashboard", e);
             }
           },
-          // END OF PATCH C.1
 
-          // 📍 START OF PATCH A1
           loadWorkout: (id) => {
             try {
               APP.state.currentSessionId = id;
@@ -2219,7 +2246,6 @@
                 ? badge.classList.add("flex")
                 : badge.classList.remove("flex");
 
-              // ✅ SAFETY: Validate session exists
               const data = APP.state.workoutData[id];
               if (!data) {
                 alert(`Session '${id}' tidak ditemukan!`);
@@ -2227,7 +2253,6 @@
                 return;
               }
 
-              // ✅ SAFETY: Validate exercises array
               if (!data.exercises || !Array.isArray(data.exercises)) {
                 alert(`Data sesi corrupt! Exercises tidak valid.`);
                 APP.nav.switchView("dashboard");
@@ -2241,25 +2266,21 @@
 
               const exList = document.getElementById("exercise-list");
 
-              // 📍 PATCH C.2: APP.nav.loadWorkout - Add exList null guard
-              // ✅ DOM NULL GUARD
               if (!exList) {
                 console.error("[DOM ERROR] exercise-list element not found");
                 alert("Error: Exercise list tidak ditemukan. Refresh halaman.");
                 APP.nav.switchView("dashboard");
                 return;
               }
-              // END OF PATCH C.2
+
               let htmlBuffer = "";
 
               data.exercises.forEach((ex, idx) => {
-                // ✅ GUARD 1: Skip if no options
                 if (!ex.options || ex.options.length === 0) {
                   console.warn(`[SKIP] Exercise ${idx} has no options`);
                   return;
                 }
 
-                // ✅ GUARD 2: Validate saved variant index
                 let savedVar = parseInt(LS_SAFE.get(`pref_${id}_${idx}`) || 0);
                 if (
                   isNaN(savedVar) ||
@@ -2273,7 +2294,6 @@
                   LS_SAFE.set(`pref_${id}_${idx}`, 0);
                 }
 
-                // ✅ GUARD 3: Final null check
                 const opt = ex.options[savedVar];
                 if (!opt) {
                   console.error(
@@ -2282,7 +2302,6 @@
                   return;
                 }
 
-                // ✅ SAFETY: Default values for opt properties
                 const optName = opt.n || "Unknown Exercise";
                 const optVid = opt.vid || "";
                 const optBio = opt.bio || "No description";
@@ -2290,7 +2309,6 @@
                 const optTargetK = opt.t_k || "-";
                 const optTargetR = opt.t_r || "-";
 
-                // Snapshot variables (prevent closure issues)
                 const _id = id;
                 const _idx = idx;
                 const _savedVar = savedVar;
@@ -2439,7 +2457,6 @@
               exList.innerHTML = htmlBuffer;
               APP.ui.checkActiveCard();
 
-              // Initialize volume counters for all exercises
               data.exercises.forEach((ex, idx) => {
                 APP.data.updateVolumeCounter(id, idx);
               });
@@ -2450,7 +2467,6 @@
             }
           },
         },
-        // END OF PATCH A1
 
         spontaneous: {
           startEmpty: () => {
@@ -2638,7 +2654,6 @@
 
             const allCompleted = completedSets === ex.sets && completedSets > 0;
 
-            // ✅ EXPAND BUTTON - LEBIH JELAS
             const expandButton = allCompleted
               ? `<button onclick="APP.ui.toggleSetsVisibility(${exerciseIdx})" 
             class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shadow-lg active:scale-95">
@@ -2646,7 +2661,6 @@
         </button>`
               : "";
 
-            // ✅ HTML dengan styling yang lebih cerah saat completed
             volumeEl.innerHTML = `
         <div class="flex justify-between items-center ${
           allCompleted ? "text-base" : "text-xs"
@@ -2697,11 +2711,7 @@
               lastVolumeEl.innerHTML = `Last Volume: ${lastLog.vol}kg`;
             }
           },
-          // 🆕 Check & Auto-Collapse jika semua sets completed
 
-          // 🆕 Toggle expand/collapse sets
-
-          // 🆕 FITUR 2: Set Notes
           getSetNote: (sessionId, exerciseIdx, setNum) => {
             return (
               LS_SAFE.get(`note_${sessionId}_ex${exerciseIdx}_s${setNum}`) || ""
@@ -2747,8 +2757,6 @@
             document.getElementById("set-note-input").focus();
           },
 
-          // 🆕 FITUR 3: Smart Auto-Fill
-          // 🆕 SMART AUTO-FILL ALL SETS
           smartAutoFill: (sessionId, exerciseIdx) => {
             const session = APP.state.workoutData[sessionId];
             if (!session || !session.exercises[exerciseIdx]) return;
@@ -2757,28 +2765,23 @@
             const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
             const opt = ex.options[optIdx] || ex.options[0];
 
-            // ✅ PRIORITY 1: Get TARGET from program (t_k, t_r)
             const targetWeight = opt.t_k ? parseFloat(opt.t_k) : null;
             const targetReps = opt.t_r ? opt.t_r.toString() : null;
 
-            // ✅ PRIORITY 2: Get LAST SESSION data for RPE adjustment
             const h = LS_SAFE.getJSON("gym_hist", []);
             const lastLogs = h
               .filter((x) => x.ex === opt.n)
               .sort((a, b) => b.ts - a.ts);
             const lastLog = lastLogs.length > 0 ? lastLogs[0] : null;
 
-            // 🧮 CALCULATE BASE VALUES
             let baseWeight = 0;
             let baseReps = 10;
             let suggestedRPE = "8";
             let source = "";
 
             if (targetWeight && targetReps) {
-              // ✅ USE TARGET as base
               baseWeight = targetWeight;
 
-              // Parse target reps (bisa "10-12", "10", "8-10")
               if (targetReps.includes("-")) {
                 const [min, max] = targetReps
                   .split("-")
@@ -2790,7 +2793,6 @@
 
               source = "TARGET";
 
-              // ✅ ADJUST based on LAST RPE (if exists)
               if (lastLog && lastLog.d && lastLog.d.length > 0) {
                 let maxRPE = 0;
                 lastLog.d.forEach((s) => {
@@ -2800,36 +2802,29 @@
                 });
 
                 if (maxRPE > 0) {
-                  // ✅ RPE-based adjustment dengan 5kg increment
                   if (maxRPE <= 7) {
-                    // Too easy → +5kg
                     baseWeight = baseWeight + 5;
                     suggestedRPE = "8";
                     source = "TARGET + RPE↑";
                   } else if (maxRPE >= 9.5) {
-                    // Too hard → -5kg
                     baseWeight = baseWeight - 5;
                     suggestedRPE = "8";
                     source = "TARGET + RPE↓";
                   } else if (maxRPE >= 8 && maxRPE < 9) {
-                    // Perfect → Small increase +5kg
                     baseWeight = baseWeight + 5;
                     suggestedRPE = "8";
                     source = "TARGET + RPE✓";
                   } else {
-                    // RPE 7-8 → Maintain
                     suggestedRPE = "8";
                     source = "TARGET (maintain)";
                   }
                 }
               }
             } else if (lastLog) {
-              // ✅ FALLBACK: Use history if no target
               baseWeight = lastLog.top;
               baseReps = lastLog.d[0]?.r || 10;
               source = "HISTORY";
 
-              // Apply RPE-based progression
               let maxRPE = 0;
               lastLog.d.forEach((s) => {
                 if (s.rpe && parseFloat(s.rpe) > maxRPE) {
@@ -2847,7 +2842,6 @@
                 baseWeight = baseWeight + 5;
               }
             } else {
-              // ❌ No target, no history
               APP.ui.showToast(
                 "⚠️ Tidak ada target/history. Isi manual dulu.",
                 "warning"
@@ -2855,10 +2849,8 @@
               return;
             }
 
-            // ✅ ROUND to nearest 5kg (no fractional plates)
             baseWeight = Math.round(baseWeight / 5) * 5;
 
-            // ✅ FILL ALL SETS
             let fillCount = 0;
             for (let i = 1; i <= ex.sets; i++) {
               const sid = `${sessionId}_ex${exerciseIdx}_s${i}`;
@@ -2867,18 +2859,14 @@
               let setReps = baseReps;
               let setRPE = suggestedRPE;
 
-              // ✅ ONLY SET 1 is WARM-UP
               if (i === 1) {
-                // Set 1: 90% warm-up (rounded to 5kg)
                 setWeight = Math.round((baseWeight * 0.9) / 5) * 5;
                 setRPE = "7";
               } else {
-                // Set 2+: Full working sets
                 setWeight = baseWeight;
                 setRPE = "8";
               }
 
-              // Apply values
               LS_SAFE.set(`${sid}_k`, setWeight);
               LS_SAFE.set(`${sid}_r`, setReps);
               if (setRPE) LS_SAFE.set(`${sid}_rpe`, setRPE);
@@ -2888,7 +2876,6 @@
 
             APP.nav.loadWorkout(sessionId);
 
-            // ✅ Toast dengan info source
             APP.ui.showToast(
               `⚡ Auto-filled ${fillCount} sets: ${baseWeight}kg x ${baseReps}<br>
         <span class="text-xs text-slate-400">Source: ${source}</span>`,
@@ -2916,21 +2903,17 @@
             return msg;
           },
 
-          // 📍 START OF PATCH 2: APP.data.changeVariant
           changeVariant: (d, i, v) => {
             try {
-              // ✅ SAFETY: Validate session exists
               const session = APP.state.workoutData[d];
               if (!session) {
                 throw new Error(`Session '${d}' not found`);
               }
 
-              // ✅ SAFETY: Validate exercise index
               if (!session.exercises || !session.exercises[i]) {
                 throw new Error(`Exercise index ${i} invalid`);
               }
 
-              // ✅ SAFETY: Validate variant index
               const newVar = parseInt(v);
               if (
                 isNaN(newVar) ||
@@ -2951,17 +2934,15 @@
               alert(`Error: ${e.message}`);
             }
           },
-          // END OF PATCH A2
+
           addCustomVariant: (d, i) => {
             APP.ui.openExercisePicker("variant", d, i);
           },
 
-          // 📍 DELETE VARIANT FUNCTION
           deleteVariant: (d, i, v) => {
             try {
               const variantIdx = parseInt(v);
 
-              // ✅ SAFETY: Validate data
               const session = APP.state.workoutData[d];
               if (!session || !session.exercises[i]) {
                 throw new Error("Invalid session or exercise");
@@ -2969,21 +2950,17 @@
 
               const exercise = session.exercises[i];
 
-              // ✅ Don't allow deletion if only 1 variant left
               if (exercise.options.length <= 1) {
                 alert("Minimal harus ada 1 alternatif gerakan!");
                 return;
               }
 
-              // ✅ Confirm before delete
               if (!confirm(`Hapus "${exercise.options[variantIdx].n}"?`)) {
                 return;
               }
 
-              // Delete the variant
               exercise.options.splice(variantIdx, 1);
 
-              // If deleted variant was selected, switch to first available
               const currentPref = parseInt(LS_SAFE.get(`pref_${d}_${i}`) || 0);
               if (currentPref >= exercise.options.length) {
                 LS_SAFE.set(`pref_${d}_${i}`, 0);
@@ -2998,10 +2975,8 @@
             }
           },
 
-          // 📍 START OF PATCH A4
           modifySet: (d, i, v) => {
             try {
-              // ✅ SAFETY: Validate data
               const session = APP.state.workoutData[d];
               if (!session || !session.exercises[i]) {
                 throw new Error("Invalid session or exercise");
@@ -3009,7 +2984,6 @@
 
               const newSets = session.exercises[i].sets + v;
 
-              // ✅ SAFETY: Min 1 set, max 10 sets
               if (newSets < 1) {
                 alert("Minimum 1 set!");
                 return;
@@ -3027,12 +3001,9 @@
               alert(`Error: ${e.message}`);
             }
           },
-          // END OF PATCH A4
 
-          // 📍 START OF PATCH A5
           deleteCard: (d, i) => {
             try {
-              // ✅ SAFETY: Validate data
               const session = APP.state.workoutData[d];
               if (!session || !session.exercises[i]) {
                 throw new Error("Invalid session or exercise");
@@ -3050,12 +3021,9 @@
               alert(`Error: ${e.message}`);
             }
           },
-          // END OF PATCH A5
 
-          // 📍 START OF PATCH A6
           moveCard: (d, i, v) => {
             try {
-              // ✅ SAFETY: Validate data
               const session = APP.state.workoutData[d];
               if (!session || !session.exercises) {
                 throw new Error("Invalid session");
@@ -3064,13 +3032,11 @@
               const exercises = session.exercises;
               const newIndex = i + v;
 
-              // ✅ SAFETY: Bounds check
               if (newIndex < 0 || newIndex >= exercises.length) {
                 console.log("Cannot move: out of bounds");
                 return;
               }
 
-              // Swap
               [exercises[i], exercises[newIndex]] = [
                 exercises[newIndex],
                 exercises[i],
@@ -3082,16 +3048,13 @@
               alert(`Error: ${e.message}`);
             }
           },
-          // END PATCH A6
 
           addNewExerciseCard: () => {
             APP.ui.openExercisePicker("new", null, null);
           },
 
-          // 📍 START OF PATCH A3
           editNote: (d, i) => {
             try {
-              // ✅ SAFETY: Validate data
               const session = APP.state.workoutData[d];
               if (!session || !session.exercises[i]) {
                 throw new Error("Invalid session or exercise");
@@ -3099,7 +3062,6 @@
 
               const optIdx = parseInt(LS_SAFE.get(`pref_${d}_${i}`) || 0);
 
-              // ✅ SAFETY: Validate option exists
               if (!session.exercises[i].options[optIdx]) {
                 throw new Error("Selected variant not found");
               }
@@ -3120,7 +3082,6 @@
               alert(`Error: ${e.message}`);
             }
           },
-          //END OF PATCH A3
 
           editSessionTitle: (e, k) => {
             e.stopPropagation();
@@ -3393,7 +3354,7 @@
             promptText += `BAGIAN 1: MISI ANALISIS & AUDIT\nLakukan analisis mendalam sebelum menulis kode, dengan parameter:\n1. Analisis Progres (Progressive Overload): Bandingkan volume/beban antar sesi.\n2. Audit Klinis (Fatigue Management): Deteksi Systemic Fatigue atau Junk Volume.\n3. Protokol Spontan: Jika log bertanda 'Spontan', abaikan tuntutan overload.\n\n`;
             promptText += `BAGIAN 2: ATURAN UPDATE RESEP JSON (EKSEKUSI)\n1. Struktur Imutabel: DILARANG MENGHAPUS gerakan utama.\n2. Kalibrasi Parameter: Perbarui t_k (Target Beban), t_r (Target Reps), rest (Istirahat), dan note.\n3. Metadata Wajib: Tag Alat, Link Video, Bio Note, Note.\n\n`;
             promptText += `NOTE: Aplikasi mendukung Partial JSON Update. Anda tidak perlu menulis ulang seluruh sesi jika hanya mengubah satu Sesi. Cukup outputkan JSON objek sesi tersebut (contoh: { 's2': { ... } }).\n\n`;
-            // 🆕 Filter out spontaneous session dari export
+
             const programForExport = {};
             Object.keys(APP.state.workoutData).forEach((key) => {
               if (key !== "spontaneous") {
@@ -3414,7 +3375,6 @@
                 let setLine = `   Set ${setIdx + 1}: ${s.k}kg x ${s.r}`;
                 if (s.rpe) setLine += ` @ RPE ${s.rpe}`;
 
-                // 🆕 Ambil set note jika ada
                 const setNote = APP.data.getSetNote(
                   l.src,
                   exerciseIdx,
@@ -3530,9 +3490,8 @@
                 if (!k.checked) all = false;
               });
               if (all) {
-                // Card completed - hanya tambah class untuk border/indicator
                 c.classList.add("completed");
-                c.classList.remove("opacity-50", "scale-95", "grayscale"); // Force remove
+                c.classList.remove("opacity-50", "scale-95", "grayscale");
               } else {
                 c.classList.remove("completed");
                 c.classList.remove("opacity-50", "scale-95", "grayscale");
@@ -3553,7 +3512,6 @@
               .getElementById("warmup-content")
               .classList.toggle("hidden"),
 
-          // 🆕 FITUR 4: Collapse Completed Sets
           updateCompletedSetsCollapse: (exerciseIdx) => {
             const card = document.getElementById(`card-${exerciseIdx}`);
             if (!card) return;
@@ -3610,16 +3568,13 @@
             });
 
             if (allCompleted && completedCount > 0) {
-              // ✅ Collapse sets
               const setsContainer = card.querySelector(".sets-container");
               if (setsContainer) {
                 setsContainer.classList.add("sets-collapsed");
               }
 
-              // ✅ Mark as completed (border hijau, TIDAK gelap)
               card.classList.add("all-completed");
 
-              // ✅ Highlight volume counter
               const volumeCounter = document.getElementById(
                 `volume-counter-${exerciseIdx}`
               );
@@ -3627,13 +3582,11 @@
                 volumeCounter.classList.add("completed-card-summary");
               }
 
-              // ✅ Show toast
               APP.ui.showToast(
                 `✅ Exercise #${exerciseIdx + 1} selesai!`,
                 "success"
               );
             } else {
-              // ✅ Expand if not all completed
               const setsContainer = card.querySelector(".sets-container");
               if (setsContainer) {
                 setsContainer.classList.remove("sets-collapsed");
@@ -3876,11 +3829,9 @@
             return html;
           },
 
-          // 📍 PATCH C.3: APP.ui.renderWeight
           renderWeight: () => {
             const l = document.getElementById("weight-list");
 
-            // ✅ DOM NULL GUARD
             if (!l) {
               console.error("[DOM ERROR] weight-list element not found");
               return;
@@ -3894,13 +3845,11 @@
             );
             l.innerHTML = html;
           },
-          // END OF PATCH C.3
-          // 📍 PATCH C.4: APP.ui.renderLibrary
+
           renderLibrary: () => {
             const lib = LS_SAFE.getJSON("cscs_library", []);
             const el = document.getElementById("library-list");
 
-            // ✅ DOM NULL GUARD
             if (!el) {
               console.error("[DOM ERROR] library-list element not found");
               return;
@@ -3918,13 +3867,11 @@
             });
             el.innerHTML = html;
           },
-          // END OF PATCH C.4
-          // 📍 PATCH C.5: APP.ui.renderCalendar
+
           renderCalendar: () => {
             const g = document.getElementById("cal-grid");
             const hText = document.getElementById("cal-month-year");
 
-            // ✅ DOM NULL GUARD
             if (!g || !hText) {
               console.error("[DOM ERROR] Calendar elements not found", {
                 g: !!g,
@@ -3961,7 +3908,7 @@
             }
             g.innerHTML = html;
           },
-          // END OF PATCH C.5
+
           changeMonth: (d) => {
             APP.state.currentCalDate.setMonth(
               APP.state.currentCalDate.getMonth() + d
@@ -4074,7 +4021,6 @@
         },
       };
 
-      // 📍 STATS OBJECT (moved outside ui)
       APP.stats = {
         chart: null,
         init: () => APP.stats.loadOptions(),
@@ -4172,7 +4118,6 @@
 
           const ctx = document.getElementById("progressChart");
 
-          // ✅ DOM NULL GUARD
           if (!ctx) {
             console.error("[DOM ERROR] progressChart canvas not found");
             return;
@@ -4245,14 +4190,12 @@
         },
       };
 
-      // 📍 TIMER OBJECT (moved outside ui)
       APP.timer = {
         startTime: 0,
         start: (s) => {},
         stop: () => {},
       };
 
-      // 📍 SHOW STORAGE STATS (moved outside ui)
       APP.showStorageStats = () => {
         const stats = LS_SAFE.getStats();
         document.getElementById("stat-items").innerText = stats.items;
@@ -4263,7 +4206,6 @@
         const bar = document.getElementById("usage-bar");
         bar.style.width = usagePercent + "%";
 
-        // Color code
         if (usagePercent > 80) {
           bar.className = "bg-red-500 h-full transition-all";
         } else if (usagePercent > 50) {
@@ -4275,9 +4217,8 @@
         console.log("Storage Stats:", stats);
       };
 
-      // 📍 EXERCISE PICKER (moved outside ui)
       APP.ui.exercisePicker = {
-        mode: null, // 'new' atau 'variant'
+        mode: null,
         sessionId: null,
         exerciseIndex: null,
         allExercises: [],
@@ -4288,7 +4229,6 @@
       APP.ui.openExercisePicker = (mode, sessionId, exerciseIndex) => {
         console.log("[DEBUG] openExercisePicker called with mode:", mode);
         try {
-          // Check if EXERCISES_LIBRARY loaded
           if (typeof EXERCISES_LIBRARY === "undefined") {
             console.error("[ERROR] EXERCISES_LIBRARY not loaded!");
             alert(
@@ -4302,7 +4242,6 @@
           APP.ui.exercisePicker.exerciseIndex = exerciseIndex;
           APP.ui.exercisePicker.currentFilter = "all";
 
-          // Collect all exercises from library
           let allExercises = [];
           const categories = EXERCISES_LIBRARY.getCategories();
           console.log("[DEBUG] Found categories:", categories);
@@ -4327,7 +4266,6 @@
           APP.ui.exercisePicker.allExercises = allExercises;
           APP.ui.exercisePicker.filteredExercises = allExercises;
 
-          // Render categories
           const categoryFilter = document.getElementById("category-filter");
           if (categoryFilter) {
             categoryFilter.innerHTML =
@@ -4346,17 +4284,14 @@
             console.error("[ERROR] category-filter element not found!");
           }
 
-          // Clear search input
           const searchInput = document.getElementById("exercise-search");
           if (searchInput) {
             searchInput.value = "";
           }
 
-          // Open modal FIRST
           APP.ui.openModal("exercise-picker");
           console.log("[DEBUG] Modal opened");
 
-          // Then render exercise list
           console.log("[DEBUG] Calling renderExerciseList...");
           APP.ui.renderExerciseList();
         } catch (e) {
@@ -4368,7 +4303,6 @@
       APP.ui.filterByCategory = (category) => {
         APP.ui.exercisePicker.currentFilter = category;
 
-        // Update button styles
         const buttons = document.querySelectorAll("#category-filter button");
         buttons.forEach((btn) => {
           if (
@@ -4383,7 +4317,6 @@
           }
         });
 
-        // Filter exercises
         if (category === "all") {
           APP.ui.exercisePicker.filteredExercises =
             APP.ui.exercisePicker.allExercises;
@@ -4475,7 +4408,6 @@
           const mode = APP.ui.exercisePicker.mode;
 
           if (mode === "new") {
-            // Add new exercise card
             const sessionId = APP.state.currentSessionId;
             APP.state.workoutData[sessionId].exercises.push({
               sets: 3,
@@ -4494,9 +4426,7 @@
             APP.core.saveProgram();
             APP.nav.loadWorkout(sessionId);
             APP.ui.showToast(`✅ "${name}" ditambahkan`, "success");
-            // Modal tetap terbuka agar user bisa memilih exercise lainnya
           } else if (mode === "variant") {
-            // Add new variant to existing exercise
             const sessionId = APP.ui.exercisePicker.sessionId;
             const exIdx = APP.ui.exercisePicker.exerciseIndex;
 
@@ -4519,16 +4449,13 @@
               `✅ "${name}" ditambahkan sebagai alternatif`,
               "success"
             );
-            // Modal tetap terbuka agar user bisa memilih alternatif lainnya
           }
         } catch (e) {
           console.error("selectExercise Error:", e);
           alert("Error: " + e.message);
         }
       };
-      // END EXERCISE PICKER
 
-      // 📍 DEBUG OBJECT (moved outside ui)
       APP.debug = {
         showFatalError: (ctx, err, extra) => {
           if (extra === undefined) extra = "";
@@ -4546,14 +4473,12 @@
         },
       };
 
-      // Expose APP to the global window to ensure inline handlers and devtools can access it
       try {
         window.APP = APP;
       } catch (e) {
         console.warn("Could not assign window.APP", e);
       }
 
-      // Safety: Ensure critical ui methods exist (fallback if parsing issue)
       if (!APP.ui) APP.ui = {};
       if (typeof APP.ui.openExercisePicker !== "function") {
         APP.ui.openExercisePicker = (mode, sessionId, exerciseIndex) => {
