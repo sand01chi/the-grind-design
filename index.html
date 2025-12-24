@@ -235,7 +235,7 @@
             border-radius: 6px;
             object-fit: cover;
         }
-      /* ✅ Volume Counter Styles - PRIORITY TINGGI */
+/* ✅ Volume Counter Styles - PRIORITY TINGGI */
 .volume-counter {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
     border: 1px solid rgba(16, 185, 129, 0.2);
@@ -1711,7 +1711,7 @@ APP.nav.switchView("workout");
    
 },
 
-           updateVolumeCounter: (sessionId, exerciseIdx) => {
+ updateVolumeCounter: (sessionId, exerciseIdx) => {
     const volumeEl = document.getElementById(`volume-counter-${exerciseIdx}`);
     if (!volumeEl) return;
     
@@ -1733,7 +1733,6 @@ APP.nav.switchView("workout");
         }
     }
     
-    // Get last session volume
     const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
     const opt = ex.options[optIdx] || ex.options[0];
     const h = LS_SAFE.getJSON("gym_hist", []);
@@ -1747,69 +1746,53 @@ APP.nav.switchView("workout");
         } else if (diff < 0) {
             diffHtml = `<span class="volume-diff-down">${diff}kg 📉</span>`;
         } else {
-            diffHtml = `<span class="text-slate-400">±0kg ➡️</span>`;
+            diffHtml = `<span class="text-emerald-400">±0kg ➡️</span>`;
         }
     }
     
-    // 🆕 Check if ALL completed
-    const allCompleted = completedSets === ex.sets;
+    const allCompleted = completedSets === ex.sets && completedSets > 0;
+    
+    // ✅ EXPAND BUTTON - LEBIH JELAS
     const expandButton = allCompleted ? 
-        `<button onclick="APP.ui.toggleSetsVisibility(${exerciseIdx})" class="text-slate-400 hover:text-white text-xs">
-            <i class="fa-solid fa-chevron-down"></i> Expand
+        `<button onclick="APP.ui.toggleSetsVisibility(${exerciseIdx})" 
+            class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shadow-lg active:scale-95">
+            <i class="fa-solid fa-chevron-down"></i> Show Sets
         </button>` : '';
     
+    // ✅ HTML dengan styling yang lebih cerah saat completed
     volumeEl.innerHTML = `
-        <div class="flex justify-between items-center ${allCompleted ? 'text-sm' : 'text-xs'}">
-            <div>
-                <span class="text-emerald-400 font-bold ${allCompleted ? 'text-2xl' : 'text-lg'}">${totalVol}</span>
-                <span class="text-slate-400"> kg</span>
-                <span class="text-slate-500 text-[10px] ml-2">(${completedSets}/${ex.sets} sets)</span>
-                ${allCompleted ? '<span class="ml-2 text-emerald-400">✅</span>' : ''}
+        <div class="flex justify-between items-center ${allCompleted ? 'text-base' : 'text-xs'}">
+            <div class="flex items-center gap-3">
+                ${allCompleted ? '<div class="text-3xl">🎯</div>' : ''}
+                <div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-emerald-400 font-black ${allCompleted ? 'text-4xl' : 'text-lg'} tracking-tight">${totalVol}</span>
+                        <span class="text-emerald-300 ${allCompleted ? 'text-lg' : 'text-xs'} font-bold">kg</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-slate-400 text-[10px]">(${completedSets}/${ex.sets} sets)</span>
+                        ${allCompleted ? '<span class="text-emerald-400 text-lg animate-pulse">✅</span>' : ''}
+                    </div>
+                </div>
             </div>
-            <div class="text-right">
-                ${lastLog ? `<div class="text-[10px] text-slate-500">Last: ${lastLog.vol}kg</div><div class="text-[10px] font-bold">${diffHtml}</div>` : ''}
+            <div class="text-right flex flex-col gap-2">
+                ${lastLog ? `
+                    
+                        
+                    
+                    <div class="text-sm font-bold">${diffHtml}</div>
+                ` : ''}
                 ${expandButton}
             </div>
         </div>
     `;
     
-    // Update last volume info
     const lastVolumeEl = document.getElementById(`last-volume-${exerciseIdx}`);
     if (lastVolumeEl && lastLog) {
-        lastVolumeEl.innerHTML = `Last Volume: ${lastLog.vol}kg ${diffHtml}`;
+        lastVolumeEl.innerHTML = `Last Volume: ${lastLog.vol}kg`;
     }
 },
         // 🆕 Check & Auto-Collapse jika semua sets completed
-checkAllSetsCompleted: (exerciseIdx) => {
-    const card = document.getElementById(`card-${exerciseIdx}`);
-    if (!card) return;
-    
-    const allCheckboxes = card.querySelectorAll('.checkbox-done');
-    let allCompleted = true;
-    
-    allCheckboxes.forEach(checkbox => {
-        if (!checkbox.checked) {
-            allCompleted = false;
-        }
-    });
-    
-    if (allCompleted) {
-        // Collapse sets, show only volume counter
-        const setsContainer = card.querySelector('.sets-container');
-        if (setsContainer) {
-            setsContainer.classList.add('sets-collapsed');
-        }
-        
-        // Add completed class to card
-        card.classList.add('all-completed');
-        
-        // Update volume counter to be more prominent
-        const volumeCounter = document.getElementById(`volume-counter-${exerciseIdx}`);
-        if (volumeCounter) {
-            volumeCounter.classList.add('completed-card-summary');
-        }
-    }
-},
 
 // 🆕 Toggle expand/collapse sets
 
@@ -1863,51 +1846,123 @@ smartAutoFill: (sessionId, exerciseIdx) => {
     const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
     const opt = ex.options[optIdx] || ex.options[0];
     
-    // Get last session data
+    // ✅ PRIORITY 1: Get TARGET from program (t_k, t_r)
+    const targetWeight = opt.t_k ? parseFloat(opt.t_k) : null;
+    const targetReps = opt.t_r ? opt.t_r.toString() : null;
+    
+    // ✅ PRIORITY 2: Get LAST SESSION data for RPE adjustment
     const h = LS_SAFE.getJSON("gym_hist", []);
     const lastLogs = h.filter(x => x.ex === opt.n).sort((a, b) => b.ts - a.ts);
+    const lastLog = lastLogs.length > 0 ? lastLogs[0] : null;
     
-    if (lastLogs.length === 0) {
-        APP.ui.showToast("⚠️ Belum ada history untuk exercise ini", "warning");
+    // 🧮 CALCULATE BASE VALUES
+    let baseWeight = 0;
+    let baseReps = 10;
+    let suggestedRPE = '8';
+    let source = '';
+    
+    if (targetWeight && targetReps) {
+        // ✅ USE TARGET as base
+        baseWeight = targetWeight;
+        
+        // Parse target reps (bisa "10-12", "10", "8-10")
+        if (targetReps.includes('-')) {
+            const [min, max] = targetReps.split('-').map(x => parseInt(x.trim()));
+            baseReps = Math.round((min + max) / 2);
+        } else {
+            baseReps = parseInt(targetReps) || 10;
+        }
+        
+        source = 'TARGET';
+        
+        // ✅ ADJUST based on LAST RPE (if exists)
+        if (lastLog && lastLog.d && lastLog.d.length > 0) {
+            let maxRPE = 0;
+            lastLog.d.forEach(s => {
+                if (s.rpe && parseFloat(s.rpe) > maxRPE) {
+                    maxRPE = parseFloat(s.rpe);
+                }
+            });
+            
+            if (maxRPE > 0) {
+                // ✅ RPE-based adjustment dengan 5kg increment
+                if (maxRPE <= 7) {
+                    // Too easy → +5kg
+                    baseWeight = baseWeight + 5;
+                    suggestedRPE = '8';
+                    source = 'TARGET + RPE↑';
+                } else if (maxRPE >= 9.5) {
+                    // Too hard → -5kg
+                    baseWeight = baseWeight - 5;
+                    suggestedRPE = '8';
+                    source = 'TARGET + RPE↓';
+                } else if (maxRPE >= 8 && maxRPE < 9) {
+                    // Perfect → Small increase +5kg
+                    baseWeight = baseWeight + 5;
+                    suggestedRPE = '8';
+                    source = 'TARGET + RPE✓';
+                } else {
+                    // RPE 7-8 → Maintain
+                    suggestedRPE = '8';
+                    source = 'TARGET (maintain)';
+                }
+            }
+        }
+        
+    } else if (lastLog) {
+        // ✅ FALLBACK: Use history if no target
+        baseWeight = lastLog.top;
+        baseReps = lastLog.d[0]?.r || 10;
+        source = 'HISTORY';
+        
+        // Apply RPE-based progression
+        let maxRPE = 0;
+        lastLog.d.forEach(s => {
+            if (s.rpe && parseFloat(s.rpe) > maxRPE) {
+                maxRPE = parseFloat(s.rpe);
+            }
+        });
+        
+        if (maxRPE <= 7) {
+            baseWeight = baseWeight + 5;
+            suggestedRPE = '8';
+        } else if (maxRPE >= 9.5) {
+            baseWeight = baseWeight - 5;
+            suggestedRPE = '8';
+        } else if (maxRPE < 8.5) {
+            baseWeight = baseWeight + 5;
+        }
+        
+    } else {
+        // ❌ No target, no history
+        APP.ui.showToast("⚠️ Tidak ada target/history. Isi manual dulu.", "warning");
         return;
     }
     
-    const lastLog = lastLogs[0];
+    // ✅ ROUND to nearest 5kg (no fractional plates)
+    baseWeight = Math.round(baseWeight / 5) * 5;
     
-    // Smart progression based on last RPE
-    let lastRPE = 0;
-    lastLog.d.forEach(s => {
-        if (s.rpe && parseFloat(s.rpe) > lastRPE) {
-            lastRPE = parseFloat(s.rpe);
-        }
-    });
-    
-    let baseWeight = lastLog.top;
-    let baseReps = lastLog.d[0]?.r || 10;
-    let suggestedRPE = '8';
-    
-    // Progressive overload logic
-    if (lastRPE <= 7) {
-        baseWeight = Math.round((baseWeight + 2.5) * 2) / 2;
-        suggestedRPE = '8';
-    } else if (lastRPE >= 9.5) {
-        baseWeight = Math.round((baseWeight - 2.5) * 2) / 2;
-        suggestedRPE = '8';
-    } else if (lastRPE < 8.5) {
-        baseWeight = Math.round((baseWeight + 1.25) * 4) / 4;
-    }
-    
-    // Fill ALL sets
+    // ✅ FILL ALL SETS
     let fillCount = 0;
     for (let i = 1; i <= ex.sets; i++) {
         const sid = `${sessionId}_ex${exerciseIdx}_s${i}`;
         
-        // Set-by-set variation (optional)
         let setWeight = baseWeight;
         let setReps = baseReps;
         let setRPE = suggestedRPE;
         
-        // Apply suggestions
+        // ✅ ONLY SET 1 is WARM-UP
+        if (i === 1) {
+            // Set 1: 90% warm-up (rounded to 5kg)
+            setWeight = Math.round((baseWeight * 0.9) / 5) * 5;
+            setRPE = '7';
+        } else {
+            // Set 2+: Full working sets
+            setWeight = baseWeight;
+            setRPE = '8';
+        }
+        
+        // Apply values
         LS_SAFE.set(`${sid}_k`, setWeight);
         LS_SAFE.set(`${sid}_r`, setReps);
         if (setRPE) LS_SAFE.set(`${sid}_rpe`, setRPE);
@@ -1916,7 +1971,13 @@ smartAutoFill: (sessionId, exerciseIdx) => {
     }
     
     APP.nav.loadWorkout(sessionId);
-    APP.ui.showToast(`⚡ Auto-filled ${fillCount} sets: ${baseWeight}kg x ${baseReps}`, "success");
+    
+    // ✅ Toast dengan info source
+    APP.ui.showToast(
+        `⚡ Auto-filled ${fillCount} sets: ${baseWeight}kg x ${baseReps}<br>
+        <span class="text-xs text-slate-400">Source: ${source}</span>`, 
+        "success"
+    );
 },
                 getSuggestion: (exName) => {
                     const h = LS_SAFE.getJSON("gym_hist", []);
@@ -2466,19 +2527,22 @@ sessionLogs.forEach((l, exerciseIdx) => {
                         chks.forEach(k => {
                             if (!k.checked) all = false;
                         });
-                        if (all) {
-                            c.classList.add("opacity-50", "scale-95", "grayscale");
-                        } else {
-                            c.classList.remove("opacity-50", "scale-95", "grayscale");
-                            if (!found) {
-                                c.classList.add("active-card");
-                                if (APP.state.focusMode) c.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "center"
-                                });
-                                found = true;
-                            }
-                        }
+        if (all) {
+            // Card completed - hanya tambah class untuk border/indicator
+            c.classList.add("completed");
+            c.classList.remove("opacity-50", "scale-95", "grayscale"); // Force remove
+        } else {
+            c.classList.remove("completed");
+            c.classList.remove("opacity-50", "scale-95", "grayscale");
+            if (!found) {
+                c.classList.add("active-card");
+                if (APP.state.focusMode) c.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+                found = true;
+            }
+        }
                     });
                 },
 toggleWarmup: () => document.getElementById("warmup-content").classList.toggle("hidden"),
@@ -2521,48 +2585,53 @@ toggleCompletedSets: (exerciseIdx) => {
     }
 },
 checkAllSetsCompleted: (exerciseIdx) => {
-        const card = document.getElementById(`card-${exerciseIdx}`);
-        if (!card) return;
-        
-        const allCheckboxes = card.querySelectorAll('.checkbox-done');
-        let allCompleted = true;
-        let completedCount = 0;
-        
-        allCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                completedCount++;
-            } else {
-                allCompleted = false;
-            }
-        });
-        
-        if (allCompleted && completedCount > 0) {
-            const setsContainer = card.querySelector('.sets-container');
-            if (setsContainer) {
-                setsContainer.classList.add('sets-collapsed');
-            }
-            
-            card.classList.add('all-completed');
-            
-            const volumeCounter = document.getElementById(`volume-counter-${exerciseIdx}`);
-            if (volumeCounter) {
-                volumeCounter.classList.add('completed-card-summary');
-            }
-            
-            APP.ui.showToast(`✅ Exercise #${exerciseIdx + 1} selesai!`, "success");
+    const card = document.getElementById(`card-${exerciseIdx}`);
+    if (!card) return;
+    
+    const allCheckboxes = card.querySelectorAll('.checkbox-done');
+    let allCompleted = true;
+    let completedCount = 0;
+    
+    allCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            completedCount++;
         } else {
-            const setsContainer = card.querySelector('.sets-container');
-            if (setsContainer) {
-                setsContainer.classList.remove('sets-collapsed');
-            }
-            card.classList.remove('all-completed');
-            
-            const volumeCounter = document.getElementById(`volume-counter-${exerciseIdx}`);
-            if (volumeCounter) {
-                volumeCounter.classList.remove('completed-card-summary');
-            }
+            allCompleted = false;
         }
-    },
+    });
+    
+    if (allCompleted && completedCount > 0) {
+        // ✅ Collapse sets
+        const setsContainer = card.querySelector('.sets-container');
+        if (setsContainer) {
+            setsContainer.classList.add('sets-collapsed');
+        }
+        
+        // ✅ Mark as completed (border hijau, TIDAK gelap)
+        card.classList.add('all-completed');
+        
+        // ✅ Highlight volume counter
+        const volumeCounter = document.getElementById(`volume-counter-${exerciseIdx}`);
+        if (volumeCounter) {
+            volumeCounter.classList.add('completed-card-summary');
+        }
+        
+        // ✅ Show toast
+        APP.ui.showToast(`✅ Exercise #${exerciseIdx + 1} selesai!`, "success");
+    } else {
+        // ✅ Expand if not all completed
+        const setsContainer = card.querySelector('.sets-container');
+        if (setsContainer) {
+            setsContainer.classList.remove('sets-collapsed');
+        }
+        card.classList.remove('all-completed');
+        
+        const volumeCounter = document.getElementById(`volume-counter-${exerciseIdx}`);
+        if (volumeCounter) {
+            volumeCounter.classList.remove('completed-card-summary');
+        }
+    }
+},
     
     toggleSetsVisibility: (exerciseIdx) => {
         const card = document.getElementById(`card-${exerciseIdx}`);
