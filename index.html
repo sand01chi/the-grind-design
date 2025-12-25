@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN v22 UI Improvement</title>
+    <title>THE GRIND DESIGN v23.1 Advance Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -211,23 +211,36 @@
         border-bottom: none;
       }
 
-      .tab-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-        font-weight: bold;
-        border-radius: 8px;
-        transition: all 0.2s;
-      }
+.tab-btn {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+}
 
-      .tab-btn.active {
-        background-color: #10b981;
-        color: #0f172a;
-      }
+.tab-btn.active {
+  background-color: #10b981;
+  color: #0f172a;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  border-color: #10b981;
+}
 
-      .tab-btn.inactive {
-        background-color: #1e293b;
-        color: #94a3b8;
-      }
+.tab-btn.inactive {
+  background-color: #1e293b;
+  color: #94a3b8;
+  transform: scale(1);
+}
+
+.tab-btn.inactive:active {
+  transform: scale(0.95);
+}
+
+/* Active label animation */
+#active-tab-label {
+  transition: opacity 0.3s ease;
+  display: inline-block;
+  min-width: 120px;
+}
 
       .app-header {
         display: flex;
@@ -417,7 +430,7 @@
           <p
             class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
           >
-            v22 UI Improvement
+            v23.1 Advance Analytics
           </p>
         </div>
       </div>
@@ -1049,28 +1062,138 @@
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-        <div class="mb-4">
-          <select
-            id="stats-select"
-            onchange="APP.stats.updateChart()"
-            class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"
-          ></select>
+<div id="exercise-selector-container" class="mb-4">
+  <select
+    id="stats-select"
+    onchange="APP.stats.updateChart()"
+    class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"
+  ></select>
+</div>
+<div class="mb-3">
+  <!-- Icon Buttons -->
+  <div class="flex gap-2 justify-center mb-2">
+    <button
+      id="tab-dashboard"
+      onclick="APP.stats.switchTab('dashboard')"
+      class="tab-btn active w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+    >
+      📊
+    </button>
+    <button
+      id="tab-chart"
+      onclick="APP.stats.switchTab('chart')"
+      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+    >
+      📈
+    </button>
+    <button
+      id="tab-table"
+      onclick="APP.stats.switchTab('table')"
+      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+    >
+      📋
+    </button>
+    <button
+      id="tab-bodyparts"
+      onclick="APP.stats.switchTab('bodyparts')"
+      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+    >
+      💪
+    </button>
+  </div>
+  
+  <!-- Active Tab Label -->
+  <div class="text-center">
+    <span id="active-tab-label" class="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+      Dashboard
+    </span>
+  </div>
+</div>
+<!-- ============ TAMBAHKAN INI ============ -->
+<div
+  id="stats-dashboard-view"
+  class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4"
+>
+  <!-- Week Comparison -->
+  <div class="mb-6">
+    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+      <i class="fa-solid fa-calendar-week"></i> This Week vs Last Week
+    </h3>
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Volume Card -->
+      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        <div class="text-[10px] text-slate-400 mb-1">Total Volume</div>
+        <div class="flex items-baseline gap-2">
+          <span id="dash-volume-current" class="text-2xl font-bold text-white">0</span>
+          <span class="text-xs text-slate-500">kg</span>
         </div>
-        <div class="flex gap-2 mb-3">
-          <button
-            id="tab-chart"
-            onclick="APP.stats.switchTab('chart')"
-            class="tab-btn active flex-1"
-          >
-            Grafik Tren</button
-          ><button
-            id="tab-table"
-            onclick="APP.stats.switchTab('table')"
-            class="tab-btn inactive flex-1"
-          >
-            Tabel Klinis
-          </button>
+        <div id="dash-volume-diff" class="text-xs font-bold mt-1">
+          <span class="text-slate-400">No data</span>
         </div>
+      </div>
+
+      <!-- Avg RPE Card -->
+      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        <div class="text-[10px] text-slate-400 mb-1">Avg RPE</div>
+        <div class="flex items-baseline gap-2">
+          <span id="dash-rpe-current" class="text-2xl font-bold text-white">0</span>
+        </div>
+        <div id="dash-rpe-diff" class="text-xs font-bold mt-1">
+          <span class="text-slate-400">No data</span>
+        </div>
+      </div>
+
+      <!-- Sessions Card -->
+      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        <div class="text-[10px] text-slate-400 mb-1">Sessions</div>
+        <div class="flex items-baseline gap-2">
+          <span id="dash-sessions-current" class="text-2xl font-bold text-white">0</span>
+        </div>
+        <div id="dash-sessions-diff" class="text-xs font-bold mt-1">
+          <span class="text-slate-400">No data</span>
+        </div>
+      </div>
+
+      <!-- Tonnage Card -->
+      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+        <div class="text-[10px] text-slate-400 mb-1">Tonnage</div>
+        <div class="flex items-baseline gap-2">
+          <span id="dash-tonnage-current" class="text-2xl font-bold text-white">0</span>
+          <span class="text-xs text-slate-500">kg</span>
+        </div>
+        <div id="dash-tonnage-diff" class="text-xs font-bold mt-1">
+          <span class="text-slate-400">No data</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Gainers -->
+  <div class="mb-6">
+    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+      <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
+    </h3>
+    <div id="dash-top-gainers" class="space-y-2">
+      <p class="text-xs text-slate-500 italic">Complete more sessions to see gainers.</p>
+    </div>
+  </div>
+
+  <!-- Fatigue Alert -->
+  <div id="dash-fatigue-alert" class="hidden">
+    <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
+      <div class="flex items-start gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5"></i>
+        <div>
+          <div class="text-xs font-bold text-red-400 mb-1">Fatigue Alert</div>
+          <div id="dash-fatigue-message" class="text-xs text-slate-300">
+            High RPE detected. Consider rest.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ END TAMBAHAN ============ -->
         <div
           id="stats-chart-view"
           class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"
@@ -1100,6 +1223,48 @@
             <tbody id="hist-table-body"></tbody>
           </table>
         </div>
+        <!-- ============ TAMBAHKAN INI ============ -->
+<div
+  id="stats-bodyparts-view"
+  class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
+>
+  <!-- Period Selector -->
+  <div class="mb-4">
+    <select
+      id="bodypart-period"
+      onchange="APP.stats.updateBodyParts()"
+      class="w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-600"
+    >
+      <option value="4">Last 4 Weeks</option>
+      <option value="8">Last 8 Weeks</option>
+      <option value="12">Last 12 Weeks</option>
+    </select>
+  </div>
+
+  <!-- Volume Bars -->
+  <div class="mb-6">
+    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3">Volume by Muscle Group</h3>
+    <div id="bodypart-bars" class="space-y-3">
+      <p class="text-xs text-slate-500 italic">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Imbalance Detection -->
+  <div id="bodypart-imbalance" class="hidden">
+    <div class="bg-yellow-900/20 border border-yellow-900/50 rounded-lg p-3">
+      <div class="flex items-start gap-2">
+        <i class="fa-solid fa-scale-unbalanced text-yellow-400 mt-0.5"></i>
+        <div>
+          <div class="text-xs font-bold text-yellow-400 mb-1">Imbalance Detected</div>
+          <div id="bodypart-imbalance-message" class="text-xs text-slate-300">
+            Checking balance...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ END TAMBAHAN ============ -->
         <div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden">
           <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
             <div class="text-[10px] text-slate-400 uppercase">PR</div>
@@ -3634,8 +3799,10 @@
             document.getElementById(`${n}-modal`).classList.remove("hidden");
             if (n === "weight") APP.ui.renderWeight();
             if (n === "profile") APP.data.loadProfile();
-            if (n === "stats") APP.stats.loadOptions();
-            if (n === "library") APP.ui.renderLibrary();
+if (n === 'stats') {
+  APP.stats.loadOptions();
+  setTimeout(() => APP.stats.switchTab('dashboard'), 100);
+}            if (n === "library") APP.ui.renderLibrary();
             if (n === "calendar") {
               APP.state.currentCalDate = new Date();
               APP.ui.renderCalendar();
@@ -4022,45 +4189,520 @@
       };
 
       APP.stats = {
-        chart: null,
-        init: () => APP.stats.loadOptions(),
-        loadOptions: () => {
-          const h = LS_SAFE.getJSON("gym_hist", []);
-          const u = [
-            ...new Set(h.filter((x) => x && x.ex).map((x) => x.ex)),
-          ].sort();
-          const s = document.getElementById("stats-select");
-          if (!s) {
-            console.error("[DOM ERROR] stats-select element not found");
-            return;
+ chart: null,
+  currentView: 'dashboard',
+  
+  init: () => {
+    APP.stats.loadOptions();
+  },
+
+  loadOptions: () => {
+    const h = LS_SAFE.getJSON('gym_hist', []);
+    const u = [...new Set(h.filter(x => x && x.ex).map(x => x.ex))].sort();
+    const s = document.getElementById('stats-select');
+    if (!s) return;
+    
+    s.innerHTML = '';
+    if (u.length === 0) {
+      s.innerHTML = '<option value="">No Data</option>';
+      return;
+    }
+    
+    u.forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
+    
+    if (u.length > 0) {
+      APP.stats.updateDashboard();
+    }
+  },
+
+  switchTab: (t) => {
+    // Hide all views
+    const views = ['stats-dashboard-view', 'stats-chart-view', 'stats-table-view', 'stats-bodyparts-view'];
+    views.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    
+    const vitalEl = document.getElementById('vital-signs');
+    if (vitalEl) vitalEl.classList.add('hidden');
+// Hide/show exercise selector based on tab
+  const exerciseSelector = document.getElementById('exercise-selector-container');
+  if (exerciseSelector) {
+    if (t === 'chart' || t === 'table') {
+      exerciseSelector.classList.remove('hidden');
+    } else {
+      exerciseSelector.classList.add('hidden');
+    }
+  }
+    // Update button states
+    ['dashboard', 'chart', 'table', 'bodyparts'].forEach(tab => {
+      const btn = document.getElementById(`tab-${tab}`);
+      if (btn) {
+        btn.className = tab === t 
+          ? 'tab-btn active flex-shrink-0' 
+          : 'tab-btn inactive flex-shrink-0';
+      }
+    });
+    // Update active tab label
+  const labelMap = {
+    'dashboard': 'Dashboard',
+    'chart': 'Grafik Tren',
+    'table': 'Tabel Klinis',
+    'bodyparts': 'Body Parts'
+  };
+  
+  const labelEl = document.getElementById('active-tab-label');
+  if (labelEl) {
+    labelEl.innerText = labelMap[t] || 'Dashboard';
+    // Animate label change
+    labelEl.style.opacity = '0';
+    setTimeout(() => {
+      labelEl.style.opacity = '1';
+    }, 150);
+  }
+
+    // Show selected view
+    APP.stats.currentView = t;
+    
+    if (t === 'dashboard') {
+      const el = document.getElementById('stats-dashboard-view');
+      if (el) el.classList.remove('hidden');
+      APP.stats.updateDashboard();
+    } else if (t === 'chart') {
+      const el = document.getElementById('stats-chart-view');
+      if (el) el.classList.remove('hidden');
+      if (vitalEl) vitalEl.classList.remove('hidden');
+      APP.stats.updateChart();
+    } else if (t === 'table') {
+      const el = document.getElementById('stats-table-view');
+      if (el) el.classList.remove('hidden');
+      if (vitalEl) vitalEl.classList.remove('hidden');
+      APP.stats.updateChart();
+    } else if (t === 'bodyparts') {
+      const el = document.getElementById('stats-bodyparts-view');
+      if (el) el.classList.remove('hidden');
+      APP.stats.updateBodyParts();
+    }
+  },
+
+  updateDashboard: () => {
+    const h = LS_SAFE.getJSON('gym_hist', []);
+    if (h.length === 0) return;
+
+    // Get week boundaries
+    const now = new Date();
+    const thisWeekStart = new Date(now);
+    thisWeekStart.setDate(now.getDate() - now.getDay());
+    thisWeekStart.setHours(0, 0, 0, 0);
+
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+    const thisWeekLogs = h.filter(log => new Date(log.ts) >= thisWeekStart);
+    const lastWeekLogs = h.filter(log => {
+      const d = new Date(log.ts);
+      return d >= lastWeekStart && d < thisWeekStart;
+    });
+
+    // Volume calculation
+    const thisWeekVol = thisWeekLogs.reduce((sum, log) => sum + (log.vol || 0), 0);
+    const lastWeekVol = lastWeekLogs.reduce((sum, log) => sum + (log.vol || 0), 0);
+    const volDiff = lastWeekVol > 0 ? ((thisWeekVol - lastWeekVol) / lastWeekVol * 100).toFixed(1) : 0;
+
+    // RPE calculation
+    let thisWeekRPE = 0, thisWeekRPECount = 0;
+    let lastWeekRPE = 0, lastWeekRPECount = 0;
+
+    thisWeekLogs.forEach(log => {
+      if (log.d) {
+        log.d.forEach(set => {
+          if (set.rpe) {
+            thisWeekRPE += parseFloat(set.rpe);
+            thisWeekRPECount++;
           }
-          s.innerHTML = "";
-          if (u.length === 0) {
-            s.innerHTML = '<option value="">No Data</option>';
-            return;
+        });
+      }
+    });
+
+    lastWeekLogs.forEach(log => {
+      if (log.d) {
+        log.d.forEach(set => {
+          if (set.rpe) {
+            lastWeekRPE += parseFloat(set.rpe);
+            lastWeekRPECount++;
           }
-          u.forEach(
-            (x) => (s.innerHTML += `<option value="${x}">${x}</option>`)
-          );
-          if (u.length > 0) APP.stats.updateChart();
-        },
-        switchTab: (t) => {
-          const ch = document.getElementById("stats-chart-view");
-          const tb = document.getElementById("stats-table-view");
-          const bC = document.getElementById("tab-chart");
-          const bT = document.getElementById("tab-table");
-          if (t === "chart") {
-            ch.classList.remove("hidden");
-            tb.classList.add("hidden");
-            bC.className = "tab-btn active flex-1";
-            bT.className = "tab-btn inactive flex-1";
-          } else {
-            ch.classList.add("hidden");
-            tb.classList.remove("hidden");
-            bC.className = "tab-btn inactive flex-1";
-            bT.className = "tab-btn active flex-1";
+        });
+      }
+    });
+
+    const avgThisWeekRPE = thisWeekRPECount > 0 ? (thisWeekRPE / thisWeekRPECount).toFixed(1) : 0;
+    const avgLastWeekRPE = lastWeekRPECount > 0 ? (lastWeekRPE / lastWeekRPECount).toFixed(1) : 0;
+    const rpeDiff = (avgThisWeekRPE - avgLastWeekRPE).toFixed(1);
+
+    // Sessions count
+    const thisWeekSessions = new Set(thisWeekLogs.map(l => l.date)).size;
+    const lastWeekSessions = new Set(lastWeekLogs.map(l => l.date)).size;
+
+    // Update UI elements
+    const volCurrentEl = document.getElementById('dash-volume-current');
+    const volDiffEl = document.getElementById('dash-volume-diff');
+    const rpeCurrentEl = document.getElementById('dash-rpe-current');
+    const rpeDiffEl = document.getElementById('dash-rpe-diff');
+    const sessionsCurrentEl = document.getElementById('dash-sessions-current');
+    const sessionsDiffEl = document.getElementById('dash-sessions-diff');
+    const tonnageCurrentEl = document.getElementById('dash-tonnage-current');
+    const tonnageDiffEl = document.getElementById('dash-tonnage-diff');
+
+    if (volCurrentEl) volCurrentEl.innerText = thisWeekVol.toLocaleString();
+    if (volDiffEl) volDiffEl.innerHTML = APP.stats.formatDiff(volDiff, 'volume');
+
+    if (rpeCurrentEl) rpeCurrentEl.innerText = avgThisWeekRPE || '0';
+    if (rpeDiffEl) rpeDiffEl.innerHTML = APP.stats.formatDiff(rpeDiff, 'rpe');
+
+    if (sessionsCurrentEl) sessionsCurrentEl.innerText = thisWeekSessions;
+    if (sessionsDiffEl) {
+      sessionsDiffEl.innerHTML = 
+        thisWeekSessions === lastWeekSessions ? '<span class="text-slate-400">Same ➡️</span>' : 
+        thisWeekSessions > lastWeekSessions ? '<span class="text-emerald-400">+' + (thisWeekSessions - lastWeekSessions) + ' ↑</span>' :
+        '<span class="text-red-400">-' + (lastWeekSessions - thisWeekSessions) + ' ↓</span>';
+    }
+
+    if (tonnageCurrentEl) tonnageCurrentEl.innerText = thisWeekVol.toLocaleString();
+    if (tonnageDiffEl) tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, 'volume');
+
+    // Calculate top gainers and fatigue
+    APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
+    APP.stats.checkFatigue(thisWeekLogs);
+  },
+
+  formatDiff: (diff, type) => {
+    const numDiff = parseFloat(diff);
+    
+    if (type === 'volume') {
+      if (numDiff > 5) return `<span class="text-emerald-400">+${diff}% ↑</span>`;
+      if (numDiff < -5) return `<span class="text-red-400">${diff}% ↓</span>`;
+      return `<span class="text-slate-400">${numDiff >= 0 ? '+' : ''}${diff}% ➡️</span>`;
+    }
+    
+    if (type === 'rpe') {
+      if (numDiff > 0.5) return `<span class="text-yellow-400">+${diff} ⚠️</span>`;
+      if (numDiff < -0.5) return `<span class="text-emerald-400">${diff} ✅</span>`;
+      return `<span class="text-slate-400">${numDiff >= 0 ? '+' : ''}${diff} ➡️</span>`;
+    }
+    
+    return diff;
+  },
+
+  calculateTopGainers: (thisWeek, lastWeek) => {
+    const exerciseMap = {};
+
+    thisWeek.forEach(log => {
+      if (!exerciseMap[log.ex]) {
+        exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+      }
+      exerciseMap[log.ex].thisVol += log.vol || 0;
+    });
+
+    lastWeek.forEach(log => {
+      if (!exerciseMap[log.ex]) {
+        exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+      }
+      exerciseMap[log.ex].lastVol += log.vol || 0;
+    });
+
+    const gainers = Object.keys(exerciseMap)
+      .map(ex => {
+        const data = exerciseMap[ex];
+        const pctChange = data.lastVol > 0 ? ((data.thisVol - data.lastVol) / data.lastVol * 100) : 0;
+        return { ex, pctChange, thisVol: data.thisVol };
+      })
+      .filter(item => item.thisVol > 0)
+      .sort((a, b) => b.pctChange - a.pctChange)
+      .slice(0, 3);
+
+    const container = document.getElementById('dash-top-gainers');
+    if (!container) return;
+    
+    if (gainers.length === 0) {
+      container.innerHTML = '<p class="text-xs text-slate-500 italic">Not enough data yet.</p>';
+      return;
+    }
+
+    let html = '';
+    gainers.forEach((item, idx) => {
+      const emoji = idx === 0 ? '🔥' : idx === 1 ? '📈' : '✅';
+      const color = item.pctChange > 10 ? 'text-emerald-400' : item.pctChange > 0 ? 'text-blue-400' : 'text-slate-400';
+      
+      html += `
+        <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded">
+          <span class="text-xs text-slate-300">${idx + 1}. ${item.ex}</span>
+          <span class="text-xs font-bold ${color}">[${item.pctChange > 0 ? '+' : ''}${item.pctChange.toFixed(1)}%] ${emoji}</span>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  },
+
+  checkFatigue: (logs) => {
+    const alert = document.getElementById('dash-fatigue-alert');
+    const message = document.getElementById('dash-fatigue-message');
+    
+    if (!alert || !message) return;
+
+    let highRPECount = 0;
+    logs.forEach(log => {
+      if (log.d) {
+        log.d.forEach(set => {
+          if (set.rpe && parseFloat(set.rpe) >= 9) {
+            highRPECount++;
           }
-        },
+        });
+      }
+    });
+
+    if (highRPECount >= 5) {
+      alert.classList.remove('hidden');
+      message.innerText = `${highRPECount} sets with RPE ≥9 this week. Consider deload or rest day.`;
+    } else {
+      alert.classList.add('hidden');
+    }
+  },
+
+  updateBodyParts: () => {
+    const periodEl = document.getElementById('bodypart-period');
+    const weeks = parseInt(periodEl?.value || 4);
+    const h = LS_SAFE.getJSON('gym_hist', []);
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - (weeks * 7));
+    
+    const recentLogs = h.filter(log => new Date(log.ts) >= cutoffDate);
+
+ // 1. INISIALISASI (Tetap Angka Sederhana agar Grafik tidak error)
+    const bodyPartMap = {
+      chest: 0,
+      back: 0,
+      legs: 0,
+      shoulders: 0,
+      arms: 0
+    };
+
+    // 2. LOGIC KLASIFIKASI V3.0 (Sama persis dengan Auto Prompt)
+    recentLogs.forEach(log => {
+      const exName = (log.ex || '').toLowerCase();
+      let targetPart = null;
+
+      // PRIORITY 1: KAKI (Legs)
+      if (exName.includes('squat') || exName.includes('leg') || exName.includes('lunge') || exName.includes('hack') || exName.includes('calf') || exName.includes('rdl') || exName.includes('sumo')) {
+        targetPart = 'legs';
+      
+      // PRIORITY 2: LENGAN (Arms)
+      } else if (exName.includes('curl') || exName.includes('tricep') || exName.includes('bicep') || exName.includes('skull') || exName.includes('extension') || exName.includes('pushdown')) {
+        targetPart = 'arms';
+
+      // PRIORITY 3: BAHU (Shoulders)
+      } else if (exName.includes('shoulder') || exName.includes('overhead') || exName.includes('ohp') || exName.includes('lateral') || exName.includes('delt') || exName.includes('face pull') || exName.includes('military')) {
+        targetPart = 'shoulders';
+      
+      // PRIORITY 4: DADA (Chest)
+      } else if (exName.includes('bench') || exName.includes('chest') || exName.includes('fly') || exName.includes('push up') || exName.includes('pec') || exName.includes('incline') || exName.includes('dips') || (exName.includes('press') && (exName.includes('dumbbell') || exName.includes('machine') || exName.includes('barbell')))) {
+        targetPart = 'chest';
+      
+      // PRIORITY 5: PUNGGUNG (Back)
+      } else if (exName.includes('pull') || exName.includes('row') || exName.includes('deadlift') || exName.includes('back') || exName.includes('lat') || exName.includes('chin up')) {
+        targetPart = 'back';
+      }
+
+      // 3. UPDATE DATA (Format Angka Langsung)
+      if (targetPart) {
+        // Langsung tambah angka, TANPA .vol
+        bodyPartMap[targetPart] += (log.vol || 0);
+      }
+    });
+
+    const maxVol = Math.max(...Object.values(bodyPartMap));
+    const container = document.getElementById('bodypart-bars');
+    
+    if (!container) return;
+    
+    let html = '';
+
+    Object.keys(bodyPartMap).forEach(part => {
+      const vol = bodyPartMap[part];
+      const pct = maxVol > 0 ? (vol / maxVol * 100) : 0;
+      const label = part.charAt(0).toUpperCase() + part.slice(1);
+
+      html += `
+        <div class="mb-2">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-slate-300">${label}</span>
+            <span class="text-slate-400 font-mono">${vol.toLocaleString()} kg</span>
+          </div>
+          <div class="bg-slate-700/30 rounded-full h-6 overflow-hidden">
+            <div class="bg-emerald-500 h-full flex items-center justify-end pr-2 transition-all" style="width: ${pct}%">
+              ${pct > 15 ? `<span class="text-xs font-bold text-white">${pct.toFixed(0)}%</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html || '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
+
+    // Check imbalance
+    const chestVol = bodyPartMap.chest;
+    const backVol = bodyPartMap.back;
+    const imbalanceDiv = document.getElementById('bodypart-imbalance');
+    const imbalanceMsg = document.getElementById('bodypart-imbalance-message');
+
+    if (!imbalanceDiv || !imbalanceMsg) return;
+
+if (chestVol > 0 && backVol > 0) {
+  const ratio = chestVol / backVol;
+  if (ratio > 1.3) {
+    imbalanceDiv.classList.remove('hidden');
+    imbalanceMsg.innerHTML = `
+      <div class="mb-2">
+        Back volume is <strong>${((ratio - 1) * 100).toFixed(0)}% lower</strong> than chest volume.
+      </div>
+      <div class="text-xs text-slate-400 space-y-1">
+        <div>→ Risk: Shoulder impingement</div>
+        <div>→ Suggestion: Add 1-2 back exercises</div>
+      </div>
+      <button 
+        onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(2)})"
+        class="mt-3 w-full bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
+      >
+        <i class="fa-solid fa-robot"></i> Konsultasi dengan Gemini AI
+      </button>
+    `;
+  } else if (ratio < 0.7) {
+    imbalanceDiv.classList.remove('hidden');
+    const reverseRatio = 1 / ratio;
+    imbalanceMsg.innerHTML = `
+      <div class="mb-2">
+        Chest volume is <strong>${((reverseRatio - 1) * 100).toFixed(0)}% lower</strong> than back volume.
+      </div>
+      <div class="text-xs text-slate-400 space-y-1">
+        <div>→ Consider balancing with chest work</div>
+      </div>
+      <button 
+  onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(2)})"
+  class="mt-3 w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg"
+>
+  <i class="fa-solid fa-robot"></i> Analisis dengan AI Gemini
+</button>
+    `;
+  } else {
+    imbalanceDiv.classList.add('hidden');
+  }
+} else {
+  imbalanceDiv.classList.add('hidden');
+}
+  },
+  prepareImbalanceConsultation : (dominantPart, ratio) => {
+  const h = LS_SAFE.getJSON('gym_hist', []);
+  const p = LS_SAFE.getJSON('profile', {});
+  const weeks = parseInt(document.getElementById('bodypart-period')?.value || 4);
+  
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - (weeks * 7));
+  const recentLogs = h.filter(log => new Date(log.ts) >= cutoffDate);
+
+  // Calculate detailed volume per body part
+  const bodyPartMap = {
+    chest: { vol: 0, exercises: [] },
+    back: { vol: 0, exercises: [] },
+    legs: { vol: 0, exercises: [] },
+    shoulders: { vol: 0, exercises: [] },
+    arms: { vol: 0, exercises: [] }
+  };
+
+ recentLogs.forEach(log => {
+      const exName = (log.ex || '').toLowerCase();
+      const realName = log.ex || 'Unknown';
+      let targetPart = null;
+
+      // 1. PRIORITAS TERTINGGI: KAKI (LEGS)
+      // Wajib pertama supaya 'Leg Curl' & 'Leg Extension' masuk sini, bukan ke Arms
+      if (exName.includes('squat') || exName.includes('leg') || exName.includes('lunge') || exName.includes('hack') || exName.includes('calf') || exName.includes('rdl') || exName.includes('sumo')) {
+        targetPart = 'legs';
+      
+      // 2. PRIORITAS KEDUA: LENGAN (ARMS)
+      // Naik pangkat! Supaya 'Incline Curl' tidak dicuri Chest, dan 'Overhead Ext' tidak dicuri Shoulder
+      // Hapus keyword 'arm' agar 'One Arm Row' lolos ke Back
+      } else if (exName.includes('curl') || exName.includes('tricep') || exName.includes('bicep') || exName.includes('skull') || exName.includes('extension') || exName.includes('pushdown')) {
+        targetPart = 'arms';
+
+      // 3. PRIORITAS KETIGA: BAHU (SHOULDERS)
+      } else if (exName.includes('shoulder') || exName.includes('overhead') || exName.includes('ohp') || exName.includes('lateral') || exName.includes('delt') || exName.includes('face pull') || exName.includes('military')) {
+        targetPart = 'shoulders';
+      
+      // 4. PRIORITAS KEEMPAT: DADA (CHEST)
+      } else if (exName.includes('bench') || exName.includes('chest') || exName.includes('fly') || exName.includes('push up') || exName.includes('pec') || exName.includes('incline') || exName.includes('dips') || (exName.includes('press') && (exName.includes('dumbbell') || exName.includes('machine') || exName.includes('barbell')))) {
+        targetPart = 'chest';
+      
+      // 5. SISANYA: PUNGGUNG (BACK)
+      } else if (exName.includes('pull') || exName.includes('row') || exName.includes('deadlift') || exName.includes('back') || exName.includes('lat') || exName.includes('chin up')) {
+        targetPart = 'back';
+      }
+
+      // --- EKSEKUSI DATA ---
+      if (targetPart) {
+        bodyPartMap[targetPart].vol += (log.vol || 0);
+        if (!bodyPartMap[targetPart].exercises.includes(realName)) {
+          bodyPartMap[targetPart].exercises.push(realName);
+        }
+      }
+    });
+
+  // Build consultation prompt
+  let promptText = `[MUSCLE IMBALANCE CONSULTATION]\n\n`;
+  promptText += `DETECTED ISSUE:\n`;
+  
+  if (dominantPart === 'chest') {
+    promptText += `- Back volume is ${((ratio - 1) * 100).toFixed(0)}% LOWER than chest volume\n`;
+    promptText += `- Risk: Shoulder impingement, postural issues, upper cross syndrome\n\n`;
+  } else if (dominantPart === 'back') {
+    promptText += `- Chest volume is ${((ratio - 1) * 100).toFixed(0)}% LOWER than back volume\n`;
+    promptText += `- Risk: Limited pressing strength, aesthetic imbalance\n\n`;
+  }
+
+  promptText += `USER PROFILE:\n`;
+  promptText += `- Name: ${p.name || 'Unknown'}\n`;
+  promptText += `- Age: ${p.a || 'N/A'}\n`;
+  promptText += `- Height: ${p.h || 'N/A'}cm\n`;
+  promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
+
+  promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
+  Object.keys(bodyPartMap).forEach(part => {
+    const data = bodyPartMap[part];
+    promptText += `- ${part.toUpperCase()}: ${data.vol.toLocaleString()}kg`;
+    if (data.exercises.length > 0) {
+      promptText += ` (${data.exercises.length} exercises: ${data.exercises.slice(0, 3).join(', ')}${data.exercises.length > 3 ? '...' : ''})`;
+    }
+    promptText += `\n`;
+  });
+
+  promptText += `\nQUESTION:\n`;
+  promptText += `Saya mengalami muscle imbalance seperti data di atas. Berikan:\n`;
+  promptText += `1. Analisis penyebab imbalance ini\n`;
+  promptText += `2. Apakah perlu ganti resep exercise? jika perlu, rekomendasi exercises untuk balance (3-4 gerakan spesifik)\n`;
+  promptText += `3. Target volume yang sehat untuk ${weeks} minggu ke depan\n`;
+  promptText += `4. Protokol koreksi (berapa lama untuk balance kembali)\n\n`;
+  promptText += `-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.\n`;
+  promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
+  promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes) , Tri-Option System , Full Metadata.`;
+
+  // Copy to clipboard and show modal
+  APP.ui.showManualCopy(promptText);
+  
+  // Show success toast
+  APP.ui.showToast('📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.', 'success');
+},
+
+  // PASTE EXISTING updateChart FUNCTION DI SINI
         updateChart: () => {
           if (typeof Chart === "undefined") return;
           const sel = document.getElementById("stats-select").value;
