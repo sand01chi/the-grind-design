@@ -46,9 +46,28 @@ const EXERCISES_LIBRARY = {
       bio: "Cable fly dengan slight bend siku, squeeze di tengah, full stretch di opening."
     },
     {
-      n: "[Machine] Pec Deck",
+      n: "[DB] Flat Dumbbell Press",
+      t_r: "8-10",
+      t_k: 15,
+      vid: "https://www.youtube.com/watch?v=VmB1G1K7v94",
+      bio: "Fokus pada stabilitas bahu dan deteksi muscle imbalance kiri-kanan.",
+      note: "Turunkan beban selama 3 detik (Eccentric). Stretch dada maksimal di bawah tanpa membiarkan bahu berotasi ke depan. Dorong eksplosif."
+    },
+    {
+      n: "[Machine] Incline Chest Press",
+      t_r: "10-12",
+      t_k: 40,
+      vid: "https://www.youtube.com/watch?v=8iPEnn-ltC8",
+      bio: "Target Clavicular Head (Dada Atas). Memberikan stabilitas tinggi untuk overload progresif.",
+      note: "Fokus 'squeeze' dada atas di puncak gerakan. Jangan mengunci siku sepenuhnya (soft lock) untuk menjaga tegangan pada otot."
+    },
+    {
+      n: "[Machine] Pec Deck Fly",
       t_r: "12-15",
-      bio: "Machine isolation, squeeze puncak, feel the pump pada sternal head."
+      t_k: 35,
+      vid: "https://www.youtube.com/watch?v=Z57CtFmRMxA",
+      bio: "Isolasi dada murni tanpa melibatkan tricep. Mengoptimalkan serat otot sternal head.",
+      note: "Siku sedikit ditekuk dan dikunci sudutnya. Bayangkan ingin mempertemukan kedua siku di depan dada untuk kontraksi maksimal."
     }
   ],
 
@@ -443,3 +462,4 @@ EXERCISES_LIBRARY.createExercise = function(name, targetReps, bio, note = "") {
  *             "[Machine] Leg Press" → plate loaded protocol (no bar)
  *             "[DB] Dumbbell Curl" → standard machine/DB (no plate calc)
  */
+// End of exercises-library.js
