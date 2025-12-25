@@ -462,3 +462,4 @@ EXERCISES_LIBRARY.createExercise = function(name, targetReps, bio, note = "") {
  *             "[Machine] Leg Press" → plate loaded protocol (no bar)
  *             "[DB] Dumbbell Curl" → standard machine/DB (no plate calc)
  */
+// End of exercises-library.js
