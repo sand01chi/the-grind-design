@@ -120,6 +120,90 @@
         background-color: #f1f5f9;
       }
 
+      .cardio-card {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.1),
+          rgba(99, 102, 241, 0.05)
+        );
+        border: 2px solid #3b82f6 !important;
+      }
+
+      .cardio-card .exercise-card {
+        border-color: #3b82f6;
+      }
+
+      .cardio-header {
+        background: rgba(59, 130, 246, 0.15);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+      }
+
+      .duration-preset-btn {
+        background: #1e293b;
+        color: #94a3b8;
+        border: 1px solid #334155;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.2s;
+      }
+
+      .duration-preset-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      .duration-preset-btn:hover {
+        background: #334155;
+      }
+
+      .hr-zone-valid {
+        color: #10b981;
+        font-weight: bold;
+      }
+
+      .hr-zone-warning {
+        color: #f59e0b;
+        font-weight: bold;
+      }
+
+      .hr-zone-invalid {
+        color: #ef4444;
+        font-weight: bold;
+      }
+
+      .quick-note-badge {
+        background: #334155;
+        color: #94a3b8;
+        border: 1px solid #475569;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .quick-note-badge:hover,
+      .quick-note-badge.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      .cardio-complete-summary {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.3),
+          rgba(99, 102, 241, 0.15)
+        );
+        border: 2px solid rgba(59, 130, 246, 0.6);
+        padding: 20px;
+        border-radius: 12px;
+        animation: completePulse 0.5s ease-out;
+      }
+
       #toast-container {
         position: fixed;
         bottom: 80px;
@@ -211,36 +295,35 @@
         border-bottom: none;
       }
 
-.tab-btn {
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid transparent;
-}
+      .tab-btn {
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid transparent;
+      }
 
-.tab-btn.active {
-  background-color: #10b981;
-  color: #0f172a;
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-  border-color: #10b981;
-}
+      .tab-btn.active {
+        background-color: #10b981;
+        color: #0f172a;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        border-color: #10b981;
+      }
 
-.tab-btn.inactive {
-  background-color: #1e293b;
-  color: #94a3b8;
-  transform: scale(1);
-}
+      .tab-btn.inactive {
+        background-color: #1e293b;
+        color: #94a3b8;
+        transform: scale(1);
+      }
 
-.tab-btn.inactive:active {
-  transform: scale(0.95);
-}
+      .tab-btn.inactive:active {
+        transform: scale(0.95);
+      }
 
-/* Active label animation */
-#active-tab-label {
-  transition: opacity 0.3s ease;
-  display: inline-block;
-  min-width: 120px;
-}
+      #active-tab-label {
+        transition: opacity 0.3s ease;
+        display: inline-block;
+        min-width: 120px;
+      }
 
       .app-header {
         display: flex;
@@ -1062,138 +1145,164 @@
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-<div id="exercise-selector-container" class="mb-4">
-  <select
-    id="stats-select"
-    onchange="APP.stats.updateChart()"
-    class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"
-  ></select>
-</div>
-<div class="mb-3">
-  <!-- Icon Buttons -->
-  <div class="flex gap-2 justify-center mb-2">
-    <button
-      id="tab-dashboard"
-      onclick="APP.stats.switchTab('dashboard')"
-      class="tab-btn active w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
-    >
-      📊
-    </button>
-    <button
-      id="tab-chart"
-      onclick="APP.stats.switchTab('chart')"
-      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
-    >
-      📈
-    </button>
-    <button
-      id="tab-table"
-      onclick="APP.stats.switchTab('table')"
-      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
-    >
-      📋
-    </button>
-    <button
-      id="tab-bodyparts"
-      onclick="APP.stats.switchTab('bodyparts')"
-      class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
-    >
-      💪
-    </button>
-  </div>
-  
-  <!-- Active Tab Label -->
-  <div class="text-center">
-    <span id="active-tab-label" class="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-      Dashboard
-    </span>
-  </div>
-</div>
-<!-- ============ TAMBAHKAN INI ============ -->
-<div
-  id="stats-dashboard-view"
-  class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4"
->
-  <!-- Week Comparison -->
-  <div class="mb-6">
-    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
-      <i class="fa-solid fa-calendar-week"></i> This Week vs Last Week
-    </h3>
-    <div class="grid grid-cols-2 gap-3">
-      <!-- Volume Card -->
-      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-        <div class="text-[10px] text-slate-400 mb-1">Total Volume</div>
-        <div class="flex items-baseline gap-2">
-          <span id="dash-volume-current" class="text-2xl font-bold text-white">0</span>
-          <span class="text-xs text-slate-500">kg</span>
+        <div id="exercise-selector-container" class="mb-4">
+          <select
+            id="stats-select"
+            onchange="APP.stats.updateChart()"
+            class="w-full bg-slate-900 text-white text-sm p-3 rounded-xl border border-slate-600 mt-1"
+          ></select>
         </div>
-        <div id="dash-volume-diff" class="text-xs font-bold mt-1">
-          <span class="text-slate-400">No data</span>
-        </div>
-      </div>
+        <div class="mb-3">
+          <div class="flex gap-2 justify-center mb-2">
+            <button
+              id="tab-dashboard"
+              onclick="APP.stats.switchTab('dashboard')"
+              class="tab-btn active w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+            >
+              📊
+            </button>
+            <button
+              id="tab-chart"
+              onclick="APP.stats.switchTab('chart')"
+              class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+            >
+              📈
+            </button>
+            <button
+              id="tab-table"
+              onclick="APP.stats.switchTab('table')"
+              class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+            >
+              📋
+            </button>
+            <button
+              id="tab-bodyparts"
+              onclick="APP.stats.switchTab('bodyparts')"
+              class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+            >
+              💪
+            </button>
+          </div>
 
-      <!-- Avg RPE Card -->
-      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-        <div class="text-[10px] text-slate-400 mb-1">Avg RPE</div>
-        <div class="flex items-baseline gap-2">
-          <span id="dash-rpe-current" class="text-2xl font-bold text-white">0</span>
-        </div>
-        <div id="dash-rpe-diff" class="text-xs font-bold mt-1">
-          <span class="text-slate-400">No data</span>
-        </div>
-      </div>
-
-      <!-- Sessions Card -->
-      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-        <div class="text-[10px] text-slate-400 mb-1">Sessions</div>
-        <div class="flex items-baseline gap-2">
-          <span id="dash-sessions-current" class="text-2xl font-bold text-white">0</span>
-        </div>
-        <div id="dash-sessions-diff" class="text-xs font-bold mt-1">
-          <span class="text-slate-400">No data</span>
-        </div>
-      </div>
-
-      <!-- Tonnage Card -->
-      <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-        <div class="text-[10px] text-slate-400 mb-1">Tonnage</div>
-        <div class="flex items-baseline gap-2">
-          <span id="dash-tonnage-current" class="text-2xl font-bold text-white">0</span>
-          <span class="text-xs text-slate-500">kg</span>
-        </div>
-        <div id="dash-tonnage-diff" class="text-xs font-bold mt-1">
-          <span class="text-slate-400">No data</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Top Gainers -->
-  <div class="mb-6">
-    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
-      <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
-    </h3>
-    <div id="dash-top-gainers" class="space-y-2">
-      <p class="text-xs text-slate-500 italic">Complete more sessions to see gainers.</p>
-    </div>
-  </div>
-
-  <!-- Fatigue Alert -->
-  <div id="dash-fatigue-alert" class="hidden">
-    <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
-      <div class="flex items-start gap-2">
-        <i class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5"></i>
-        <div>
-          <div class="text-xs font-bold text-red-400 mb-1">Fatigue Alert</div>
-          <div id="dash-fatigue-message" class="text-xs text-slate-300">
-            High RPE detected. Consider rest.
+          <div class="text-center">
+            <span
+              id="active-tab-label"
+              class="text-xs font-bold text-emerald-400 uppercase tracking-wider"
+            >
+              Dashboard
+            </span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ============ END TAMBAHAN ============ -->
+        <div
+          id="stats-dashboard-view"
+          class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4"
+        >
+          <div class="mb-6">
+            <h3
+              class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2"
+            >
+              <i class="fa-solid fa-calendar-week"></i> This Week vs Last Week
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div
+                class="bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+              >
+                <div class="text-[10px] text-slate-400 mb-1">Total Volume</div>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    id="dash-volume-current"
+                    class="text-2xl font-bold text-white"
+                    >0</span
+                  >
+                  <span class="text-xs text-slate-500">kg</span>
+                </div>
+                <div id="dash-volume-diff" class="text-xs font-bold mt-1">
+                  <span class="text-slate-400">No data</span>
+                </div>
+              </div>
+
+              <div
+                class="bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+              >
+                <div class="text-[10px] text-slate-400 mb-1">Avg RPE</div>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    id="dash-rpe-current"
+                    class="text-2xl font-bold text-white"
+                    >0</span
+                  >
+                </div>
+                <div id="dash-rpe-diff" class="text-xs font-bold mt-1">
+                  <span class="text-slate-400">No data</span>
+                </div>
+              </div>
+
+              <div
+                class="bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+              >
+                <div class="text-[10px] text-slate-400 mb-1">Sessions</div>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    id="dash-sessions-current"
+                    class="text-2xl font-bold text-white"
+                    >0</span
+                  >
+                </div>
+                <div id="dash-sessions-diff" class="text-xs font-bold mt-1">
+                  <span class="text-slate-400">No data</span>
+                </div>
+              </div>
+
+              <div
+                class="bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+              >
+                <div class="text-[10px] text-slate-400 mb-1">Tonnage</div>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    id="dash-tonnage-current"
+                    class="text-2xl font-bold text-white"
+                    >0</span
+                  >
+                  <span class="text-xs text-slate-500">kg</span>
+                </div>
+                <div id="dash-tonnage-diff" class="text-xs font-bold mt-1">
+                  <span class="text-slate-400">No data</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3
+              class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2"
+            >
+              <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
+            </h3>
+            <div id="dash-top-gainers" class="space-y-2">
+              <p class="text-xs text-slate-500 italic">
+                Complete more sessions to see gainers.
+              </p>
+            </div>
+          </div>
+
+          <div id="dash-fatigue-alert" class="hidden">
+            <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
+              <div class="flex items-start gap-2">
+                <i
+                  class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5"
+                ></i>
+                <div>
+                  <div class="text-xs font-bold text-red-400 mb-1">
+                    Fatigue Alert
+                  </div>
+                  <div id="dash-fatigue-message" class="text-xs text-slate-300">
+                    High RPE detected. Consider rest.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div
           id="stats-chart-view"
           class="bg-slate-900/50 p-2 rounded-xl border border-slate-700 flex-1 min-h-[250px] relative mb-4"
@@ -1223,48 +1332,54 @@
             <tbody id="hist-table-body"></tbody>
           </table>
         </div>
-        <!-- ============ TAMBAHKAN INI ============ -->
-<div
-  id="stats-bodyparts-view"
-  class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
->
-  <!-- Period Selector -->
-  <div class="mb-4">
-    <select
-      id="bodypart-period"
-      onchange="APP.stats.updateBodyParts()"
-      class="w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-600"
-    >
-      <option value="4">Last 4 Weeks</option>
-      <option value="8">Last 8 Weeks</option>
-      <option value="12">Last 12 Weeks</option>
-    </select>
-  </div>
+        <div
+          id="stats-bodyparts-view"
+          class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
+        >
+          <div class="mb-4">
+            <select
+              id="bodypart-period"
+              onchange="APP.stats.updateBodyParts()"
+              class="w-full bg-slate-800 text-white text-xs p-2 rounded border border-slate-600"
+            >
+              <option value="4">Last 4 Weeks</option>
+              <option value="8">Last 8 Weeks</option>
+              <option value="12">Last 12 Weeks</option>
+            </select>
+          </div>
 
-  <!-- Volume Bars -->
-  <div class="mb-6">
-    <h3 class="text-xs text-slate-400 uppercase font-bold mb-3">Volume by Muscle Group</h3>
-    <div id="bodypart-bars" class="space-y-3">
-      <p class="text-xs text-slate-500 italic">Loading...</p>
-    </div>
-  </div>
+          <div class="mb-6">
+            <h3 class="text-xs text-slate-400 uppercase font-bold mb-3">
+              Volume by Muscle Group
+            </h3>
+            <div id="bodypart-bars" class="space-y-3">
+              <p class="text-xs text-slate-500 italic">Loading...</p>
+            </div>
+          </div>
 
-  <!-- Imbalance Detection -->
-  <div id="bodypart-imbalance" class="hidden">
-    <div class="bg-yellow-900/20 border border-yellow-900/50 rounded-lg p-3">
-      <div class="flex items-start gap-2">
-        <i class="fa-solid fa-scale-unbalanced text-yellow-400 mt-0.5"></i>
-        <div>
-          <div class="text-xs font-bold text-yellow-400 mb-1">Imbalance Detected</div>
-          <div id="bodypart-imbalance-message" class="text-xs text-slate-300">
-            Checking balance...
+          <div id="bodypart-imbalance" class="hidden">
+            <div
+              class="bg-yellow-900/20 border border-yellow-900/50 rounded-lg p-3"
+            >
+              <div class="flex items-start gap-2">
+                <i
+                  class="fa-solid fa-scale-unbalanced text-yellow-400 mt-0.5"
+                ></i>
+                <div>
+                  <div class="text-xs font-bold text-yellow-400 mb-1">
+                    Imbalance Detected
+                  </div>
+                  <div
+                    id="bodypart-imbalance-message"
+                    class="text-xs text-slate-300"
+                  >
+                    Checking balance...
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ============ END TAMBAHAN ============ -->
         <div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden">
           <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
             <div class="text-[10px] text-slate-400 uppercase">PR</div>
@@ -2280,6 +2395,52 @@
               const ds = DT.formatDate(now);
               const h = LS_SAFE.getJSON("gym_hist", []);
               d.exercises.forEach((ex, i) => {
+                if (ex.type === "cardio") {
+                  const isCompleted =
+                    LS_SAFE.get(`${sessId}_ex${i}_completed`) === "true";
+                  if (!isCompleted) return;
+
+                  const optIdx = LS_SAFE.get(`pref_${sessId}_${i}`) || 0;
+                  const opt = ex.options[optIdx] || ex.options[0];
+
+                  const machine =
+                    LS_SAFE.get(`${sessId}_ex${i}_machine`) || "Treadmill";
+                  const duration = parseInt(
+                    LS_SAFE.get(`${sessId}_ex${i}_duration`) || 0
+                  );
+                  const hr = parseInt(LS_SAFE.get(`${sessId}_ex${i}_hr`) || 0);
+                  const note =
+                    LS_SAFE.get(`${sessId}_ex${i}_cardio_note`) || "";
+
+                  if (duration > 0 && hr > 0) {
+                    const profile = LS_SAFE.getJSON("profile", {});
+                    const age = profile.a || 30;
+                    const maxHR = 220 - age;
+                    const zone2Lower = Math.round(maxHR * 0.6);
+                    const zone2Upper = Math.round(maxHR * 0.7);
+
+                    h.push({
+                      date: ds,
+                      ts: now.getTime(),
+                      ex: "LISS Cardio",
+                      type: "cardio",
+                      machine: machine,
+                      duration: duration,
+                      avgHR: hr,
+                      zone: "Zone 2",
+                      zoneTarget: [zone2Lower, zone2Upper],
+                      note: note,
+                      src: sessId,
+                      title: d.title,
+                      vol: 0,
+                      dur: finalDur,
+                    });
+
+                    LS_SAFE.set(`${sessId}_ex${i}_completed`, "false");
+                    totalSets++;
+                  }
+                  return;
+                }
                 const optIdx = LS_SAFE.get(`pref_${sessId}_${i}`) || 0;
                 const opt = ex.options[optIdx] || ex.options[0];
                 const currentNote = opt.note || ex.note || "";
@@ -2441,6 +2602,168 @@
               let htmlBuffer = "";
 
               data.exercises.forEach((ex, idx) => {
+                if (ex.type === "cardio") {
+                  const optIdx = LS_SAFE.get(`pref_${id}_${idx}`) || 0;
+                  const opt = ex.options[optIdx] || ex.options[0];
+                  const optName = opt.n || "LISS Cardio";
+                  const optBio = opt.bio || "Low-intensity steady state cardio";
+                  const optNote = opt.note || "Post-workout";
+
+                  const savedMachine =
+                    LS_SAFE.get(`${id}_ex${idx}_machine`) ||
+                    (opt.machines ? opt.machines[0] : "Treadmill");
+                  const savedDuration =
+                    LS_SAFE.get(`${id}_ex${idx}_duration`) || "30";
+                  const savedHR = LS_SAFE.get(`${id}_ex${idx}_hr`) || "";
+                  const savedNote =
+                    LS_SAFE.get(`${id}_ex${idx}_cardio_note`) || "";
+                  const isCompleted =
+                    LS_SAFE.get(`${id}_ex${idx}_completed`) === "true";
+
+                  const profile = LS_SAFE.getJSON("profile", {});
+                  const age = profile.a || 30;
+                  const maxHR = 220 - age;
+                  const zone2Lower = Math.round(maxHR * 0.6);
+                  const zone2Upper = Math.round(maxHR * 0.7);
+
+                  let hrStatus = "";
+                  let hrClass = "";
+                  if (savedHR) {
+                    const hr = parseInt(savedHR);
+                    if (hr >= zone2Lower && hr <= zone2Upper) {
+                      hrStatus = `✅ Zone 2 (${zone2Lower}-${zone2Upper} bpm)`;
+                      hrClass = "hr-zone-valid";
+                    } else if (hr >= zone2Lower - 5 && hr <= zone2Upper + 5) {
+                      hrStatus = `⚠️ Near Zone 2 (Target: ${zone2Lower}-${zone2Upper})`;
+                      hrClass = "hr-zone-warning";
+                    } else {
+                      hrStatus = `❌ Outside Zone 2 (Target: ${zone2Lower}-${zone2Upper})`;
+                      hrClass = "hr-zone-invalid";
+                    }
+                  }
+
+                  const machines = opt.machines || [
+                    "Treadmill",
+                    "Static Bike",
+                    "Rowing Machine",
+                    "Elliptical",
+                  ];
+                  const machineOptions = machines
+                    .map(
+                      (m) =>
+                        `<option value="${m}" ${
+                          m === savedMachine ? "selected" : ""
+                        }>${m}</option>`
+                    )
+                    .join("");
+
+                  const quickNotes = [
+                    "Felt easy",
+                    "Good pace",
+                    "Tough",
+                    "Perfect recovery",
+                  ];
+                  const noteButtons = quickNotes
+                    .map(
+                      (n) =>
+                        `<button onclick="APP.cardio.selectNote('${id}', ${idx}, '${n}')" class="quick-note-badge ${
+                          savedNote === n ? "active" : ""
+                        }">${n}</button>`
+                    )
+                    .join("");
+
+                  htmlBuffer += `
+            <div class="exercise-card cardio-card ${
+              isCompleted ? "all-completed" : ""
+            } bg-slate-800 rounded-xl border overflow-hidden shadow-md mb-4" id="card-${idx}">
+                <div class="cardio-header p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-blue-400 font-bold text-sm flex items-center gap-2">
+                            <span>🏃 #${idx + 1} CARDIO</span>
+                            <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">${optNote}</span>
+                        </span>
+<div class="flex items-center">
+                            <button onclick="APP.data.moveCard('${id}',${idx},-1)" class="text-slate-500 hover:text-white px-2" title="Naik">
+                                <i class="fa-solid fa-arrow-up text-xs"></i>
+                            </button>
+                            <button onclick="APP.data.moveCard('${id}',${idx},1)" class="text-slate-500 hover:text-white px-2" title="Turun">
+                                <i class="fa-solid fa-arrow-down text-xs"></i>
+                            </button>
+                            <button onclick="APP.data.deleteCard('${id}',${idx})" class="text-red-500/50 hover:text-red-500 px-2 ml-1" title="Hapus">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        </div>                    <div class="text-sm font-bold text-white mb-1">${optName}</div>
+                    <div class="text-xs text-slate-400">${optBio}</div>
+                </div>
+                
+                <div class="p-4 space-y-3">
+                    ${
+                      isCompleted
+                        ? `
+                    <div class="cardio-complete-summary">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="text-4xl">🎯</div>
+                            <div>
+                                <div class="text-2xl font-black text-blue-400">${savedDuration} min</div>
+                                <div class="text-sm text-slate-300">💓 ${savedHR} bpm • ${savedMachine}</div>
+                            </div>
+                        </div>
+                        <button onclick="APP.cardio.toggleComplete('${id}', ${idx}, false)" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 rounded-lg mt-2">
+                            <i class="fa-solid fa-chevron-down mr-1"></i> Show Details
+                        </button>
+                    </div>
+                    `
+                        : `
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Equipment</label>
+                        <select onchange="LS_SAFE.set('${id}_ex${idx}_machine', this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded p-2">
+                            ${machineOptions}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-2">⏱️ Duration</label>
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            ${[15, 20, 30, 45]
+                              .map(
+                                (min) => `
+                                <button onclick="APP.cardio.setDuration('${id}', ${idx}, ${min})" class="duration-preset-btn ${
+                                  savedDuration == min ? "active" : ""
+                                }">${min}m</button>
+                            `
+                              )
+                              .join("")}
+                        </div>
+                        <input type="number" id="duration-${id}-${idx}" value="${savedDuration}" onchange="APP.cardio.setDuration('${id}', ${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-center rounded p-2 text-sm" placeholder="Custom minutes" />
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">💓 Average Heart Rate</label>
+                        <input type="number" id="hr-${id}-${idx}" value="${savedHR}" oninput="APP.cardio.validateHR('${id}', ${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-center rounded p-2 text-sm mb-1" placeholder="bpm" />
+                        <div id="hr-status-${id}-${idx}" class="text-xs ${hrClass}">${
+                            hrStatus ||
+                            `Target: ${zone2Lower}-${zone2Upper} bpm (Zone 2)`
+                          }</div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-2">📝 How did it feel?</label>
+                        <div class="flex flex-wrap gap-2">
+                            ${noteButtons}
+                        </div>
+                    </div>
+                    
+                    <button onclick="APP.cardio.toggleComplete('${id}', ${idx}, true)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <i class="fa-solid fa-check"></i> COMPLETE CARDIO
+                    </button>
+                    `
+                    }
+                </div>
+            </div>`;
+                  return;
+                }
+
                 if (!ex.options || ex.options.length === 0) {
                   console.warn(`[SKIP] Exercise ${idx} has no options`);
                   return;
@@ -2792,8 +3115,11 @@
               const r = parseFloat(LS_SAFE.get(`${sid}_r`) || 0);
               const done = LS_SAFE.get(`${sid}_d`) === "true";
 
-              if (done && k > 0 && r > 0) {
-                totalVol += k * r;
+              if (done) {
+                if (k > 0 && r > 0) {
+                  totalVol += k * r;
+                }
+
                 completedSets++;
               }
             }
@@ -3512,8 +3838,34 @@
           prepareGeminiAudit: () => {
             const h = LS_SAFE.getJSON("gym_hist", []);
             if (!h.length) return alert("Belum ada log latihan untuk diaudit.");
+
             const lastLog = h[h.length - 1];
             const p = LS_SAFE.getJSON("profile", {});
+
+            const sessionLogs = h.filter((x) => x.date === lastLog.date);
+
+            const sessionTotalVol = sessionLogs.reduce((acc, curr) => {
+              if (curr.type === "cardio") return acc;
+
+              if (typeof curr.vol === "number" && !isNaN(curr.vol)) {
+                return acc + curr.vol;
+              }
+
+              if (curr.d && Array.isArray(curr.d)) {
+                const manualVol = curr.d.reduce((sum, s) => {
+                  return sum + (parseFloat(s.k) || 0) * (parseFloat(s.r) || 0);
+                }, 0);
+                return acc + manualVol;
+              }
+              return acc;
+            }, 0);
+
+            const volDisplay =
+              sessionTotalVol === 0 &&
+              sessionLogs.some((x) => x.type === "cardio")
+                ? "N/A (Cardio Focus)"
+                : `${sessionTotalVol.toLocaleString()} kg`;
+
             let promptText = `[MASTER PROMPT: FULL CYCLE AUDIT & PROGRAM CALIBRATION]\n\n`;
             promptText += `Instruksi:\n"Bertindaklah sebagai Senior CSCS Coach, Clinical Performance Analyst, & System Architect. Saya akan memberikan Resep Program Saat Ini (JSON) dan Log Latihan Terakhir (JSON/Teks). Tugas Anda adalah mengaudit performa saya secara klinis, lalu memperbarui kode program latihan untuk sesi berikutnya berdasarkan hasil audit tersebut.\n\n`;
             promptText += `BAGIAN 1: MISI ANALISIS & AUDIT\nLakukan analisis mendalam sebelum menulis kode, dengan parameter:\n1. Analisis Progres (Progressive Overload): Bandingkan volume/beban antar sesi.\n2. Audit Klinis (Fatigue Management): Deteksi Systemic Fatigue atau Junk Volume.\n3. Protokol Spontan: Jika log bertanda 'Spontan', abaikan tuntutan overload.\n\n`;
@@ -3532,25 +3884,44 @@
               null,
               2
             )}\n\n`;
-            promptText += `[LOG TERAKHIR]\nTanggal: ${lastLog.date}\nSesi: ${lastLog.title}\nTotal Vol: ${lastLog.vol}kg\nDurasi: ${lastLog.dur} menit\n\nRincian Gerakan:\n`;
-            const sessionLogs = h.filter((x) => x.date === lastLog.date);
+
+            promptText += `[LOG TERAKHIR]\nTanggal: ${lastLog.date}\nSesi: ${
+              lastLog.title || sessionLogs[0].title || "Unknown"
+            }\nTotal Vol: ${volDisplay}\nDurasi: ${
+              lastLog.dur
+            } menit\n\nRincian Gerakan:\n`;
+
             sessionLogs.forEach((l, exerciseIdx) => {
               promptText += `\n${exerciseIdx + 1}. ${l.ex}:\n`;
-              l.d.forEach((s, setIdx) => {
-                let setLine = `   Set ${setIdx + 1}: ${s.k}kg x ${s.r}`;
-                if (s.rpe) setLine += ` @ RPE ${s.rpe}`;
 
-                const setNote = APP.data.getSetNote(
-                  l.src,
-                  exerciseIdx,
-                  setIdx + 1
-                );
-                if (setNote) {
-                  setLine += ` [📝 ${setNote}]`;
-                }
+              if (l.type === "cardio") {
+                promptText += `   Type: LISS Cardio\n`;
+                promptText += `   Machine: ${l.machine}\n`;
+                promptText += `   Duration: ${l.duration} minutes\n`;
+                promptText += `   Avg HR: ${l.avgHR} bpm (Target Zone 2: ${
+                  l.zoneTarget ? l.zoneTarget.join("-") : "116-135"
+                })\n`;
+                if (l.note) promptText += `   Note: ${l.note}\n`;
+                return;
+              }
 
-                promptText += setLine + "\n";
-              });
+              if (l.d && Array.isArray(l.d)) {
+                l.d.forEach((s, setIdx) => {
+                  let setLine = `   Set ${setIdx + 1}: ${s.k}kg x ${s.r}`;
+                  if (s.rpe) setLine += ` @ RPE ${s.rpe}`;
+
+                  const setNote = APP.data.getSetNote(
+                    l.src,
+                    exerciseIdx,
+                    setIdx + 1
+                  );
+                  if (setNote) {
+                    setLine += ` [📝 ${setNote}]`;
+                  }
+
+                  promptText += setLine + "\n";
+                });
+              }
             });
             APP.ui.showManualCopy(promptText);
             alert("Data Audit Siap! Salin teks di bawah dan paste ke Gemini.");
@@ -3572,6 +3943,7 @@
             rep += `--- LOG LATIHAN TERAKHIR ---\n`;
             uniqueDates.forEach((d) => {
               const dayLogs = h.filter((x) => x.date === d);
+
               const titles = [
                 ...new Set(
                   dayLogs.map(
@@ -3581,19 +3953,45 @@
                   )
                 ),
               ].join(" & ");
+
               const dur = dayLogs[0].dur ? `${dayLogs[0].dur} menit` : "N/A";
-              const totalSessionVol = dayLogs.reduce(
-                (acc, curr) => acc + curr.vol,
-                0
-              );
+
+              const totalSessionVol = dayLogs.reduce((acc, curr) => {
+                if (typeof curr.vol === "number") {
+                  return acc + curr.vol;
+                }
+
+                if (curr.type === "cardio") return acc;
+
+                if (curr.d && Array.isArray(curr.d)) {
+                  const manualVol = curr.d.reduce((sum, s) => {
+                    return (
+                      sum + (parseFloat(s.k) || 0) * (parseFloat(s.r) || 0)
+                    );
+                  }, 0);
+                  return acc + manualVol;
+                }
+
+                return acc;
+              }, 0);
+
               rep += `\n📅 ${d} | 🏷️ ${titles}\n`;
-              rep += `⏱️ Durasi: ${dur} | 🗃️ Volume Load: ${totalSessionVol} kg\n`;
+
+              rep += `⏱️ Durasi: ${dur} | 🗃️ Volume Load: ${totalSessionVol.toLocaleString()} kg\n`;
               dayLogs.forEach((l) => {
+                if (l.type === "cardio") {
+                  const noteStr = l.note ? ` [💭 ${l.note}]` : "";
+                  rep += `- 🏃 ${l.machine} LISS: ${l.duration}min @ ${l.avgHR}bpm (Zone 2)${noteStr}\n`;
+                  return;
+                }
+
                 const noteStr = l.note ? ` [📝 ${l.note}]` : "";
-                const sStr = l.d
-                  .map((s) => `${s.k}x${s.r}${s.rpe ? "@" + s.rpe : ""}`)
-                  .join(", ");
-                rep += `- ${l.ex}${noteStr}: ${sStr}\n`;
+                if (l.d && Array.isArray(l.d)) {
+                  const sStr = l.d
+                    .map((s) => `${s.k}x${s.r}${s.rpe ? "@" + s.rpe : ""}`)
+                    .join(", ");
+                  rep += `- ${l.ex}${noteStr}: ${sStr}\n`;
+                }
               });
             });
             rep += `\n--- END ---`;
@@ -3799,10 +4197,11 @@
             document.getElementById(`${n}-modal`).classList.remove("hidden");
             if (n === "weight") APP.ui.renderWeight();
             if (n === "profile") APP.data.loadProfile();
-if (n === 'stats') {
-  APP.stats.loadOptions();
-  setTimeout(() => APP.stats.switchTab('dashboard'), 100);
-}            if (n === "library") APP.ui.renderLibrary();
+            if (n === "stats") {
+              APP.stats.loadOptions();
+              setTimeout(() => APP.stats.switchTab("dashboard"), 100);
+            }
+            if (n === "library") APP.ui.renderLibrary();
             if (n === "calendar") {
               APP.state.currentCalDate = new Date();
               APP.ui.renderCalendar();
@@ -3832,6 +4231,44 @@ if (n === 'stats') {
               ? ""
               : `<p class='text-slate-500 text-center text-xs'>No Data.</p>`;
             l.forEach((x) => {
+              if (x.type === "cardio") {
+                const inZone =
+                  x.avgHR >= x.zoneTarget[0] && x.avgHR <= x.zoneTarget[1];
+                const zoneIcon = inZone ? "✅" : "⚠️";
+
+                html += `
+                  <div class="bg-slate-900/50 p-3 rounded-xl border border-blue-700/50 mb-2">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
+                      <span class="text-xs font-bold text-slate-300">${
+                        x.date
+                      }</span>
+                      <span class="text-[10px] bg-blue-900/30 text-blue-400 px-2 rounded-full border border-blue-900/50">🏃 ${
+                        x.machine
+                      }</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                      <div class="bg-slate-800/50 p-2 rounded">
+                        <div class="text-[9px] text-slate-500">Duration</div>
+                        <div class="text-blue-400 font-bold">${
+                          x.duration
+                        } min</div>
+                      </div>
+                      <div class="bg-slate-800/50 p-2 rounded">
+                        <div class="text-[9px] text-slate-500">Avg HR</div>
+                        <div class="text-blue-400 font-bold">${
+                          x.avgHR
+                        } bpm ${zoneIcon}</div>
+                      </div>
+                    </div>
+                    ${
+                      x.note
+                        ? `<div class="text-[10px] text-slate-400 mt-2 italic">💭 ${x.note}</div>`
+                        : ""
+                    }
+                  </div>
+                `;
+                return;
+              }
               let bestSet = {
                 k: 0,
                 r: 0,
@@ -4065,9 +4502,25 @@ if (n === 'stats') {
               let c = "bg-slate-700 text-slate-400";
               let dot = "";
               if (logs.length) {
-                c =
-                  "bg-emerald-900/50 border border-emerald-500 text-white shadow shadow-emerald-500/20";
-                dot = `<div class="w-1.5 h-1.5 bg-emerald-400 rounded-full mx-auto mt-1"></div>`;
+                const hasCardio = logs.some((l) => l.type === "cardio");
+                const hasResistance = logs.some((l) => l.type !== "cardio");
+
+                if (hasCardio && hasResistance) {
+                  c =
+                    "bg-emerald-900/50 border border-emerald-500 text-white shadow shadow-emerald-500/20";
+                  dot = `<div class="flex gap-0.5 justify-center mt-1">
+                    <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                    <div class="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                  </div>`;
+                } else if (hasCardio) {
+                  c =
+                    "bg-blue-900/50 border border-blue-500 text-white shadow shadow-blue-500/20";
+                  dot = `<div class="w-1.5 h-1.5 bg-blue-400 rounded-full mx-auto mt-1"></div>`;
+                } else {
+                  c =
+                    "bg-emerald-900/50 border border-emerald-500 text-white shadow shadow-emerald-500/20";
+                  dot = `<div class="w-1.5 h-1.5 bg-emerald-400 rounded-full mx-auto mt-1"></div>`;
+                }
               }
               if (new Date().toDateString() === dateObj.toDateString())
                 c += " ring-1 ring-yellow-400";
@@ -4100,14 +4553,21 @@ if (n === 'stats') {
               (logs[0].src === "spontaneous" ? "Spontaneous" : logs[0].src);
             const duration = logs[0].dur || 0;
             const totalVol = logs
-              .reduce((acc, curr) => acc + curr.vol, 0)
+              .reduce((acc, curr) => {
+                if (curr.type === "cardio") return acc;
+                return acc + (curr.vol || 0);
+              }, 0)
               .toLocaleString();
             let maxRPE = 0;
             logs.forEach((l) => {
-              l.d.forEach((s) => {
-                if (s.rpe && parseFloat(s.rpe) > maxRPE)
-                  maxRPE = parseFloat(s.rpe);
-              });
+              if (l.type === "cardio") return;
+
+              if (l.d && Array.isArray(l.d)) {
+                l.d.forEach((s) => {
+                  if (s.rpe && parseFloat(s.rpe) > maxRPE)
+                    maxRPE = parseFloat(s.rpe);
+                });
+              }
             });
             let fatigueStatus = "Low";
             let fatigueColor = "text-emerald-400";
@@ -4137,6 +4597,25 @@ if (n === 'stats') {
                     </div>
                     <div class="space-y-1 max-h-[120px] overflow-y-auto no-scrollbar">`;
             logs.forEach((l) => {
+              if (l.type === "cardio") {
+                const inZone =
+                  l.avgHR >= l.zoneTarget[0] && l.avgHR <= l.zoneTarget[1];
+                const zoneIcon = inZone ? "✅" : "⚠️";
+
+                html += `
+                  <div class="flex justify-between items-center bg-blue-900/20 p-1.5 rounded border border-blue-700/50 mb-1">
+                    <div class="flex items-center min-w-0 gap-2">
+                      <span class="text-[10px]">🏃</span>
+                      <div>
+                        <span class="text-[10px] text-blue-200 font-medium">${l.machine} LISS</span>
+                        <div class="text-[9px] text-slate-400">${l.duration}min • ${l.avgHR}bpm ${zoneIcon}</div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+                return;
+              }
+
               const prevLogs = hist
                 .filter(
                   (h) =>
@@ -4189,351 +4668,478 @@ if (n === 'stats') {
       };
 
       APP.stats = {
- chart: null,
-  currentView: 'dashboard',
-  
-  init: () => {
-    APP.stats.loadOptions();
-  },
+        chart: null,
+        currentView: "dashboard",
 
-  loadOptions: () => {
-    const h = LS_SAFE.getJSON('gym_hist', []);
-    const u = [...new Set(h.filter(x => x && x.ex).map(x => x.ex))].sort();
-    const s = document.getElementById('stats-select');
-    if (!s) return;
-    
-    s.innerHTML = '';
-    if (u.length === 0) {
-      s.innerHTML = '<option value="">No Data</option>';
-      return;
-    }
-    
-    u.forEach(x => s.innerHTML += `<option value="${x}">${x}</option>`);
-    
-    if (u.length > 0) {
-      APP.stats.updateDashboard();
-    }
-  },
+        init: () => {
+          APP.stats.loadOptions();
+        },
 
-  switchTab: (t) => {
-    // Hide all views
-    const views = ['stats-dashboard-view', 'stats-chart-view', 'stats-table-view', 'stats-bodyparts-view'];
-    views.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.add('hidden');
-    });
-    
-    const vitalEl = document.getElementById('vital-signs');
-    if (vitalEl) vitalEl.classList.add('hidden');
-// Hide/show exercise selector based on tab
-  const exerciseSelector = document.getElementById('exercise-selector-container');
-  if (exerciseSelector) {
-    if (t === 'chart' || t === 'table') {
-      exerciseSelector.classList.remove('hidden');
-    } else {
-      exerciseSelector.classList.add('hidden');
-    }
-  }
-    // Update button states
-    ['dashboard', 'chart', 'table', 'bodyparts'].forEach(tab => {
-      const btn = document.getElementById(`tab-${tab}`);
-      if (btn) {
-        btn.className = tab === t 
-          ? 'tab-btn active flex-shrink-0' 
-          : 'tab-btn inactive flex-shrink-0';
-      }
-    });
-    // Update active tab label
-  const labelMap = {
-    'dashboard': 'Dashboard',
-    'chart': 'Grafik Tren',
-    'table': 'Tabel Klinis',
-    'bodyparts': 'Body Parts'
-  };
-  
-  const labelEl = document.getElementById('active-tab-label');
-  if (labelEl) {
-    labelEl.innerText = labelMap[t] || 'Dashboard';
-    // Animate label change
-    labelEl.style.opacity = '0';
-    setTimeout(() => {
-      labelEl.style.opacity = '1';
-    }, 150);
-  }
+        loadOptions: () => {
+          const h = LS_SAFE.getJSON("gym_hist", []);
+          const u = [
+            ...new Set(h.filter((x) => x && x.ex).map((x) => x.ex)),
+          ].sort();
+          const s = document.getElementById("stats-select");
+          if (!s) return;
 
-    // Show selected view
-    APP.stats.currentView = t;
-    
-    if (t === 'dashboard') {
-      const el = document.getElementById('stats-dashboard-view');
-      if (el) el.classList.remove('hidden');
-      APP.stats.updateDashboard();
-    } else if (t === 'chart') {
-      const el = document.getElementById('stats-chart-view');
-      if (el) el.classList.remove('hidden');
-      if (vitalEl) vitalEl.classList.remove('hidden');
-      APP.stats.updateChart();
-    } else if (t === 'table') {
-      const el = document.getElementById('stats-table-view');
-      if (el) el.classList.remove('hidden');
-      if (vitalEl) vitalEl.classList.remove('hidden');
-      APP.stats.updateChart();
-    } else if (t === 'bodyparts') {
-      const el = document.getElementById('stats-bodyparts-view');
-      if (el) el.classList.remove('hidden');
-      APP.stats.updateBodyParts();
-    }
-  },
-
-  updateDashboard: () => {
-    const h = LS_SAFE.getJSON('gym_hist', []);
-    if (h.length === 0) return;
-
-    // Get week boundaries
-    const now = new Date();
-    const thisWeekStart = new Date(now);
-    thisWeekStart.setDate(now.getDate() - now.getDay());
-    thisWeekStart.setHours(0, 0, 0, 0);
-
-    const lastWeekStart = new Date(thisWeekStart);
-    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-
-    const thisWeekLogs = h.filter(log => new Date(log.ts) >= thisWeekStart);
-    const lastWeekLogs = h.filter(log => {
-      const d = new Date(log.ts);
-      return d >= lastWeekStart && d < thisWeekStart;
-    });
-
-    // Volume calculation
-    const thisWeekVol = thisWeekLogs.reduce((sum, log) => sum + (log.vol || 0), 0);
-    const lastWeekVol = lastWeekLogs.reduce((sum, log) => sum + (log.vol || 0), 0);
-    const volDiff = lastWeekVol > 0 ? ((thisWeekVol - lastWeekVol) / lastWeekVol * 100).toFixed(1) : 0;
-
-    // RPE calculation
-    let thisWeekRPE = 0, thisWeekRPECount = 0;
-    let lastWeekRPE = 0, lastWeekRPECount = 0;
-
-    thisWeekLogs.forEach(log => {
-      if (log.d) {
-        log.d.forEach(set => {
-          if (set.rpe) {
-            thisWeekRPE += parseFloat(set.rpe);
-            thisWeekRPECount++;
+          s.innerHTML = "";
+          if (u.length === 0) {
+            s.innerHTML = '<option value="">No Data</option>';
+            return;
           }
-        });
-      }
-    });
 
-    lastWeekLogs.forEach(log => {
-      if (log.d) {
-        log.d.forEach(set => {
-          if (set.rpe) {
-            lastWeekRPE += parseFloat(set.rpe);
-            lastWeekRPECount++;
+          u.forEach(
+            (x) => (s.innerHTML += `<option value="${x}">${x}</option>`)
+          );
+
+          if (u.length > 0) {
+            APP.stats.updateDashboard();
           }
-        });
-      }
-    });
+        },
 
-    const avgThisWeekRPE = thisWeekRPECount > 0 ? (thisWeekRPE / thisWeekRPECount).toFixed(1) : 0;
-    const avgLastWeekRPE = lastWeekRPECount > 0 ? (lastWeekRPE / lastWeekRPECount).toFixed(1) : 0;
-    const rpeDiff = (avgThisWeekRPE - avgLastWeekRPE).toFixed(1);
+        switchTab: (t) => {
+          const views = [
+            "stats-dashboard-view",
+            "stats-chart-view",
+            "stats-table-view",
+            "stats-bodyparts-view",
+          ];
+          views.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add("hidden");
+          });
 
-    // Sessions count
-    const thisWeekSessions = new Set(thisWeekLogs.map(l => l.date)).size;
-    const lastWeekSessions = new Set(lastWeekLogs.map(l => l.date)).size;
+          const vitalEl = document.getElementById("vital-signs");
+          const exerciseSelector = document.getElementById(
+            "exercise-selector-container"
+          );
 
-    // Update UI elements
-    const volCurrentEl = document.getElementById('dash-volume-current');
-    const volDiffEl = document.getElementById('dash-volume-diff');
-    const rpeCurrentEl = document.getElementById('dash-rpe-current');
-    const rpeDiffEl = document.getElementById('dash-rpe-diff');
-    const sessionsCurrentEl = document.getElementById('dash-sessions-current');
-    const sessionsDiffEl = document.getElementById('dash-sessions-diff');
-    const tonnageCurrentEl = document.getElementById('dash-tonnage-current');
-    const tonnageDiffEl = document.getElementById('dash-tonnage-diff');
+          if (vitalEl) {
+            vitalEl.classList.add("hidden");
+            vitalEl.style.display = "none";
+          }
 
-    if (volCurrentEl) volCurrentEl.innerText = thisWeekVol.toLocaleString();
-    if (volDiffEl) volDiffEl.innerHTML = APP.stats.formatDiff(volDiff, 'volume');
+          if (exerciseSelector) {
+            if (t === "chart" || t === "table") {
+              exerciseSelector.classList.remove("hidden");
+              exerciseSelector.style.display = "";
+            } else {
+              exerciseSelector.classList.add("hidden");
+              exerciseSelector.style.display = "none";
+            }
+          }
 
-    if (rpeCurrentEl) rpeCurrentEl.innerText = avgThisWeekRPE || '0';
-    if (rpeDiffEl) rpeDiffEl.innerHTML = APP.stats.formatDiff(rpeDiff, 'rpe');
+          ["dashboard", "chart", "table", "bodyparts"].forEach((tab) => {
+            const btn = document.getElementById(`tab-${tab}`);
+            if (btn) {
+              btn.className =
+                tab === t
+                  ? "tab-btn active flex-shrink-0"
+                  : "tab-btn inactive flex-shrink-0";
+            }
+          });
 
-    if (sessionsCurrentEl) sessionsCurrentEl.innerText = thisWeekSessions;
-    if (sessionsDiffEl) {
-      sessionsDiffEl.innerHTML = 
-        thisWeekSessions === lastWeekSessions ? '<span class="text-slate-400">Same ➡️</span>' : 
-        thisWeekSessions > lastWeekSessions ? '<span class="text-emerald-400">+' + (thisWeekSessions - lastWeekSessions) + ' ↑</span>' :
-        '<span class="text-red-400">-' + (lastWeekSessions - thisWeekSessions) + ' ↓</span>';
-    }
+          const labelMap = {
+            dashboard: "Dashboard",
+            chart: "Grafik Tren",
+            table: "Tabel Klinis",
+            bodyparts: "Body Parts",
+          };
 
-    if (tonnageCurrentEl) tonnageCurrentEl.innerText = thisWeekVol.toLocaleString();
-    if (tonnageDiffEl) tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, 'volume');
+          const labelEl = document.getElementById("active-tab-label");
+          if (labelEl) {
+            labelEl.innerText = labelMap[t] || "Dashboard";
+            labelEl.style.opacity = "0";
+            setTimeout(() => {
+              labelEl.style.opacity = "1";
+            }, 150);
+          }
 
-    // Calculate top gainers and fatigue
-    APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
-    APP.stats.checkFatigue(thisWeekLogs);
-  },
+          APP.stats.currentView = t;
 
-  formatDiff: (diff, type) => {
-    const numDiff = parseFloat(diff);
-    
-    if (type === 'volume') {
-      if (numDiff > 5) return `<span class="text-emerald-400">+${diff}% ↑</span>`;
-      if (numDiff < -5) return `<span class="text-red-400">${diff}% ↓</span>`;
-      return `<span class="text-slate-400">${numDiff >= 0 ? '+' : ''}${diff}% ➡️</span>`;
-    }
-    
-    if (type === 'rpe') {
-      if (numDiff > 0.5) return `<span class="text-yellow-400">+${diff} ⚠️</span>`;
-      if (numDiff < -0.5) return `<span class="text-emerald-400">${diff} ✅</span>`;
-      return `<span class="text-slate-400">${numDiff >= 0 ? '+' : ''}${diff} ➡️</span>`;
-    }
-    
-    return diff;
-  },
+          if (t === "dashboard") {
+            const el = document.getElementById("stats-dashboard-view");
+            if (el) el.classList.remove("hidden");
 
-  calculateTopGainers: (thisWeek, lastWeek) => {
-    const exerciseMap = {};
+            APP.stats.updateDashboard();
 
-    thisWeek.forEach(log => {
-      if (!exerciseMap[log.ex]) {
-        exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
-      }
-      exerciseMap[log.ex].thisVol += log.vol || 0;
-    });
+            if (vitalEl) {
+              vitalEl.classList.add("hidden");
+              vitalEl.style.display = "none";
+            }
+            if (exerciseSelector) {
+              exerciseSelector.classList.add("hidden");
+              exerciseSelector.style.display = "none";
+            }
+          } else if (t === "chart") {
+            const el = document.getElementById("stats-chart-view");
+            if (el) el.classList.remove("hidden");
 
-    lastWeek.forEach(log => {
-      if (!exerciseMap[log.ex]) {
-        exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
-      }
-      exerciseMap[log.ex].lastVol += log.vol || 0;
-    });
+            if (vitalEl) {
+              vitalEl.classList.remove("hidden");
+              vitalEl.style.display = "";
+            }
+            APP.stats.updateChart();
+          } else if (t === "table") {
+            const el = document.getElementById("stats-table-view");
+            if (el) el.classList.remove("hidden");
 
-    const gainers = Object.keys(exerciseMap)
-      .map(ex => {
-        const data = exerciseMap[ex];
-        const pctChange = data.lastVol > 0 ? ((data.thisVol - data.lastVol) / data.lastVol * 100) : 0;
-        return { ex, pctChange, thisVol: data.thisVol };
-      })
-      .filter(item => item.thisVol > 0)
-      .sort((a, b) => b.pctChange - a.pctChange)
-      .slice(0, 3);
+            if (vitalEl) {
+              vitalEl.classList.remove("hidden");
+              vitalEl.style.display = "";
+            }
+            APP.stats.updateChart();
+          } else if (t === "bodyparts") {
+            const el = document.getElementById("stats-bodyparts-view");
+            if (el) el.classList.remove("hidden");
 
-    const container = document.getElementById('dash-top-gainers');
-    if (!container) return;
-    
-    if (gainers.length === 0) {
-      container.innerHTML = '<p class="text-xs text-slate-500 italic">Not enough data yet.</p>';
-      return;
-    }
+            APP.stats.updateBodyParts();
 
-    let html = '';
-    gainers.forEach((item, idx) => {
-      const emoji = idx === 0 ? '🔥' : idx === 1 ? '📈' : '✅';
-      const color = item.pctChange > 10 ? 'text-emerald-400' : item.pctChange > 0 ? 'text-blue-400' : 'text-slate-400';
-      
-      html += `
+            if (vitalEl) {
+              vitalEl.classList.add("hidden");
+              vitalEl.style.display = "none";
+            }
+            if (exerciseSelector) {
+              exerciseSelector.classList.add("hidden");
+              exerciseSelector.style.display = "none";
+            }
+          }
+        },
+
+        updateDashboard: () => {
+          const h = LS_SAFE.getJSON("gym_hist", []);
+          if (h.length === 0) return;
+
+          const now = new Date();
+          const thisWeekStart = new Date(now);
+          thisWeekStart.setDate(now.getDate() - now.getDay());
+          thisWeekStart.setHours(0, 0, 0, 0);
+
+          const lastWeekStart = new Date(thisWeekStart);
+          lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+          const thisWeekLogs = h.filter(
+            (log) => new Date(log.ts) >= thisWeekStart
+          );
+          const lastWeekLogs = h.filter((log) => {
+            const d = new Date(log.ts);
+            return d >= lastWeekStart && d < thisWeekStart;
+          });
+
+          const thisWeekVol = thisWeekLogs.reduce((sum, log) => {
+            if (log.type === "cardio") return sum;
+            return sum + (log.vol || 0);
+          }, 0);
+          const lastWeekVol = lastWeekLogs.reduce((sum, log) => {
+            if (log.type === "cardio") return sum;
+            return sum + (log.vol || 0);
+          }, 0);
+          const volDiff =
+            lastWeekVol > 0
+              ? (((thisWeekVol - lastWeekVol) / lastWeekVol) * 100).toFixed(1)
+              : 0;
+
+          let thisWeekRPE = 0,
+            thisWeekRPECount = 0;
+          let lastWeekRPE = 0,
+            lastWeekRPECount = 0;
+
+          thisWeekLogs.forEach((log) => {
+            if (log.d) {
+              log.d.forEach((set) => {
+                if (set.rpe) {
+                  thisWeekRPE += parseFloat(set.rpe);
+                  thisWeekRPECount++;
+                }
+              });
+            }
+          });
+
+          lastWeekLogs.forEach((log) => {
+            if (log.d) {
+              log.d.forEach((set) => {
+                if (set.rpe) {
+                  lastWeekRPE += parseFloat(set.rpe);
+                  lastWeekRPECount++;
+                }
+              });
+            }
+          });
+
+          const avgThisWeekRPE =
+            thisWeekRPECount > 0
+              ? (thisWeekRPE / thisWeekRPECount).toFixed(1)
+              : 0;
+          const avgLastWeekRPE =
+            lastWeekRPECount > 0
+              ? (lastWeekRPE / lastWeekRPECount).toFixed(1)
+              : 0;
+          const rpeDiff = (avgThisWeekRPE - avgLastWeekRPE).toFixed(1);
+
+          const thisWeekSessions = new Set(thisWeekLogs.map((l) => l.date))
+            .size;
+          const lastWeekSessions = new Set(lastWeekLogs.map((l) => l.date))
+            .size;
+
+          const volCurrentEl = document.getElementById("dash-volume-current");
+          const volDiffEl = document.getElementById("dash-volume-diff");
+          const rpeCurrentEl = document.getElementById("dash-rpe-current");
+          const rpeDiffEl = document.getElementById("dash-rpe-diff");
+          const sessionsCurrentEl = document.getElementById(
+            "dash-sessions-current"
+          );
+          const sessionsDiffEl = document.getElementById("dash-sessions-diff");
+          const tonnageCurrentEl = document.getElementById(
+            "dash-tonnage-current"
+          );
+          const tonnageDiffEl = document.getElementById("dash-tonnage-diff");
+
+          if (volCurrentEl)
+            volCurrentEl.innerText = thisWeekVol.toLocaleString();
+          if (volDiffEl)
+            volDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
+
+          if (rpeCurrentEl) rpeCurrentEl.innerText = avgThisWeekRPE || "0";
+          if (rpeDiffEl)
+            rpeDiffEl.innerHTML = APP.stats.formatDiff(rpeDiff, "rpe");
+
+          if (sessionsCurrentEl) sessionsCurrentEl.innerText = thisWeekSessions;
+          if (sessionsDiffEl) {
+            sessionsDiffEl.innerHTML =
+              thisWeekSessions === lastWeekSessions
+                ? '<span class="text-slate-400">Same ➡️</span>'
+                : thisWeekSessions > lastWeekSessions
+                ? '<span class="text-emerald-400">+' +
+                  (thisWeekSessions - lastWeekSessions) +
+                  " ↑</span>"
+                : '<span class="text-red-400">-' +
+                  (lastWeekSessions - thisWeekSessions) +
+                  " ↓</span>";
+          }
+
+          if (tonnageCurrentEl)
+            tonnageCurrentEl.innerText = thisWeekVol.toLocaleString();
+          if (tonnageDiffEl)
+            tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
+
+          APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
+          APP.stats.checkFatigue(thisWeekLogs);
+        },
+
+        formatDiff: (diff, type) => {
+          const numDiff = parseFloat(diff);
+
+          if (type === "volume") {
+            if (numDiff > 5)
+              return `<span class="text-emerald-400">+${diff}% ↑</span>`;
+            if (numDiff < -5)
+              return `<span class="text-red-400">${diff}% ↓</span>`;
+            return `<span class="text-slate-400">${
+              numDiff >= 0 ? "+" : ""
+            }${diff}% ➡️</span>`;
+          }
+
+          if (type === "rpe") {
+            if (numDiff > 0.5)
+              return `<span class="text-yellow-400">+${diff} ⚠️</span>`;
+            if (numDiff < -0.5)
+              return `<span class="text-emerald-400">${diff} ✅</span>`;
+            return `<span class="text-slate-400">${
+              numDiff >= 0 ? "+" : ""
+            }${diff} ➡️</span>`;
+          }
+
+          return diff;
+        },
+
+        calculateTopGainers: (thisWeek, lastWeek) => {
+          const exerciseMap = {};
+
+          thisWeek.forEach((log) => {
+            if (log.type === "cardio") return;
+
+            if (!exerciseMap[log.ex]) {
+              exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+            }
+            exerciseMap[log.ex].thisVol += log.vol || 0;
+          });
+
+          lastWeek.forEach((log) => {
+            if (log.type === "cardio") return;
+
+            if (!exerciseMap[log.ex]) {
+              exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+            }
+            exerciseMap[log.ex].lastVol += log.vol || 0;
+          });
+
+          const gainers = Object.keys(exerciseMap)
+            .map((ex) => {
+              const data = exerciseMap[ex];
+              const pctChange =
+                data.lastVol > 0
+                  ? ((data.thisVol - data.lastVol) / data.lastVol) * 100
+                  : 0;
+              return { ex, pctChange, thisVol: data.thisVol };
+            })
+            .filter((item) => item.thisVol > 0)
+            .sort((a, b) => b.pctChange - a.pctChange)
+            .slice(0, 3);
+
+          const container = document.getElementById("dash-top-gainers");
+          if (!container) return;
+
+          if (gainers.length === 0) {
+            container.innerHTML =
+              '<p class="text-xs text-slate-500 italic">Not enough data yet.</p>';
+            return;
+          }
+
+          let html = "";
+          gainers.forEach((item, idx) => {
+            const emoji = idx === 0 ? "🔥" : idx === 1 ? "📈" : "✅";
+            const color =
+              item.pctChange > 10
+                ? "text-emerald-400"
+                : item.pctChange > 0
+                ? "text-blue-400"
+                : "text-slate-400";
+
+            html += `
         <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded">
           <span class="text-xs text-slate-300">${idx + 1}. ${item.ex}</span>
-          <span class="text-xs font-bold ${color}">[${item.pctChange > 0 ? '+' : ''}${item.pctChange.toFixed(1)}%] ${emoji}</span>
+          <span class="text-xs font-bold ${color}">[${
+              item.pctChange > 0 ? "+" : ""
+            }${item.pctChange.toFixed(1)}%] ${emoji}</span>
         </div>
       `;
-    });
+          });
 
-    container.innerHTML = html;
-  },
+          container.innerHTML = html;
+        },
 
-  checkFatigue: (logs) => {
-    const alert = document.getElementById('dash-fatigue-alert');
-    const message = document.getElementById('dash-fatigue-message');
-    
-    if (!alert || !message) return;
+        checkFatigue: (logs) => {
+          const alert = document.getElementById("dash-fatigue-alert");
+          const message = document.getElementById("dash-fatigue-message");
 
-    let highRPECount = 0;
-    logs.forEach(log => {
-      if (log.d) {
-        log.d.forEach(set => {
-          if (set.rpe && parseFloat(set.rpe) >= 9) {
-            highRPECount++;
+          if (!alert || !message) return;
+
+          let highRPECount = 0;
+          logs.forEach((log) => {
+            if (log.type === "cardio") return;
+
+            if (log.d && Array.isArray(log.d)) {
+              log.d.forEach((set) => {
+                if (set.rpe && parseFloat(set.rpe) >= 9) {
+                  highRPECount++;
+                }
+              });
+            }
+          });
+
+          if (highRPECount >= 5) {
+            alert.classList.remove("hidden");
+            message.innerText = `${highRPECount} sets with RPE ≥9 this week. Consider deload or rest day.`;
+          } else {
+            alert.classList.add("hidden");
           }
-        });
-      }
-    });
+        },
 
-    if (highRPECount >= 5) {
-      alert.classList.remove('hidden');
-      message.innerText = `${highRPECount} sets with RPE ≥9 this week. Consider deload or rest day.`;
-    } else {
-      alert.classList.add('hidden');
-    }
-  },
+        updateBodyParts: () => {
+          const periodEl = document.getElementById("bodypart-period");
+          const weeks = parseInt(periodEl?.value || 4);
+          const h = LS_SAFE.getJSON("gym_hist", []);
 
-  updateBodyParts: () => {
-    const periodEl = document.getElementById('bodypart-period');
-    const weeks = parseInt(periodEl?.value || 4);
-    const h = LS_SAFE.getJSON('gym_hist', []);
-    
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - (weeks * 7));
-    
-    const recentLogs = h.filter(log => new Date(log.ts) >= cutoffDate);
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - weeks * 7);
 
- // 1. INISIALISASI (Tetap Angka Sederhana agar Grafik tidak error)
-    const bodyPartMap = {
-      chest: 0,
-      back: 0,
-      legs: 0,
-      shoulders: 0,
-      arms: 0
-    };
+          const recentLogs = h.filter((log) => new Date(log.ts) >= cutoffDate);
 
-    // 2. LOGIC KLASIFIKASI V3.0 (Sama persis dengan Auto Prompt)
-    recentLogs.forEach(log => {
-      const exName = (log.ex || '').toLowerCase();
-      let targetPart = null;
+          const bodyPartMap = {
+            chest: 0,
+            back: 0,
+            legs: 0,
+            shoulders: 0,
+            arms: 0,
+          };
 
-      // PRIORITY 1: KAKI (Legs)
-      if (exName.includes('squat') || exName.includes('leg') || exName.includes('lunge') || exName.includes('hack') || exName.includes('calf') || exName.includes('rdl') || exName.includes('sumo')) {
-        targetPart = 'legs';
-      
-      // PRIORITY 2: LENGAN (Arms)
-      } else if (exName.includes('curl') || exName.includes('tricep') || exName.includes('bicep') || exName.includes('skull') || exName.includes('extension') || exName.includes('pushdown')) {
-        targetPart = 'arms';
+          recentLogs.forEach((log) => {
+            const exName = (log.ex || "").toLowerCase();
+            let targetPart = null;
 
-      // PRIORITY 3: BAHU (Shoulders)
-      } else if (exName.includes('shoulder') || exName.includes('overhead') || exName.includes('ohp') || exName.includes('lateral') || exName.includes('delt') || exName.includes('face pull') || exName.includes('military')) {
-        targetPart = 'shoulders';
-      
-      // PRIORITY 4: DADA (Chest)
-      } else if (exName.includes('bench') || exName.includes('chest') || exName.includes('fly') || exName.includes('push up') || exName.includes('pec') || exName.includes('incline') || exName.includes('dips') || (exName.includes('press') && (exName.includes('dumbbell') || exName.includes('machine') || exName.includes('barbell')))) {
-        targetPart = 'chest';
-      
-      // PRIORITY 5: PUNGGUNG (Back)
-      } else if (exName.includes('pull') || exName.includes('row') || exName.includes('deadlift') || exName.includes('back') || exName.includes('lat') || exName.includes('chin up')) {
-        targetPart = 'back';
-      }
+            if (
+              exName.includes("squat") ||
+              exName.includes("leg") ||
+              exName.includes("lunge") ||
+              exName.includes("hack") ||
+              exName.includes("calf") ||
+              exName.includes("rdl") ||
+              exName.includes("sumo")
+            ) {
+              targetPart = "legs";
+            } else if (
+              exName.includes("curl") ||
+              exName.includes("tricep") ||
+              exName.includes("bicep") ||
+              exName.includes("skull") ||
+              exName.includes("extension") ||
+              exName.includes("pushdown")
+            ) {
+              targetPart = "arms";
+            } else if (
+              exName.includes("shoulder") ||
+              exName.includes("overhead") ||
+              exName.includes("ohp") ||
+              exName.includes("lateral") ||
+              exName.includes("delt") ||
+              exName.includes("face pull") ||
+              exName.includes("military")
+            ) {
+              targetPart = "shoulders";
+            } else if (
+              exName.includes("bench") ||
+              exName.includes("chest") ||
+              exName.includes("fly") ||
+              exName.includes("push up") ||
+              exName.includes("pec") ||
+              exName.includes("incline") ||
+              exName.includes("dips") ||
+              (exName.includes("press") &&
+                (exName.includes("dumbbell") ||
+                  exName.includes("machine") ||
+                  exName.includes("barbell")))
+            ) {
+              targetPart = "chest";
+            } else if (
+              exName.includes("pull") ||
+              exName.includes("row") ||
+              exName.includes("deadlift") ||
+              exName.includes("back") ||
+              exName.includes("lat") ||
+              exName.includes("chin up")
+            ) {
+              targetPart = "back";
+            }
 
-      // 3. UPDATE DATA (Format Angka Langsung)
-      if (targetPart) {
-        // Langsung tambah angka, TANPA .vol
-        bodyPartMap[targetPart] += (log.vol || 0);
-      }
-    });
+            if (targetPart) {
+              bodyPartMap[targetPart] += log.vol || 0;
+            }
+          });
 
-    const maxVol = Math.max(...Object.values(bodyPartMap));
-    const container = document.getElementById('bodypart-bars');
-    
-    if (!container) return;
-    
-    let html = '';
+          const maxVol = Math.max(...Object.values(bodyPartMap));
+          const container = document.getElementById("bodypart-bars");
 
-    Object.keys(bodyPartMap).forEach(part => {
-      const vol = bodyPartMap[part];
-      const pct = maxVol > 0 ? (vol / maxVol * 100) : 0;
-      const label = part.charAt(0).toUpperCase() + part.slice(1);
+          if (!container) return;
 
-      html += `
+          let html = "";
+
+          Object.keys(bodyPartMap).forEach((part) => {
+            const vol = bodyPartMap[part];
+            const pct = maxVol > 0 ? (vol / maxVol) * 100 : 0;
+            const label = part.charAt(0).toUpperCase() + part.slice(1);
+
+            html += `
         <div class="mb-2">
           <div class="flex justify-between text-xs mb-1">
             <span class="text-slate-300">${label}</span>
@@ -4541,48 +5147,63 @@ if (n === 'stats') {
           </div>
           <div class="bg-slate-700/30 rounded-full h-6 overflow-hidden">
             <div class="bg-emerald-500 h-full flex items-center justify-end pr-2 transition-all" style="width: ${pct}%">
-              ${pct > 15 ? `<span class="text-xs font-bold text-white">${pct.toFixed(0)}%</span>` : ''}
+              ${
+                pct > 15
+                  ? `<span class="text-xs font-bold text-white">${pct.toFixed(
+                      0
+                    )}%</span>`
+                  : ""
+              }
             </div>
           </div>
         </div>
       `;
-    });
+          });
 
-    container.innerHTML = html || '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
+          container.innerHTML =
+            html ||
+            '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
 
-    // Check imbalance
-    const chestVol = bodyPartMap.chest;
-    const backVol = bodyPartMap.back;
-    const imbalanceDiv = document.getElementById('bodypart-imbalance');
-    const imbalanceMsg = document.getElementById('bodypart-imbalance-message');
+          const chestVol = bodyPartMap.chest;
+          const backVol = bodyPartMap.back;
+          const imbalanceDiv = document.getElementById("bodypart-imbalance");
+          const imbalanceMsg = document.getElementById(
+            "bodypart-imbalance-message"
+          );
 
-    if (!imbalanceDiv || !imbalanceMsg) return;
+          if (!imbalanceDiv || !imbalanceMsg) return;
 
-if (chestVol > 0 && backVol > 0) {
-  const ratio = chestVol / backVol;
-  if (ratio > 1.3) {
-    imbalanceDiv.classList.remove('hidden');
-    imbalanceMsg.innerHTML = `
+          if (chestVol > 0 && backVol > 0) {
+            const ratio = chestVol / backVol;
+            if (ratio > 1.3) {
+              imbalanceDiv.classList.remove("hidden");
+              imbalanceMsg.innerHTML = `
       <div class="mb-2">
-        Back volume is <strong>${((ratio - 1) * 100).toFixed(0)}% lower</strong> than chest volume.
+        Back volume is <strong>${((ratio - 1) * 100).toFixed(
+          0
+        )}% lower</strong> than chest volume.
       </div>
       <div class="text-xs text-slate-400 space-y-1">
         <div>→ Risk: Shoulder impingement</div>
         <div>→ Suggestion: Add 1-2 back exercises</div>
       </div>
       <button 
-        onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(2)})"
+        onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(
+          2
+        )})"
         class="mt-3 w-full bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
       >
         <i class="fa-solid fa-robot"></i> Konsultasi dengan Gemini AI
       </button>
     `;
-  } else if (ratio < 0.7) {
-    imbalanceDiv.classList.remove('hidden');
-    const reverseRatio = 1 / ratio;
-    imbalanceMsg.innerHTML = `
+            } else if (ratio < 0.7) {
+              imbalanceDiv.classList.remove("hidden");
+              const reverseRatio = 1 / ratio;
+              imbalanceMsg.innerHTML = `
       <div class="mb-2">
-        Chest volume is <strong>${((reverseRatio - 1) * 100).toFixed(0)}% lower</strong> than back volume.
+        Chest volume is <strong>${((reverseRatio - 1) * 100).toFixed(
+          0
+        )}% lower</strong> than back volume.
       </div>
       <div class="text-xs text-slate-400 space-y-1">
         <div>→ Consider balancing with chest work</div>
@@ -4594,122 +5215,161 @@ if (chestVol > 0 && backVol > 0) {
   <i class="fa-solid fa-robot"></i> Analisis dengan AI Gemini
 </button>
     `;
-  } else {
-    imbalanceDiv.classList.add('hidden');
-  }
-} else {
-  imbalanceDiv.classList.add('hidden');
-}
-  },
-  prepareImbalanceConsultation : (dominantPart, ratio) => {
-  const h = LS_SAFE.getJSON('gym_hist', []);
-  const p = LS_SAFE.getJSON('profile', {});
-  const weeks = parseInt(document.getElementById('bodypart-period')?.value || 4);
-  
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - (weeks * 7));
-  const recentLogs = h.filter(log => new Date(log.ts) >= cutoffDate);
+            } else {
+              imbalanceDiv.classList.add("hidden");
+            }
+          } else {
+            imbalanceDiv.classList.add("hidden");
+          }
+        },
+        prepareImbalanceConsultation: (dominantPart, ratio) => {
+          const h = LS_SAFE.getJSON("gym_hist", []);
+          const p = LS_SAFE.getJSON("profile", {});
+          const weeks = parseInt(
+            document.getElementById("bodypart-period")?.value || 4
+          );
 
-  // Calculate detailed volume per body part
-  const bodyPartMap = {
-    chest: { vol: 0, exercises: [] },
-    back: { vol: 0, exercises: [] },
-    legs: { vol: 0, exercises: [] },
-    shoulders: { vol: 0, exercises: [] },
-    arms: { vol: 0, exercises: [] }
-  };
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - weeks * 7);
+          const recentLogs = h.filter((log) => new Date(log.ts) >= cutoffDate);
 
- recentLogs.forEach(log => {
-      const exName = (log.ex || '').toLowerCase();
-      const realName = log.ex || 'Unknown';
-      let targetPart = null;
+          const bodyPartMap = {
+            chest: { vol: 0, exercises: [] },
+            back: { vol: 0, exercises: [] },
+            legs: { vol: 0, exercises: [] },
+            shoulders: { vol: 0, exercises: [] },
+            arms: { vol: 0, exercises: [] },
+          };
 
-      // 1. PRIORITAS TERTINGGI: KAKI (LEGS)
-      // Wajib pertama supaya 'Leg Curl' & 'Leg Extension' masuk sini, bukan ke Arms
-      if (exName.includes('squat') || exName.includes('leg') || exName.includes('lunge') || exName.includes('hack') || exName.includes('calf') || exName.includes('rdl') || exName.includes('sumo')) {
-        targetPart = 'legs';
-      
-      // 2. PRIORITAS KEDUA: LENGAN (ARMS)
-      // Naik pangkat! Supaya 'Incline Curl' tidak dicuri Chest, dan 'Overhead Ext' tidak dicuri Shoulder
-      // Hapus keyword 'arm' agar 'One Arm Row' lolos ke Back
-      } else if (exName.includes('curl') || exName.includes('tricep') || exName.includes('bicep') || exName.includes('skull') || exName.includes('extension') || exName.includes('pushdown')) {
-        targetPart = 'arms';
+          recentLogs.forEach((log) => {
+            const exName = (log.ex || "").toLowerCase();
+            const realName = log.ex || "Unknown";
+            let targetPart = null;
 
-      // 3. PRIORITAS KETIGA: BAHU (SHOULDERS)
-      } else if (exName.includes('shoulder') || exName.includes('overhead') || exName.includes('ohp') || exName.includes('lateral') || exName.includes('delt') || exName.includes('face pull') || exName.includes('military')) {
-        targetPart = 'shoulders';
-      
-      // 4. PRIORITAS KEEMPAT: DADA (CHEST)
-      } else if (exName.includes('bench') || exName.includes('chest') || exName.includes('fly') || exName.includes('push up') || exName.includes('pec') || exName.includes('incline') || exName.includes('dips') || (exName.includes('press') && (exName.includes('dumbbell') || exName.includes('machine') || exName.includes('barbell')))) {
-        targetPart = 'chest';
-      
-      // 5. SISANYA: PUNGGUNG (BACK)
-      } else if (exName.includes('pull') || exName.includes('row') || exName.includes('deadlift') || exName.includes('back') || exName.includes('lat') || exName.includes('chin up')) {
-        targetPart = 'back';
-      }
+            if (
+              exName.includes("squat") ||
+              exName.includes("leg") ||
+              exName.includes("lunge") ||
+              exName.includes("hack") ||
+              exName.includes("calf") ||
+              exName.includes("rdl") ||
+              exName.includes("sumo")
+            ) {
+              targetPart = "legs";
+            } else if (
+              exName.includes("curl") ||
+              exName.includes("tricep") ||
+              exName.includes("bicep") ||
+              exName.includes("skull") ||
+              exName.includes("extension") ||
+              exName.includes("pushdown")
+            ) {
+              targetPart = "arms";
+            } else if (
+              exName.includes("shoulder") ||
+              exName.includes("overhead") ||
+              exName.includes("ohp") ||
+              exName.includes("lateral") ||
+              exName.includes("delt") ||
+              exName.includes("face pull") ||
+              exName.includes("military")
+            ) {
+              targetPart = "shoulders";
+            } else if (
+              exName.includes("bench") ||
+              exName.includes("chest") ||
+              exName.includes("fly") ||
+              exName.includes("push up") ||
+              exName.includes("pec") ||
+              exName.includes("incline") ||
+              exName.includes("dips") ||
+              (exName.includes("press") &&
+                (exName.includes("dumbbell") ||
+                  exName.includes("machine") ||
+                  exName.includes("barbell")))
+            ) {
+              targetPart = "chest";
+            } else if (
+              exName.includes("pull") ||
+              exName.includes("row") ||
+              exName.includes("deadlift") ||
+              exName.includes("back") ||
+              exName.includes("lat") ||
+              exName.includes("chin up")
+            ) {
+              targetPart = "back";
+            }
 
-      // --- EKSEKUSI DATA ---
-      if (targetPart) {
-        bodyPartMap[targetPart].vol += (log.vol || 0);
-        if (!bodyPartMap[targetPart].exercises.includes(realName)) {
-          bodyPartMap[targetPart].exercises.push(realName);
-        }
-      }
-    });
+            if (targetPart) {
+              bodyPartMap[targetPart].vol += log.vol || 0;
+              if (!bodyPartMap[targetPart].exercises.includes(realName)) {
+                bodyPartMap[targetPart].exercises.push(realName);
+              }
+            }
+          });
 
-  // Build consultation prompt
-  let promptText = `[MUSCLE IMBALANCE CONSULTATION]\n\n`;
-  promptText += `DETECTED ISSUE:\n`;
-  
-  if (dominantPart === 'chest') {
-    promptText += `- Back volume is ${((ratio - 1) * 100).toFixed(0)}% LOWER than chest volume\n`;
-    promptText += `- Risk: Shoulder impingement, postural issues, upper cross syndrome\n\n`;
-  } else if (dominantPart === 'back') {
-    promptText += `- Chest volume is ${((ratio - 1) * 100).toFixed(0)}% LOWER than back volume\n`;
-    promptText += `- Risk: Limited pressing strength, aesthetic imbalance\n\n`;
-  }
+          let promptText = `[MUSCLE IMBALANCE CONSULTATION]\n\n`;
+          promptText += `DETECTED ISSUE:\n`;
 
-  promptText += `USER PROFILE:\n`;
-  promptText += `- Name: ${p.name || 'Unknown'}\n`;
-  promptText += `- Age: ${p.a || 'N/A'}\n`;
-  promptText += `- Height: ${p.h || 'N/A'}cm\n`;
-  promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
+          if (dominantPart === "chest") {
+            promptText += `- Back volume is ${((ratio - 1) * 100).toFixed(
+              0
+            )}% LOWER than chest volume\n`;
+            promptText += `- Risk: Shoulder impingement, postural issues, upper cross syndrome\n\n`;
+          } else if (dominantPart === "back") {
+            promptText += `- Chest volume is ${((ratio - 1) * 100).toFixed(
+              0
+            )}% LOWER than back volume\n`;
+            promptText += `- Risk: Limited pressing strength, aesthetic imbalance\n\n`;
+          }
 
-  promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
-  Object.keys(bodyPartMap).forEach(part => {
-    const data = bodyPartMap[part];
-    promptText += `- ${part.toUpperCase()}: ${data.vol.toLocaleString()}kg`;
-    if (data.exercises.length > 0) {
-      promptText += ` (${data.exercises.length} exercises: ${data.exercises.slice(0, 3).join(', ')}${data.exercises.length > 3 ? '...' : ''})`;
-    }
-    promptText += `\n`;
-  });
+          promptText += `USER PROFILE:\n`;
+          promptText += `- Name: ${p.name || "Unknown"}\n`;
+          promptText += `- Age: ${p.a || "N/A"}\n`;
+          promptText += `- Height: ${p.h || "N/A"}cm\n`;
+          promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
 
-  promptText += `\nQUESTION:\n`;
-  promptText += `Saya mengalami muscle imbalance seperti data di atas. Berikan:\n`;
-  promptText += `1. Analisis penyebab imbalance ini\n`;
-  promptText += `2. Apakah perlu ganti resep exercise? jika perlu, rekomendasi exercises untuk balance (3-4 gerakan spesifik)\n`;
-  promptText += `3. Target volume yang sehat untuk ${weeks} minggu ke depan\n`;
-  promptText += `4. Protokol koreksi (berapa lama untuk balance kembali)\n\n`;
-  promptText += `-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.\n`;
-  promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
-  promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes) , Tri-Option System , Full Metadata.`;
+          promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
+          Object.keys(bodyPartMap).forEach((part) => {
+            const data = bodyPartMap[part];
+            promptText += `- ${part.toUpperCase()}: ${data.vol.toLocaleString()}kg`;
+            if (data.exercises.length > 0) {
+              promptText += ` (${
+                data.exercises.length
+              } exercises: ${data.exercises.slice(0, 3).join(", ")}${
+                data.exercises.length > 3 ? "..." : ""
+              })`;
+            }
+            promptText += `\n`;
+          });
 
-  // Copy to clipboard and show modal
-  APP.ui.showManualCopy(promptText);
-  
-  // Show success toast
-  APP.ui.showToast('📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.', 'success');
-},
+          promptText += `\nQUESTION:\n`;
+          promptText += `Saya mengalami muscle imbalance seperti data di atas. Berikan:\n`;
+          promptText += `1. Analisis penyebab imbalance ini\n`;
+          promptText += `2. Apakah perlu ganti resep exercise? jika perlu, rekomendasi exercises untuk balance (3-4 gerakan spesifik)\n`;
+          promptText += `3. Target volume yang sehat untuk ${weeks} minggu ke depan\n`;
+          promptText += `4. Protokol koreksi (berapa lama untuk balance kembali)\n\n`;
+          promptText += `-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.\n`;
+          promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
+          promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes) , Tri-Option System , Full Metadata.`;
 
-  // PASTE EXISTING updateChart FUNCTION DI SINI
+          APP.ui.showManualCopy(promptText);
+
+          APP.ui.showToast(
+            "📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.",
+            "success"
+          );
+        },
+
         updateChart: () => {
           if (typeof Chart === "undefined") return;
           const sel = document.getElementById("stats-select").value;
           if (!sel) return;
+
           const h = LS_SAFE.getJSON("gym_hist", [])
             .filter((x) => x.ex === sel)
             .sort((a, b) => a.ts - b.ts);
+
           const msg = document.getElementById("no-data-msg");
           const vital = document.getElementById("vital-signs");
           const tbody = document.getElementById("hist-table-body");
@@ -4728,69 +5388,232 @@ if (chestVol > 0 && backVol > 0) {
           if (msg) msg.classList.add("hidden");
           if (vital) vital.classList.remove("hidden");
 
-          let mx = 0,
-            tv = 0;
-          let tHtml = "";
-          [...h]
-            .sort((a, b) => b.ts - a.ts)
-            .forEach((l) => {
-              if (l.top > mx) mx = l.top;
-              tv += l.vol;
-              l.d.forEach((s) => {
-                tHtml += `<tr><td class="text-slate-400">${
-                  l.date
-                }</td><td class="font-bold text-white">${
-                  s.k
-                }kg</td><td class="text-emerald-400">x${
-                  s.r
-                }</td><td class="text-yellow-400 font-bold">${
-                  s.rpe || "-"
-                }</td><td class="text-blue-400">${s.k * s.r}</td></tr>`;
+          const isCardio = h[0].type === "cardio";
+
+          if (isCardio) {
+            APP.stats.renderCardioChart(h);
+            APP.stats.renderCardioTable(h, tbody);
+            APP.stats.updateCardioVitals(h, vital);
+          } else {
+            const tableEl = tbody.closest("table");
+            if (tableEl) {
+              tableEl.style.tableLayout = "fixed";
+              tableEl.style.width = "100%";
+              tableEl.style.borderSpacing = "0";
+              tableEl.style.padding = "0";
+              tableEl.className = "w-full border-collapse p-0 m-0";
+
+              const thead = tableEl.querySelector("thead tr");
+              if (thead) {
+                thead.innerHTML = `
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">TGL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">KG</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">REPS</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">RPE</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 25%">VOL</th>
+                `;
+              }
+            }
+
+            let mx = 0,
+              tv = 0;
+            let tHtml = "";
+
+            [...h]
+              .sort((a, b) => b.ts - a.ts)
+              .forEach((l) => {
+                if (l.type === "cardio") return;
+
+                if (l.top > mx) mx = l.top;
+                tv += l.vol || 0;
+
+                if (l.d && Array.isArray(l.d)) {
+                  l.d.forEach((s) => {
+                    tHtml += `
+                      <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                        <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
+                          l.date
+                        }</td>
+                        <td class="py-3 px-0 text-center text-sm font-bold text-white">${
+                          s.k
+                        }<span class="text-slate-600 text-[10px] ml-0.5">kg</span></td>
+                        <td class="py-3 px-0 text-center text-emerald-400 font-mono text-sm">x${
+                          s.r
+                        }</td>
+                        <td class="py-3 px-0 text-center text-yellow-400 font-bold text-sm">${
+                          s.rpe || "-"
+                        }</td>
+                        <td class="py-3 px-0 text-center text-blue-400 text-xs font-mono">${Math.round(
+                          s.k * s.r
+                        ).toLocaleString()}</td>
+                      </tr>`;
+                  });
+                }
               });
+            if (tbody) tbody.innerHTML = tHtml;
+            if (vital) {
+              vital.className = "grid grid-cols-3 gap-2 text-center";
+              vital.style.display = "";
+              vital.style.width = "";
+
+              vital.innerHTML = `
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase">PR</div>
+                  <div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase">Vol Avg</div>
+                  <div class="text-lg font-bold text-blue-400" id="stat-vol">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase">Count</div>
+                  <div class="text-lg font-bold text-white" id="stat-count">--</div>
+                </div>
+              `;
+            }
+
+            if (tbody) tbody.innerHTML = tHtml;
+
+            if (vital) {
+              vital.className = "grid grid-cols-3 gap-2 text-center";
+              vital.style.display = "";
+              vital.style.width = "";
+
+              vital.innerHTML = `
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase tracking-tighter">PR (Top)</div>
+                  <div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Vol Avg</div>
+                  <div class="text-lg font-bold text-blue-400" id="stat-vol">--</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Sesi</div>
+                  <div class="text-lg font-bold text-white" id="stat-count">--</div>
+                </div>
+              `;
+            }
+
+            const prEl = document.getElementById("stat-pr");
+            const volEl = document.getElementById("stat-vol");
+            const countEl = document.getElementById("stat-count");
+            if (prEl) prEl.innerText = mx;
+            if (volEl)
+              volEl.innerText =
+                h.length > 0 ? Math.round(tv / h.length).toLocaleString() : 0;
+            if (countEl) countEl.innerText = h.length;
+
+            const ctx = document.getElementById("progressChart");
+            if (!ctx) {
+              console.error("[DOM ERROR] progressChart canvas not found");
+              return;
+            }
+
+            const context = ctx.getContext("2d");
+            if (!context) {
+              console.error("[DOM ERROR] Cannot get 2d context from canvas");
+              return;
+            }
+
+            if (APP.stats.chart) APP.stats.chart.destroy();
+            APP.stats.chart = new Chart(context, {
+              type: "line",
+              data: {
+                labels: h.map((d) => d.date),
+                datasets: [
+                  {
+                    label: "Top Set",
+                    data: h.map((d) => d.top),
+                    borderColor: "#10b981",
+                    backgroundColor: "#10b981",
+                    yAxisID: "y",
+                    tension: 0.3,
+                  },
+                  {
+                    label: "Volume",
+                    data: h.map((d) => d.vol),
+                    type: "bar",
+                    yAxisID: "y1",
+                    backgroundColor: "rgba(59,130,246,0.2)",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+                scales: {
+                  y: {
+                    display: true,
+                    position: "left",
+                    grid: {
+                      color: "#334155",
+                    },
+                  },
+                  y1: {
+                    display: true,
+                    position: "right",
+                    grid: {
+                      display: false,
+                    },
+                  },
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "#94a3b8",
+                      maxTicksLimit: 5,
+                    },
+                  },
+                },
+              },
             });
-
-          if (tbody) tbody.innerHTML = tHtml;
-
-          const prEl = document.getElementById("stat-pr");
-          const volEl = document.getElementById("stat-vol");
-          const countEl = document.getElementById("stat-count");
-          if (prEl) prEl.innerText = mx;
-          if (volEl) volEl.innerText = Math.round(tv / h.length);
-          if (countEl) countEl.innerText = h.length;
-
-          const ctx = document.getElementById("progressChart");
-
-          if (!ctx) {
-            console.error("[DOM ERROR] progressChart canvas not found");
-            return;
           }
+        },
+
+        renderCardioChart: (logs) => {
+          const ctx = document.getElementById("progressChart");
+          if (!ctx) return;
 
           const context = ctx.getContext("2d");
-          if (!context) {
-            console.error("[DOM ERROR] Cannot get 2d context from canvas");
-            return;
-          }
+          if (!context) return;
+
+          const zone2Lower = logs[0].zoneTarget[0];
+          const zone2Upper = logs[0].zoneTarget[1];
 
           if (APP.stats.chart) APP.stats.chart.destroy();
+
           APP.stats.chart = new Chart(context, {
             type: "line",
             data: {
-              labels: h.map((d) => d.date),
+              labels: logs.map((l) => l.date),
               datasets: [
                 {
-                  label: "Top Set",
-                  data: h.map((d) => d.top),
-                  borderColor: "#10b981",
-                  backgroundColor: "#10b981",
+                  label: "Duration (min)",
+                  data: logs.map((l) => l.duration),
+                  borderColor: "#3b82f6",
+                  backgroundColor: "rgba(59, 130, 246, 0.1)",
                   yAxisID: "y",
                   tension: 0.3,
+                  fill: true,
+                  pointRadius: 4,
+                  pointHoverRadius: 6,
                 },
                 {
-                  label: "Volume",
-                  data: h.map((d) => d.vol),
-                  type: "bar",
+                  label: "Avg HR (bpm)",
+                  data: logs.map((l) => l.avgHR),
+                  borderColor: "#ef4444",
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
                   yAxisID: "y1",
-                  backgroundColor: "rgba(59,130,246,0.2)",
+                  tension: 0.3,
+                  pointRadius: 4,
+                  pointHoverRadius: 6,
                 },
               ],
             },
@@ -4799,23 +5622,69 @@ if (chestVol > 0 && backVol > 0) {
               maintainAspectRatio: false,
               plugins: {
                 legend: {
-                  display: false,
+                  display: true,
+                  position: "top",
+                  labels: {
+                    color: "#94a3b8",
+                    font: { size: 11 },
+                    usePointStyle: true,
+                  },
+                },
+                annotation: {
+                  annotations: {
+                    zone2Box: {
+                      type: "box",
+                      yMin: zone2Lower,
+                      yMax: zone2Upper,
+                      yScaleID: "y1",
+                      backgroundColor: "rgba(16, 185, 129, 0.1)",
+                      borderColor: "rgba(16, 185, 129, 0.3)",
+                      borderWidth: 1,
+                      label: {
+                        display: true,
+                        content: "Zone 2 Target",
+                        position: "start",
+                        color: "#10b981",
+                        font: { size: 9 },
+                      },
+                    },
+                  },
                 },
               },
               scales: {
                 y: {
                   display: true,
                   position: "left",
+                  title: {
+                    display: true,
+                    text: "Duration (min)",
+                    color: "#3b82f6",
+                    font: { size: 11, weight: "bold" },
+                  },
                   grid: {
                     color: "#334155",
+                  },
+                  ticks: {
+                    color: "#3b82f6",
                   },
                 },
                 y1: {
                   display: true,
                   position: "right",
+                  title: {
+                    display: true,
+                    text: "Heart Rate (bpm)",
+                    color: "#ef4444",
+                    font: { size: 11, weight: "bold" },
+                  },
                   grid: {
                     display: false,
                   },
+                  ticks: {
+                    color: "#ef4444",
+                  },
+                  min: zone2Lower - 10,
+                  max: zone2Upper + 10,
                 },
                 x: {
                   grid: {
@@ -4829,6 +5698,219 @@ if (chestVol > 0 && backVol > 0) {
               },
             },
           });
+        },
+
+        renderCardioTable: (logs, tbody) => {
+          if (!tbody) return;
+
+          const tableEl = tbody.closest("table");
+          if (tableEl) {
+            tableEl.style.tableLayout = "fixed";
+            tableEl.style.width = "100%";
+            tableEl.style.borderSpacing = "0";
+            tableEl.style.padding = "0";
+            tableEl.className = "w-full border-collapse p-0 m-0";
+
+            const thead = tableEl.querySelector("thead tr");
+            if (thead) {
+              thead.innerHTML = `
+                <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase border-b border-slate-700" style="width: 15%">TGL</th>
+                <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase border-b border-slate-700" style="width: 25%">Machine</th>
+                <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase border-b border-slate-700" style="width: 20%">Dur.</th>
+                <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase border-b border-slate-700" style="width: 20%">HR Avg</th>
+                <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase border-b border-slate-700" style="width: 20%">Note</th>
+              `;
+            }
+          }
+
+          let html = "";
+          [...logs]
+            .sort((a, b) => b.ts - a.ts)
+            .forEach((l) => {
+              const lower = l.zoneTarget ? l.zoneTarget[0] : 0;
+              const upper = l.zoneTarget ? l.zoneTarget[1] : 200;
+              const inZone = l.avgHR >= lower && l.avgHR <= upper;
+
+              const zoneIcon = inZone
+                ? '<i class="fa-solid fa-circle-check text-emerald-500 text-[9px] inline-block ml-0.5"></i>'
+                : '<i class="fa-solid fa-circle-exclamation text-yellow-500 text-[9px] inline-block ml-0.5"></i>';
+              const hrClass = inZone ? "text-emerald-400" : "text-yellow-400";
+
+              html += `
+              <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
+                  l.date
+                }</td>
+                
+                <td class="py-3 px-0 text-center text-sm font-bold text-blue-400 truncate capitalize">${
+                  l.machine
+                }</td>
+                
+                <td class="py-3 px-0 text-center text-white font-mono text-sm">
+                    ${
+                      l.duration
+                    }<span class="text-slate-600 text-[10px]">m</span>
+                </td>
+                
+                <td class="py-3 px-0 text-center whitespace-nowrap">
+                    <span class="${hrClass} font-bold font-mono text-sm">${
+                l.avgHR
+              }</span><span class="text-[9px] text-slate-600">bpm</span>${zoneIcon}
+                </td>
+                
+                <td class="py-3 px-0 text-center text-slate-500 text-[10px] italic truncate px-1">${
+                  l.note || "-"
+                }</td>
+              </tr>
+            `;
+            });
+
+          tbody.innerHTML = html;
+        },
+
+        updateCardioVitals: (logs, vital) => {
+          if (!vital) return;
+
+          const avgDuration = Math.round(
+            logs.reduce((sum, l) => sum + l.duration, 0) / logs.length
+          );
+          const avgHR = Math.round(
+            logs.reduce((sum, l) => sum + l.avgHR, 0) / logs.length
+          );
+          const totalSessions = logs.length;
+
+          const inZoneCount = logs.filter(
+            (l) => l.avgHR >= l.zoneTarget[0] && l.avgHR <= l.zoneTarget[1]
+          ).length;
+          const consistency = Math.round((inZoneCount / totalSessions) * 100);
+
+          vital.className = "";
+          vital.style.display = "block";
+          vital.style.width = "100%";
+
+          vital.innerHTML = `
+            <div class="w-full space-y-2">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[8px] text-slate-400 uppercase mb-1">Avg Duration</div>
+                  <div class="text-2xl font-black text-blue-400">${avgDuration}</div>
+                  <div class="text-[9px] text-blue-300 font-bold">min</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[8px] text-slate-400 uppercase mb-1">Avg HR</div>
+                  <div class="text-2xl font-black text-red-400">${avgHR}</div>
+                  <div class="text-[9px] text-red-300 font-bold">bpm</div>
+                </div>
+                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
+                  <div class="text-[8px] text-slate-400 uppercase mb-1">Sessions</div>
+                  <div class="text-3xl font-black text-white">${totalSessions}</div>
+                </div>
+              </div>
+              
+              <div class="bg-slate-700/30 p-2 rounded border ${
+                consistency >= 80
+                  ? "border-emerald-500/50"
+                  : consistency >= 60
+                  ? "border-yellow-500/50"
+                  : "border-red-500/50"
+              }">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[9px] text-slate-300 uppercase font-bold flex items-center gap-1">
+                    <span>${
+                      consistency >= 80 ? "✅" : consistency >= 60 ? "⚠️" : "❌"
+                    }</span>
+                    Zone 2 Consistency
+                  </span>
+                  <span class="text-lg font-black ${
+                    consistency >= 80
+                      ? "text-emerald-400"
+                      : consistency >= 60
+                      ? "text-yellow-400"
+                      : "text-red-400"
+                  }">${consistency}%</span>
+                </div>
+                <div class="bg-slate-900/50 rounded-full h-2 overflow-hidden">
+                  <div class="h-full transition-all duration-500 ${
+                    consistency >= 80
+                      ? "bg-emerald-500"
+                      : consistency >= 60
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
+                  }" style="width: ${consistency}%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-[8px] text-slate-500">
+                  <span>0%</span>
+                  <span class="text-slate-400">${inZoneCount}/${totalSessions}</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </div>
+          `;
+        },
+      };
+
+      APP.cardio = {
+        setDuration: (sessionId, exerciseIdx, minutes) => {
+          LS_SAFE.set(`${sessionId}_ex${exerciseIdx}_duration`, minutes);
+          APP.nav.loadWorkout(sessionId);
+        },
+
+        validateHR: (sessionId, exerciseIdx, hr) => {
+          LS_SAFE.set(`${sessionId}_ex${exerciseIdx}_hr`, hr);
+
+          const profile = LS_SAFE.getJSON("profile", {});
+          const age = profile.a || 30;
+          const maxHR = 220 - age;
+          const zone2Lower = Math.round(maxHR * 0.6);
+          const zone2Upper = Math.round(maxHR * 0.7);
+
+          const statusEl = document.getElementById(
+            `hr-status-${sessionId}-${exerciseIdx}`
+          );
+          if (!statusEl) return;
+
+          const hrVal = parseInt(hr);
+          if (!hr || isNaN(hrVal)) {
+            statusEl.innerHTML = `Target: ${zone2Lower}-${zone2Upper} bpm (Zone 2)`;
+            statusEl.className = "text-xs text-slate-400";
+            return;
+          }
+
+          if (hrVal >= zone2Lower && hrVal <= zone2Upper) {
+            statusEl.innerHTML = `✅ Zone 2 (${zone2Lower}-${zone2Upper} bpm)`;
+            statusEl.className = "text-xs hr-zone-valid";
+          } else if (hrVal >= zone2Lower - 5 && hrVal <= zone2Upper + 5) {
+            statusEl.innerHTML = `⚠️ Near Zone 2 (Target: ${zone2Lower}-${zone2Upper})`;
+            statusEl.className = "text-xs hr-zone-warning";
+          } else {
+            statusEl.innerHTML = `❌ Outside Zone 2 (Target: ${zone2Lower}-${zone2Upper})`;
+            statusEl.className = "text-xs hr-zone-invalid";
+          }
+        },
+
+        selectNote: (sessionId, exerciseIdx, note) => {
+          LS_SAFE.set(`${sessionId}_ex${exerciseIdx}_cardio_note`, note);
+          APP.nav.loadWorkout(sessionId);
+        },
+
+        toggleComplete: (sessionId, exerciseIdx, complete) => {
+          if (complete) {
+            const duration = LS_SAFE.get(
+              `${sessionId}_ex${exerciseIdx}_duration`
+            );
+            const hr = LS_SAFE.get(`${sessionId}_ex${exerciseIdx}_hr`);
+
+            if (!duration || !hr) {
+              alert("Please fill Duration and Heart Rate before completing");
+              return;
+            }
+          }
+
+          LS_SAFE.set(
+            `${sessionId}_ex${exerciseIdx}_completed`,
+            complete.toString()
+          );
+          APP.nav.loadWorkout(sessionId);
         },
       };
 
@@ -5051,20 +6133,56 @@ if (chestVol > 0 && backVol > 0) {
 
           if (mode === "new") {
             const sessionId = APP.state.currentSessionId;
-            APP.state.workoutData[sessionId].exercises.push({
-              sets: 3,
-              rest: 90,
-              note: note || "Library",
-              options: [
-                {
-                  n: name,
-                  t_r: targetReps,
-                  bio: bio,
-                  vid: "",
-                  note: note || "",
-                },
-              ],
-            });
+
+            const isCardio =
+              name.includes("[Cardio]") ||
+              APP.ui.exercisePicker.allExercises.find(
+                (ex) => ex.n === name && ex.type === "cardio"
+              );
+
+            if (isCardio) {
+              const cardioExercise = APP.ui.exercisePicker.allExercises.find(
+                (ex) => ex.n === name
+              );
+
+              APP.state.workoutData[sessionId].exercises.push({
+                type: "cardio",
+                target_duration: parseInt(targetReps) || 30,
+                target_hr_zone: "Zone 2",
+                note: note || "Post-workout",
+                options: [
+                  {
+                    n: name,
+                    t_r: targetReps,
+                    bio: bio,
+                    note: note || "",
+                    type: "cardio",
+                    machines: cardioExercise?.machines || [
+                      "Treadmill",
+                      "Static Bike",
+                      "Rowing Machine",
+                      "Elliptical",
+                    ],
+                  },
+                ],
+              });
+            } else {
+              APP.state.workoutData[sessionId].exercises.push({
+                sets: 3,
+                rest: 90,
+                note: note || "Library",
+                options: [
+                  {
+                    n: name,
+                    t_r: targetReps,
+                    bio: bio,
+                    vid: "",
+                    note: note || "",
+                  },
+                ],
+              });
+            }
+
             APP.core.saveProgram();
             APP.nav.loadWorkout(sessionId);
             APP.ui.showToast(`✅ "${name}" ditambahkan`, "success");
@@ -5092,6 +6210,8 @@ if (chestVol > 0 && backVol > 0) {
               "success"
             );
           }
+
+          APP.ui.closeModal("exercise-picker");
         } catch (e) {
           console.error("selectExercise Error:", e);
           alert("Error: " + e.message);
