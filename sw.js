@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-grind-design-v21.2';
+const CACHE_NAME = 'the-grind-design';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -18,7 +18,7 @@ const EXTERNAL_LIBS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('V22 Update: Caching Assets...');
+      console.log('Caching Assets...');
       await cache.addAll(ASSETS_TO_CACHE);
       
       const libraryPromises = EXTERNAL_LIBS.map(async (url) => {

@@ -1,4 +1,4 @@
-🏗️ THE GRIND DESIGN (V22.0)
+🏗️ THE GRIND DESIGN (V24.0)
 
 
 Clinical Strength & Hypertrophy OS for High-Performance Athletes
