@@ -463,17 +463,18 @@ cardio: [
   {
     n: "[Cardio] LISS Session",
     t_r: "20-30 min",
+    type: "cardio",
     bio: "Low-Intensity Steady State cardio. Maintain Zone 2 heart rate (60-70% max HR) for optimal fat oxidation and recovery.",
     note: "Post-workout recommended",
-    target_hr_zone: "Zone 2",
-    machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical"]  // Multi-machine support
+    machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical", "Outdoor Bike", "Outdoor Walk"]  // Multi-machine support
   },
   {
-    n: "[Cardio] Recovery Walk",
-    t_r: "15-20 min",
-    bio: "Light intensity walking for active recovery. Very low HR (50-60% max).",
-    target_hr_zone: "Zone 1",
-    machines: ["Treadmill"]
+    n: "[Cardio] Warmup Cardio",
+    t_r: "5 min",
+    type: "cardio",
+    bio: "Pre-workout warmup. Light walking to elevate heart rate and prepare joints.",
+    note: "Pre-workout only",
+    machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical", "Outdoor Bike", "Outdoor Walk"]  // Multi-machine support
   }
 ],
 
