@@ -459,72 +459,23 @@ legs: [
   ],
 
  // 🏃 CARDIO & CONDITIONING (EXPANDED LIBRARY)
- cardio: [
-    {
-      n: "[Cardio] LISS Session",
-      t_r: "20-30 min",
-      type: "cardio",
-      bio: "Low-Intensity Steady State cardio. Fokus pada oksidasi lemak dan efisiensi mitokondria. Target: Zone 2 (60-70% Max HR).",
-      note: "Post-workout recommended",
-      machines: ["Treadmill", "Static Bike", "Rowing Machine", "Elliptical"]
-    },
-    {
-      n: "[Cardio] Recovery Ride",
-      t_r: "15-20 min",
-      type: "cardio",
-      bio: "Active recovery untuk flushing laktat dan meningkatkan aliran darah ke otot tanpa menambah systemic fatigue.",
-      note: "Light resistance, easy pace",
-      machines: ["Static Bike", "Elliptical"]
-    },
-    {
-      n: "[Cardio] Incline Rucking",
-      t_r: "15-25 min",
-      type: "cardio",
-      bio: "Latihan beban aksial ringan melalui jalan miring. Efektif untuk posterior chain dan stabilitas core.",
-      note: "Incline 5-10%, speed 4-5 km/h",
-      machines: ["Treadmill"]
-    },
-    {
-      n: "[Cardio] Metabolic Finisher",
-      t_r: "10-15 min",
-      type: "cardio",
-      bio: "Moderate intensity untuk meningkatkan kapasitas glikolitik. Cocok dilakukan di akhir sesi Lower Body.",
-      note: "Medium intensity, maintain rhythmic breathing",
-      machines: ["Rowing Machine", "Stair Climber"]
-    },
-    {
-      n: "[Cardio] Stair Climber Steady State",
-      t_r: "15-20 min",
-      type: "cardio",
-      bio: "Fokus pada penguatan fungsional quadriceps dan glutes sambil menjaga ritme jantung.",
-      note: "Avoid leaning on handrails for max core engagement",
-      machines: ["Stair Climber"]
-    },
-    {
-      n: "[Cardio] Warmup Walk",
-      t_r: "5-10 min",
-      type: "cardio",
-      bio: "Pre-workout warmup. Elevasi suhu tubuh inti dan lubrikasi sendi synovial.",
-      note: "Dynamic stretch follows after this",
-      machines: ["Treadmill"]
-    },
-    {
-      n: "[Cardio] Outdoor Brisk Walking",
-      t_r: "30-45 min",
-      type: "cardio",
-      bio: "Jalan cepat di luar ruangan. Memberikan stimulasi kognitif tambahan dan vitamin D. Low impact, aman untuk pemulihan sendi.",
-      note: "Pace 5-6 km/jam, usahakan postur tegak",
-      machines: ["Outdoor / Jalan Bebas"]
-    },
-    {
-      n: "[Cardio] Outdoor Cycling",
-      t_r: "45-60 min",
-      type: "cardio",
-      bio: "Bersepeda santai hingga sedang. Sangat baik untuk mobilisasi sendi lutut tanpa beban kompresif berat (non-weight bearing).",
-      note: "Gunakan rute datar untuk menjaga Zone 2",
-      machines: ["Sepeda Bebas / Road Bike"]
-    }
-  ],
+cardio: [
+  {
+    n: "[Cardio] LISS Session",
+    t_r: "20-30 min",
+    bio: "Low-Intensity Steady State cardio. Maintain Zone 2 heart rate (60-70% max HR) for optimal fat oxidation and recovery.",
+    note: "Post-workout recommended",
+    target_hr_zone: "Zone 2",
+    machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical"]  // Multi-machine support
+  },
+  {
+    n: "[Cardio] Recovery Walk",
+    t_r: "15-20 min",
+    bio: "Light intensity walking for active recovery. Very low HR (50-60% max).",
+    target_hr_zone: "Zone 1",
+    machines: ["Treadmill"]
+  }
+],
 
   // 🧘 MOBILITY & STRETCHING
   stretching: [
