@@ -464,7 +464,7 @@ cardio: [
     n: "[Cardio] LISS Session",
     t_r: "20-30 min",
     type: "cardio",
-    bio: "Low-Intensity Steady State cardio. Maintain Zone 2 heart rate (60-70% max HR) for optimal fat oxidation and recovery.",
+    bio: "Low-Intensity Steady State cardio. Jaga heart rate di zona 2(60-70% max HR) untuk pembakaran lemak optimal.",
     note: "Post-workout recommended",
     machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical", "Outdoor Bike", "Outdoor Walk"]  // Multi-machine support
   },
@@ -472,8 +472,8 @@ cardio: [
     n: "[Cardio] Warmup Cardio",
     t_r: "5 min",
     type: "cardio",
-    bio: "Pre-workout warmup. Light walking to elevate heart rate and prepare joints.",
-    note: "Pre-workout only",
+    bio: "Pre-workout warmup untuk elevasi heart rate.",
+    note: "Pre-workout, lanjut ke dynamic stretching",
     machines: ["Treadmill", "Static Bike", "Rowing", "Elliptical", "Outdoor Bike", "Outdoor Walk"]  // Multi-machine support
   }
 ],
