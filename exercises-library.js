@@ -458,7 +458,7 @@ legs: [
     }
   ],
 
- // 🏃 CARDIO & CONDITIONING (EXPANDED LIBRARY)
+ // 🏃 CARDIO & CONDITIONING
 cardio: [
   {
     n: "[Cardio] LISS Session",
