@@ -12,6 +12,258 @@
  * }
  */
 
+
+/**
+ * 🔬 VOLUME DISTRIBUTION SYSTEM (Evidence-Based)
+ * Based on Renaissance Periodization / Dr. Mike Israetel Guidelines
+ * 
+ * PRIMARY (1.0): Direct hypertrophy stimulus - full ROM dynamic contraction
+ * SECONDARY (0.5): Synergist dengan kontraksi dinamis signifikan
+ * TERTIARY (0.0): Stabilizer - DIABAIKAN untuk data cleanliness
+ */
+
+const VOLUME_DISTRIBUTION = {
+  PRIMARY: 1.0,
+  SECONDARY: 0.5,
+  TERTIARY: 0.0  // Not used in mapping - for documentation only
+};
+
+/**
+ * 🎯 EXERCISE TARGETS MAPPING
+ * Maps exercise names to muscle groups dengan role classification
+ * 
+ * Format:
+ * "[Tag] Exercise Name": [
+ *   { muscle: "target", role: "PRIMARY" },
+ *   { muscle: "synergist", role: "SECONDARY" }
+ * ]
+ * 
+ * Rules:
+ * - Only include PRIMARY and SECONDARY
+ * - TERTIARY/Stabilizers are automatically 0.0 (omitted)
+ * - muscle values: "chest", "back", "legs", "shoulders", "arms"
+ */
+
+const EXERCISE_TARGETS = {
+  // ==================
+  // CHEST EXERCISES
+  // ==================
+  "[Barbell] Bench Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }  // Triceps - full ROM lockout
+  ],
+  "[Barbell] Incline Bench Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[DB] Flat Dumbbell Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[DB] Incline Dumbbell Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Machine] Chest Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Cable] Cable Fly": [
+    { muscle: "chest", role: "PRIMARY" }  // Pure isolation
+  ],
+  "[Machine] Incline Chest Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Machine] Pec Deck Fly": [
+    { muscle: "chest", role: "PRIMARY" }  // Pure isolation
+  ],
+
+  // ==================
+  // BACK EXERCISES
+  // ==================
+  "[Barbell] Barbell Deadlift": [
+    { muscle: "back", role: "PRIMARY" },      // Erectors/Lats/Traps
+    { muscle: "legs", role: "SECONDARY" },    // Hams/Glutes (hip extension)
+    { muscle: "arms", role: "SECONDARY" }     // Forearms (dynamic grip)
+  ],
+  "[Barbell] Barbell Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }     // Biceps (elbow flexion)
+  ],
+  "[DB] One Arm DB Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Cable] Lat Pulldown (wide)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Cable] Seated Cable Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Machine] Machine Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Cable] Face Pull": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" } // Rhomboids/Traps
+  ],
+  "[BW] Push Up (Slow Tempo)": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+
+  // ==================
+  // SHOULDER EXERCISES
+  // ==================
+  "[Barbell] Overhead Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }     // Triceps - full ROM lockout
+  ],
+  "[DB] Dumbbell Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Machine] Smith Machine Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[DB] DB Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" }  // Pure isolation
+  ],
+  "[Cable] Cable Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" }  // Pure isolation
+  ],
+  "[Machine] Machine Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Machine] Reverse Pec Deck": [
+    { muscle: "shoulders", role: "PRIMARY" }  // Rear delt isolation
+  ],
+
+  // ==================
+  // ARMS EXERCISES
+  // ==================
+  "[Barbell] Barbell Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[DB] Dumbbell Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Cable] Cable Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Machine] Bicep Machine": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Barbell] Close-Grip Bench Press": [
+    { muscle: "arms", role: "PRIMARY" },      // Triceps focus
+    { muscle: "chest", role: "SECONDARY" }    // Pec masih ada kontraksi dinamis
+  ],
+  "[DB] Dumbbell Skullcrusher": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Cable] Overhead Tricep Extension": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Cable] Tricep Pushdown (Rope)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[DB] Incline DB Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Barbell] Skullcrushers (EZ Bar)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[DB] Hammer Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "[Cable] Bayesian Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+
+  // ==================
+  // LEGS EXERCISES
+  // ==================
+  "[Barbell] Barbell Squat": [
+    { muscle: "legs", role: "PRIMARY" }       // Quads/Glutes, back hanya stabilizer
+  ],
+  "[Barbell] Barbell Front Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Leg Press (Quad Bias)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Hack Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[DB] Dumbbell Goblet Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Leg Press (Glute Bias)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Barbell] RDL (Barbell)": [
+    { muscle: "legs", role: "PRIMARY" },      // Hams/Glutes
+    { muscle: "back", role: "SECONDARY" }     // Erectors (isometric ekstension)
+  ],
+  "[Machine] Lying Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Seated Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[DB] Forward Lunge": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Leg Extension": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Smith Machine Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[DB] Bulgarian Split Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Machine] Seated Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+
+  // ==================
+  // COMPOUND MOVEMENTS (dari compound category)
+  // ==================
+  "[Barbell] Barbell Bench Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Barbell] Barbell Deadlift": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "legs", role: "SECONDARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Barbell] Barbell Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "[Barbell] Barbell Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "[Barbell] Overhead Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ]
+};
+
+// Export for use in index.html
+if (typeof window !== 'undefined') {
+  window.VOLUME_DISTRIBUTION = VOLUME_DISTRIBUTION;
+  window.EXERCISE_TARGETS = EXERCISE_TARGETS;
+}
+
 const EXERCISES_LIBRARY = {
   // 💪 CHEST - DADA
   chest: [
