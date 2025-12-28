@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN v25 Multi-Muscle Target</title>
+    <title>THE GRIND DESIGN v26 Architect Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -513,7 +513,7 @@
           <p
             class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
           >
-            v25 Multi-Muscle Target
+            v26 Architect Update
           </p>
         </div>
       </div>
@@ -2224,6 +2224,188 @@
               });
         },
       };
+
+      /**
+ * ═══════════════════════════════════════════════════════════════
+ * 🎁 STARTER PACK - DEFAULT PROGRAM FOR NEW USERS
+ * ═══════════════════════════════════════════════════════════════
+ * 2 Sessions: Upper Body + Lower Body
+ * Each session: 4-5 exercises (2 compound, 2 accessory, 1 isolation)
+ * All exercises verified to exist in EXERCISE_TARGETS
+ */
+
+const STARTER_PACK = {
+  "1704067200000": { // Timestamp-based ID (2024-01-01 00:00:00 UTC)
+    label: "UPPER",
+    title: "Upper Body Foundation",
+    dynamic: "Arm Circles, Band Pull-Aparts, Shoulder Dislocates",
+    exercises: [
+      {
+        sets: 3,
+        rest: 150,
+        note: "Primary compound push - chest focus",
+        options: [{
+          n: "[Barbell] Bench Press",
+          t_r: "6-8",
+          t_k: 60,
+          vid: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
+          bio: "Gold standard untuk total horizontal pressing power dan densitas otot pectoral.",
+          note: "Gunakan leg drive. Turunkan bar ke sternum bawah. Siku tidak flaring 90 derajat."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 120,
+        note: "Primary compound pull - back thickness",
+        options: [{
+          n: "[Barbell] Barbell Row",
+          t_r: "8-10",
+          t_k: 50,
+          vid: "https://www.youtube.com/watch?v=9efgcAjQe7E",
+          bio: "Compound horizontal pull primer untuk ketebalan mid-back dan stabilitas core.",
+          note: "Bent-over 45-60 derajat. Tarik bar ke perut bawah. Squeeze scapula di puncak."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 90,
+        note: "Vertical press - shoulder development",
+        options: [{
+          n: "[Barbell] Overhead Press",
+          t_r: "8-10",
+          t_k: 30,
+          vid: "https://www.youtube.com/watch?v=2yjwXTZQDDI",
+          bio: "Membangun kekuatan bahu murni dan stabilitas core.",
+          note: "Mundurkan dagu saat bar naik. Kunci core dan bokong untuk stabilitas lumbal."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 90,
+        note: "Vertical pull - back width",
+        options: [{
+          n: "[Cable] Lat Pulldown (wide)",
+          t_r: "10-12",
+          t_k: 55,
+          vid: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+          bio: "Vertical pull utama untuk membangun lebar punggung (V-Taper).",
+          note: "Tarik bar ke dada atas. Bayangkan siku masuk ke saku celana belakang."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 60,
+        note: "Arm isolation - biceps",
+        options: [{
+          n: "[Barbell] Barbell Curl",
+          t_r: "10-12",
+          t_k: 25,
+          vid: "https://www.youtube.com/watch?v=lyn7kj8v_XU",
+          bio: "Membangun massa bicep keseluruhan.",
+          note: "Kunci siku di samping rusuk. Hindari ayunan pinggang. Kontraksi puncak dan turun terkontrol."
+        }]
+      }
+    ]
+  },
+  
+  "1704067201000": { // +1 second timestamp
+    label: "LOWER",
+    title: "Lower Body Foundation",
+    dynamic: "Leg Swings, Hip Circles, Ankle Mobility",
+    exercises: [
+      {
+        sets: 3,
+        rest: 180,
+        note: "Primary compound - quad dominant",
+        options: [{
+          n: "[Barbell] Barbell Squat",
+          t_r: "6-8",
+          t_k: 80,
+          vid: "https://www.youtube.com/watch?v=gcNh17Ckjgg",
+          bio: "Raja dari semua latihan lower body. Membangun kekuatan sistemik dan stabilitas core.",
+          note: "Chest up, knee tracking mengikuti jari kaki. Turun sedalam mungkin tanpa butt wink."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 120,
+        note: "Hip hinge - posterior chain",
+        options: [{
+          n: "[Barbell] RDL (Barbell)",
+          t_r: "8-10",
+          t_k: 70,
+          vid: "https://www.youtube.com/watch?v=JCXUYuzwNrM",
+          bio: "Raja posterior chain. Fokus pada hip-hinge.",
+          note: "Lutut soft lock. Dorong pinggul ke belakang. Barbell menempel paha."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 120,
+        note: "Quad isolation - knee extension",
+        options: [{
+          n: "[Machine] Leg Extension",
+          t_r: "10-12",
+          t_k: 45,
+          vid: "https://www.youtube.com/watch?v=YyvSfVjQeL0",
+          bio: "Isolasi Rectus Femoris secara maksimal.",
+          note: "Wajib pause 1 detik di posisi kaki lurus. No momentum."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 90,
+        note: "Hamstring isolation - knee flexion",
+        options: [{
+          n: "[Machine] Lying Leg Curl",
+          t_r: "10-12",
+          t_k: 40,
+          vid: "https://www.youtube.com/watch?v=1Tq3QdYUuHs",
+          bio: "Pre-exhaust hamstring. Fokus pada kontraksi puncak.",
+          note: "Tekan pinggul ke pad. Kontraksi 1 detik, turun pelan 3 detik."
+        }]
+      },
+      {
+        sets: 3,
+        rest: 60,
+        note: "Calf isolation - ankle plantarflexion",
+        options: [{
+          n: "[Machine] Seated Calf Raise",
+          t_r: "15-20",
+          t_k: 35,
+          vid: "https://www.youtube.com/watch?v=JbyjNymZOt0",
+          bio: "Target Soleus (otot betis dalam/lebar).",
+          note: "Full ROM. Pause di bawah untuk menghilangkan refleks regangan."
+        }]
+      }
+    ]
+  }
+};
+
+// Validate STARTER_PACK at load time (fail-fast if library mismatch)
+if (typeof EXERCISE_TARGETS !== 'undefined') {
+  console.log('[STARTER_PACK] Validating exercises against library...');
+  
+  let invalidCount = 0;
+  Object.keys(STARTER_PACK).forEach(sessionId => {
+    const session = STARTER_PACK[sessionId];
+    session.exercises.forEach(ex => {
+      ex.options.forEach(opt => {
+        if (!EXERCISE_TARGETS[opt.n]) {
+          console.error(`[STARTER_PACK] Invalid exercise: "${opt.n}" not in EXERCISE_TARGETS`);
+          invalidCount++;
+        }
+      });
+    });
+  });
+  
+  if (invalidCount === 0) {
+    console.log('[STARTER_PACK] ✅ All exercises validated successfully');
+  } else {
+    console.error(`[STARTER_PACK] ❌ ${invalidCount} invalid exercises found!`);
+  }
+}
+      
       const APP = {
         state: {
           wakeLock: null,
@@ -2345,41 +2527,876 @@
             if (num > max) return max;
             return num;
           },
+
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * 🔄 DATA NORMALIZATION - EXERCISE NAME STANDARDIZATION
+ * ═══════════════════════════════════════════════════════════════
+ * Purpose: Clean old bracket-prefixed names to match library keys
+ * Example: "[Machine] Chest Press" → "Machine Chest Press"
+ *          "[DB] Curl" → "Dumbbell Curl"
+ */
+
+/**
+ * Normalize exercise names by removing/standardizing brackets
+ * Modifies data in-place (mutations necessary for migration)
+ * @param {object} programData - workoutData object to normalize
+ * @returns {object} Report { normalized: count, errors: [] }
+ */
+normalizeExerciseNames : function(programData) {
+  const report = {
+    normalized: 0,
+    errors: [],
+    changes: []
+  };
+  
+  if (!programData || typeof programData !== 'object') {
+    report.errors.push('Invalid program data for normalization');
+    return report;
+  }
+  
+  console.log('[NORMALIZE] Starting exercise name normalization...');
+  
+  Object.keys(programData).forEach(sessionId => {
+    const session = programData[sessionId];
+    
+    if (!session || !session.exercises) return;
+    
+    session.exercises.forEach((exercise, exIdx) => {
+      if (!exercise.options) return;
+      
+      exercise.options.forEach((option, optIdx) => {
+        if (!option.n) return;
+        
+        const originalName = option.n;
+        let normalizedName = originalName;
+        
+        // STEP 1: Remove duplicate brackets patterns
+        // "[Machine] Machine Chest Press" → "Machine Chest Press"
+        const bracketMatch = normalizedName.match(/^\[(.*?)\]\s*(.*)/);
+        if (bracketMatch) {
+          const bracketContent = bracketMatch[1]; // "Machine"
+          const restOfName = bracketMatch[2];     // "Machine Chest Press" or "Chest Press"
+          
+          // If rest of name already starts with bracket content, remove bracket
+          if (restOfName.toLowerCase().startsWith(bracketContent.toLowerCase())) {
+            normalizedName = restOfName;
+          } else {
+            // Otherwise, prepend bracket content to name
+            normalizedName = `${bracketContent} ${restOfName}`;
+          }
+        }
+        
+        // STEP 2: Standardize common variations
+        const substitutions = {
+          'DB ': 'Dumbbell ',
+          'BB ': 'Barbell ',
+          'BW ': 'Bodyweight ',
+          // Add more as needed
+        };
+        
+        Object.keys(substitutions).forEach(pattern => {
+          if (normalizedName.startsWith(pattern)) {
+            normalizedName = normalizedName.replace(pattern, substitutions[pattern]);
+          }
+        });
+        
+        // STEP 3: Trim and clean whitespace
+        normalizedName = normalizedName.trim().replace(/\s+/g, ' ');
+        
+        // STEP 4: If name changed, update and log
+        if (normalizedName !== originalName) {
+          option.n = normalizedName;
+          report.normalized++;
+          
+          const change = `Session ${sessionId}, Ex ${exIdx + 1}, Opt ${optIdx + 1}: "${originalName}" → "${normalizedName}"`;
+          report.changes.push(change);
+          console.log(`[NORMALIZE] ${change}`);
+          
+          // STEP 5: Verify normalized name exists in library
+          if (typeof EXERCISE_TARGETS !== 'undefined') {
+            if (!EXERCISE_TARGETS[normalizedName]) {
+              report.errors.push(
+                `Normalized name "${normalizedName}" still not found in library (from: "${originalName}")`
+              );
+            }
+          }
+        }
+      });
+    });
+  });
+  
+  console.log(`[NORMALIZE] Complete. Normalized ${report.normalized} exercise names.`);
+  
+  if (report.errors.length > 0) {
+    console.warn('[NORMALIZE] Errors:', report.errors);
+  }
+  
+  return report;
+},
+
+/**
+ * Auto-repair unrecognized exercises by matching to closest library entry
+ * Use Levenshtein distance or simple string matching
+ * @param {string} exerciseName - Unrecognized exercise name
+ * @returns {string|null} Suggested exercise name from library
+ */
+suggestExerciseMatch : function(exerciseName) {
+  if (typeof EXERCISE_TARGETS === 'undefined') {
+    return null;
+  }
+  
+  const libraryKeys = Object.keys(EXERCISE_TARGETS);
+  const lowerSearch = exerciseName.toLowerCase();
+  
+  // Try exact match (case-insensitive)
+  for (let key of libraryKeys) {
+    if (key.toLowerCase() === lowerSearch) {
+      return key;
+    }
+  }
+  
+  // Try partial match (contains search term)
+  for (let key of libraryKeys) {
+    if (key.toLowerCase().includes(lowerSearch) || lowerSearch.includes(key.toLowerCase())) {
+      return key;
+    }
+  }
+  
+  // Try word-by-word match
+  const searchWords = lowerSearch.split(/\s+/);
+  let bestMatch = null;
+  let maxScore = 0;
+  
+  libraryKeys.forEach(key => {
+    const keyWords = key.toLowerCase().split(/\s+/);
+    let score = 0;
+    
+    searchWords.forEach(searchWord => {
+      keyWords.forEach(keyWord => {
+        if (keyWord.includes(searchWord) || searchWord.includes(keyWord)) {
+          score++;
+        }
+      });
+    });
+    
+    if (score > maxScore) {
+      maxScore = score;
+      bestMatch = key;
+    }
+  });
+  
+  return maxScore > 0 ? bestMatch : null;
+},
+
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * 🔬 ENHANCED VALIDATION - EXERCISE INTEGRITY & STRUCTURE
+ * ═══════════════════════════════════════════════════════════════
+ * Purpose: Ensure data integrity untuk Multi Muscle Target calculation
+ * Strictness: BLOCK on Error, WARN on missing metadata
+ */
+
+/**
+ * Validate exercise integrity (check against library)
+ * @param {object} sessionData - Session object to validate
+ * @returns {object} Validation report { valid, errors, warnings }
+ */
+/**
+ * Validate exercise integrity (check against library)
+ * NOW WITH AUTO-SUGGESTION for unrecognized exercises
+ * @param {object} sessionData - Session object to validate
+ * @returns {object} Validation report { valid, errors, warnings, suggestions }
+ */
+validateExerciseIntegrity: function(sessionData) {
+  const report = {
+    valid: true,
+    errors: [],
+    warnings: [],
+    suggestions: [] // New: suggested fixes
+  };
+  
+  if (!sessionData || !sessionData.exercises) {
+    report.valid = false;
+    report.errors.push('Invalid session structure: missing exercises array');
+    return report;
+  }
+  
+  sessionData.exercises.forEach((exercise, idx) => {
+    // Check exercise structure
+    if (!exercise.options || exercise.options.length === 0) {
+      report.valid = false;
+      report.errors.push(`Exercise #${idx + 1}: No options defined`);
+      return;
+    }
+    
+    exercise.options.forEach((option, optIdx) => {
+      const exName = option.n || '';
+      
+      // CRITICAL: Check if exercise exists in EXERCISE_TARGETS
+      if (typeof EXERCISE_TARGETS !== 'undefined') {
+        if (!EXERCISE_TARGETS[exName]) {
+          // Try to find suggestion
+          const suggestion = this.suggestExerciseMatch(exName);
+          
+          if (suggestion) {
+            report.warnings.push(
+              `Exercise #${idx + 1} Option ${optIdx + 1}: "${exName}" not found. Did you mean "${suggestion}"?`
+            );
+            report.suggestions.push({
+              index: idx,
+              optionIndex: optIdx,
+              original: exName,
+              suggested: suggestion
+            });
+          } else {
+            report.valid = false;
+            report.errors.push(
+              `Exercise #${idx + 1} Option ${optIdx + 1}: "${exName}" not found in library and no close match available.`
+            );
+          }
+        }
+      } else {
+        report.warnings.push('EXERCISE_TARGETS library not loaded - cannot validate');
+      }
+      
+      // Check required fields (non-blocking)
+      if (!option.t_r) {
+        report.warnings.push(`Exercise #${idx + 1}: Missing target reps (t_r)`);
+      }
+      
+      if (!option.bio) {
+        report.warnings.push(`Exercise #${idx + 1}: Missing biomechanics description`);
+      }
+    });
+  });
+  
+  return report;
+},
+
+/**
+ * Validate entire program structure
+ * @param {object} programData - workoutData object
+ * @returns {object} Validation report
+ */
+validateProgramStructure : function(programData) {
+  const report = {
+    valid: true,
+    errors: [],
+    warnings: []
+  };
+  
+  if (!programData || typeof programData !== 'object') {
+    report.valid = false;
+    report.errors.push('Invalid program structure: not an object');
+    return report;
+  }
+  
+  const sessionIds = Object.keys(programData);
+  
+  if (sessionIds.length === 0) {
+    report.warnings.push('Program has no sessions');
+  }
+  
+  // Validate each session
+  sessionIds.forEach(sessionId => {
+    const session = programData[sessionId];
+    const sessionReport = this.validateSessionStructure(session, sessionId);
+    
+    // Merge reports
+    report.errors.push(...sessionReport.errors);
+    report.warnings.push(...sessionReport.warnings);
+    
+    if (!sessionReport.valid) {
+      report.valid = false;
+    }
+  });
+  
+  return report;
+},
+
+/**
+ * Validate single session structure
+ * @param {object} session - Session object
+ * @param {string} sessionId - Session ID for error messages
+ * @returns {object} Validation report
+ */
+validateSessionStructure : function(session, sessionId = 'unknown') {
+  const report = {
+    valid: true,
+    errors: [],
+    warnings: []
+  };
+  
+  // Required fields
+  if (!session.title) {
+    report.warnings.push(`Session ${sessionId}: Missing title`);
+  }
+  
+  if (!session.exercises) {
+    report.valid = false;
+    report.errors.push(`Session ${sessionId}: Missing exercises array`);
+    return report;
+  }
+  
+  if (!Array.isArray(session.exercises)) {
+    report.valid = false;
+    report.errors.push(`Session ${sessionId}: exercises is not an array`);
+    return report;
+  }
+  
+  if (session.exercises.length === 0) {
+    report.warnings.push(`Session ${sessionId}: No exercises defined`);
+  }
+  
+  // Validate exercise integrity
+  const exerciseReport = this.validateExerciseIntegrity(session);
+  
+  report.errors.push(...exerciseReport.errors);
+  report.warnings.push(...exerciseReport.warnings);
+  
+  if (!exerciseReport.valid) {
+    report.valid = false;
+  }
+  
+  return report;
+},
+
+/**
+ * Show validation report to user
+ * @param {object} report - Validation report
+ * @param {string} context - Context message
+ * @returns {boolean} true if user confirms to proceed (for warnings)
+ */
+showValidationReport : function(report, context = 'Operation') {
+  if (report.valid && report.warnings.length === 0) {
+    return true; // No issues
+  }
+  
+  let message = `${context} Validation:\n\n`;
+  
+  // Show errors (blocking)
+  if (report.errors.length > 0) {
+    message += '❌ ERRORS (Cannot proceed):\n';
+    report.errors.forEach(err => {
+      message += `• ${err}\n`;
+    });
+    
+    message += '\n⚠️ Fix these errors before saving.';
+    alert(message);
+    return false;
+  }
+  
+  // Show warnings (allow with confirmation)
+  if (report.warnings.length > 0) {
+    message += '⚠️ WARNINGS:\n';
+    report.warnings.forEach(warn => {
+      message += `• ${warn}\n`;
+    });
+    
+    message += '\nThese are optional. Continue anyway?';
+    return confirm(message);
+  }
+  
+  return true;
+},
+
         },
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * 🛡️ APP.SAFETY - BACKUP & RECOVERY ENGINE
+ * ═══════════════════════════════════════════════════════════════
+ * Purpose: Automatic backup system untuk critical operations
+ * Auto-prune: Keep only last 5 backups untuk storage efficiency
+ * 
+ * Backup Keys Format: backup_1734567890_create_session
+ */
+
+safety : {
+  MAX_BACKUPS: 5,
+  
+  /**
+   * Create backup snapshot sebelum critical operation
+   * @param {string} operation - Operation type untuk tracking
+   * @returns {string} backupId untuk reference
+   */
+  createBackup: function(operation) {
+    try {
+      const timestamp = Date.now();
+      const backupId = `backup_${timestamp}_${operation.replace(/\s+/g, '_')}`;
+      
+      // Deep clone critical data
+      const backup = {
+        id: backupId,
+        operation: operation,
+        timestamp: timestamp,
+        date: new Date(timestamp).toISOString(),
+        
+        // Snapshot all critical data
+        workoutData: JSON.parse(JSON.stringify(APP.state.workoutData || {})),
+        gym_hist: LS_SAFE.getJSON('gym_hist', []),
+        profile: LS_SAFE.getJSON('profile', {}),
+        weights: LS_SAFE.getJSON('weights', []),
+        blueprints: LS_SAFE.getJSON('blueprints', []),
+        
+        // Metadata untuk restore validation
+        version: 'v26',
+        userAgent: navigator.userAgent
+      };
+      
+      // Validate backup data sebelum save
+      if (!backup.workoutData || Object.keys(backup.workoutData).length === 0) {
+        console.warn('[SAFETY] Backup created with empty workoutData');
+      }
+      
+      // Save backup
+      const saved = LS_SAFE.setJSON(backupId, backup);
+      
+      if (!saved) {
+        throw new Error('Failed to save backup to localStorage');
+      }
+      
+      console.log(`[SAFETY] Backup created: ${backupId}`);
+      
+      // Auto-prune old backups
+      this.pruneOldBackups(this.MAX_BACKUPS);
+      
+      return backupId;
+      
+    } catch (e) {
+      console.error('[SAFETY] Backup creation failed:', e);
+      APP.ui.showToast('⚠️ Backup gagal! Operation tetap dilanjutkan.', 'warning');
+      return null;
+    }
+  },
+  
+  /**
+   * Restore data dari backup
+   * @param {string} backupId - Backup ID to restore
+   * @returns {boolean} success status
+   */
+  restore: function(backupId) {
+    try {
+      const backup = LS_SAFE.getJSON(backupId);
+      
+      if (!backup) {
+        throw new Error('Backup not found: ' + backupId);
+      }
+      
+      // Validate backup structure
+      if (!backup.workoutData || !backup.timestamp) {
+        throw new Error('Invalid backup structure');
+      }
+      
+      console.log(`[SAFETY] Restoring backup from ${backup.date}`);
+      
+      // Create pre-restore backup (untuk undo restore jika perlu)
+      const preRestoreId = this.createBackup('pre_restore');
+      
+      // Restore all data
+      APP.state.workoutData = backup.workoutData;
+      LS_SAFE.setJSON('cscs_program_v10', backup.workoutData);
+      LS_SAFE.setJSON('gym_hist', backup.gym_hist);
+      LS_SAFE.setJSON('profile', backup.profile);
+      LS_SAFE.setJSON('weights', backup.weights);
+      
+      if (backup.blueprints) {
+        LS_SAFE.setJSON('blueprints', backup.blueprints);
+      }
+      
+      console.log('[SAFETY] Restore complete. Pre-restore backup:', preRestoreId);
+      
+      return true;
+      
+    } catch (e) {
+      console.error('[SAFETY] Restore failed:', e);
+      alert('Restore gagal: ' + e.message);
+      return false;
+    }
+  },
+  
+  /**
+   * Auto-prune old backups (keep only last N)
+   * Called automatically after each createBackup()
+   * @param {number} maxCount - Maximum backups to keep
+   */
+  pruneOldBackups: function(maxCount) {
+    try {
+      const backups = this.listBackups();
+      
+      if (backups.length <= maxCount) {
+        return; // No pruning needed
+      }
+      
+      // Sort by timestamp (oldest first)
+      backups.sort((a, b) => a.timestamp - b.timestamp);
+      
+      // Delete oldest backups
+      const toDelete = backups.length - maxCount;
+      
+      for (let i = 0; i < toDelete; i++) {
+        LS_SAFE.remove(backups[i].id);
+        console.log(`[SAFETY] Pruned old backup: ${backups[i].id}`);
+      }
+      
+      console.log(`[SAFETY] Pruned ${toDelete} old backups. Kept ${maxCount} most recent.`);
+      
+    } catch (e) {
+      console.error('[SAFETY] Prune failed:', e);
+    }
+  },
+  
+  /**
+   * Get all backups sorted by timestamp (newest first)
+   * @returns {Array} Array of backup metadata
+   */
+  listBackups: function() {
+    const backups = [];
+    
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        if (key && key.startsWith('backup_')) {
+          const backup = LS_SAFE.getJSON(key);
+          
+          if (backup && backup.timestamp) {
+            backups.push({
+              id: key,
+              operation: backup.operation,
+              timestamp: backup.timestamp,
+              date: backup.date || new Date(backup.timestamp).toISOString(),
+              sessionCount: Object.keys(backup.workoutData || {}).length,
+              historyCount: (backup.gym_hist || []).length
+            });
+          }
+        }
+      }
+      
+      // Sort newest first
+      backups.sort((a, b) => b.timestamp - a.timestamp);
+      
+    } catch (e) {
+      console.error('[SAFETY] List backups failed:', e);
+    }
+    
+    return backups;
+  },
+  
+  /**
+   * Get latest backup
+   * @returns {object|null} Latest backup metadata
+   */
+  getLatestBackup: function() {
+    const backups = this.listBackups();
+    return backups.length > 0 ? backups[0] : null;
+  },
+  
+  /**
+   * Delete specific backup
+   * @param {string} backupId - Backup ID to delete
+   */
+  deleteBackup: function(backupId) {
+    try {
+      LS_SAFE.remove(backupId);
+      console.log(`[SAFETY] Deleted backup: ${backupId}`);
+      
+      // Re-render backup list jika modal terbuka
+      if (document.getElementById('profile-modal').classList.contains('hidden') === false) {
+        this.renderBackupHistory();
+      }
+      
+    } catch (e) {
+      console.error('[SAFETY] Delete backup failed:', e);
+    }
+  },
+  
+  /**
+   * Render backup history UI di Profile modal
+   * Called when Profile modal tab switches to Backups
+   */
+  renderBackupHistory: function() {
+    const container = document.getElementById('backup-history-container');
+    
+    if (!container) {
+      console.warn('[SAFETY] backup-history-container not found');
+      return;
+    }
+    
+    const backups = this.listBackups();
+    
+    if (backups.length === 0) {
+      container.innerHTML = `
+        <div class="text-center text-slate-500 py-8">
+          <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 opacity-30"></i>
+          <p class="text-xs italic">Belum ada backup tersimpan.</p>
+          <p class="text-[10px] text-slate-600 mt-1">Backup otomatis dibuat saat edit/delete sesi.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    let html = '<div class="space-y-2">';
+    
+    backups.forEach((backup, index) => {
+      const isLatest = index === 0;
+      const dateObj = new Date(backup.timestamp);
+      const dateStr = DT.formatRelative(backup.timestamp);
+      const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      
+      // Operation label dengan emoji
+      let opLabel = backup.operation;
+      let opIcon = '💾';
+      
+      if (backup.operation.includes('delete')) opIcon = '🗑️';
+      else if (backup.operation.includes('edit')) opIcon = '✏️';
+      else if (backup.operation.includes('create')) opIcon = '➕';
+      else if (backup.operation.includes('restore')) opIcon = '🔄';
+      else if (backup.operation.includes('init')) opIcon = '🚀';
+      
+      html += `
+        <div class="bg-slate-800/50 rounded-lg border ${isLatest ? 'border-emerald-500/50' : 'border-slate-700'} p-3">
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-lg">${opIcon}</span>
+                <span class="text-xs font-bold text-white">${opLabel.replace(/_/g, ' ').toUpperCase()}</span>
+                ${isLatest ? '<span class="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-bold">LATEST</span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-400">
+                ${dateStr} • ${timeStr}
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button 
+                onclick="APP.safety.confirmRestore('${backup.id}')"
+                class="text-emerald-400 hover:text-emerald-300 px-2 py-1 text-xs bg-emerald-900/20 rounded border border-emerald-900/50"
+                title="Restore backup ini"
+              >
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button 
+                onclick="APP.safety.deleteBackup('${backup.id}')"
+                class="text-red-400 hover:text-red-300 px-2 py-1 text-xs bg-red-900/20 rounded border border-red-900/50"
+                title="Hapus backup"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-500">
+            <div>
+              <i class="fa-solid fa-dumbbell mr-1"></i>
+              ${backup.sessionCount} Sessions
+            </div>
+            <div>
+              <i class="fa-solid fa-clock-rotate-left mr-1"></i>
+              ${backup.historyCount} Logs
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+  },
+  
+  /**
+   * Confirmation modal sebelum restore
+   * @param {string} backupId - Backup ID to restore
+   */
+  confirmRestore: function(backupId) {
+    const backup = LS_SAFE.getJSON(backupId);
+    
+    if (!backup) {
+      alert('Backup tidak ditemukan!');
+      return;
+    }
+    
+    const dateStr = new Date(backup.timestamp).toLocaleString('id-ID');
+    const currentSessions = Object.keys(APP.state.workoutData).length;
+    const backupSessions = Object.keys(backup.workoutData).length;
+    
+    const confirmed = confirm(
+      `🔄 RESTORE BACKUP\n\n` +
+      `From: ${dateStr}\n` +
+      `Operation: ${backup.operation}\n\n` +
+      `Current Sessions: ${currentSessions}\n` +
+      `Backup Sessions: ${backupSessions}\n\n` +
+      `⚠️ Data saat ini akan ditimpa!\n\n` +
+      `Lanjutkan restore?`
+    );
+    
+    if (!confirmed) return;
+    
+    const success = this.restore(backupId);
+    
+    if (success) {
+      APP.ui.showToast('✅ Restore berhasil! Reloading...', 'success');
+      setTimeout(() => location.reload(), 1500);
+    }
+  }
+},
 
         init: function () {
-          try {
-            if (typeof dayjs !== "undefined") {
-              dayjs.extend(window.dayjs_plugin_relativeTime);
-              dayjs.locale("id");
-            }
+try {
+    console.log('[INIT] Starting application...');
+    
+    // Initialize dayjs
+    if (typeof dayjs !== 'undefined') {
+      dayjs.extend(window.dayjs_plugin_relativeTime);
+      dayjs.locale('id');
+    }
+    
+    // Clean corrupt data from previous sessions
+    if (APP.validation && APP.validation.cleanCorruptData) {
+      const cleaned = APP.validation.cleanCorruptData();
+      if (cleaned > 0) {
+        console.log(`[INIT] Cleaned ${cleaned} corrupt entries`);
+      }
+    }
+    
+    // === STEP 1: LOAD DATA ===
+    const stored = LS_SAFE.getJSON('cscs_program_v10');
+    
+    console.log('[INIT] Loaded data:', stored ? Object.keys(stored).length + ' sessions' : 'null');
+    
+   // === STEP 2: NORMALIZE DATA ===
+if (stored && Object.keys(stored).length > 0) {
+  console.log('[INIT] Normalizing exercise names...');
+  
+  const normalizeReport = APP.validation.normalizeExerciseNames(stored);
+  
+  if (normalizeReport.normalized > 0) {
+    console.log(`[INIT] Normalized ${normalizeReport.normalized} exercise names`);
+    
+    // Save normalized data back to localStorage
+    LS_SAFE.setJSON('cscs_program_v10', stored);
+    
+    APP.ui.showToast(
+      `🔄 Migrated ${normalizeReport.normalized} exercise names to new format`,
+      'success'
+    );
+  }
+  
+  if (normalizeReport.errors.length > 0) {
+    console.warn('[INIT] Normalization errors:', normalizeReport.errors);
+  }
+}
 
-            if (APP.validation && APP.validation.cleanCorruptData) {
-              const cleaned = APP.validation.cleanCorruptData();
-              if (cleaned > 0) {
-                console.log(`[STARTUP] Cleaned ${cleaned} corrupt entries`);
-              }
-            }
+// === STEP 3: VALIDATE DATA ===
+let validationPassed = false;
 
-            const stored = LS_SAFE.getJSON("cscs_program_v10");
-            if (stored) {
-              this.state.workoutData = stored;
-            } else {
-              this.state.workoutData = this.state.defaultTemplate;
-              LS_SAFE.setJSON("cscs_program_v10", this.state.workoutData);
-            }
-            this.data.loadProfile();
-            this.nav.renderDashboard();
-            if (typeof Chart !== "undefined") this.stats.init();
-            this.core.requestWakeLock();
-            document.addEventListener("visibilitychange", () => {
-              if (document.visibilityState === "visible")
-                this.core.requestWakeLock();
-            });
-          } catch (e) {
-            this.debug.showFatalError("Init Error", e);
-          }
-        },
+if (stored && Object.keys(stored).length > 0) {
+  const validation = APP.validation.validateProgramStructure(stored);
+  
+  console.log('[INIT] Validation result:', validation);
+  
+  if (validation.valid) {
+    // Data valid - use it
+    APP.state.workoutData = stored;
+    validationPassed = true;
+    console.log('[INIT] Data validation passed');
+    
+    // Show warnings if any (non-blocking)
+    if (validation.warnings.length > 0) {
+      console.warn('[INIT] Validation warnings:', validation.warnings);
+    }
+    
+    // Show suggestions if any
+    if (validation.suggestions && validation.suggestions.length > 0) {
+      console.log('[INIT] Exercise suggestions available:', validation.suggestions);
+    }
+  } else {
+    // Data corrupt/invalid AFTER normalization
+    console.error('[INIT] Data validation FAILED after normalization:', validation.errors);
+    
+    // === STEP 4: ATTEMPT RESTORE FROM BACKUP ===
+    const latestBackup = APP.safety.getLatestBackup();
+    
+    if (latestBackup) {
+      console.log('[INIT] Corrupt data detected. Latest backup found:', latestBackup.id);
+      
+      const shouldRestore = confirm(
+        `⚠️ DATA VALIDATION FAILED!\n\n` +
+        `After attempting normalization, ${validation.errors.length} errors remain.\n\n` +
+        `Latest backup available:\n` +
+        `Date: ${latestBackup.date}\n` +
+        `Sessions: ${latestBackup.sessionCount}\n\n` +
+        `Restore from backup?\n\n` +
+        `(Cancel = Use Starter Pack)`
+      );
+      
+      if (shouldRestore) {
+        const restored = APP.safety.restore(latestBackup.id);
+        
+        if (restored) {
+          validationPassed = true;
+          console.log('[INIT] Restored from backup successfully');
+          APP.ui.showToast('✅ Data restored from backup', 'success');
+        } else {
+          console.error('[INIT] Restore failed - falling back to STARTER_PACK');
+        }
+      }
+    } else {
+      console.warn('[INIT] No backup available for restore');
+    }
+  }
+}
+
+// === STEP 5: FALLBACK TO STARTER_PACK ===
+if (!validationPassed) {
+  console.log('[INIT] Using STARTER_PACK (empty state or unrecoverable data)');
+  
+  if (typeof STARTER_PACK !== 'undefined') {
+    APP.state.workoutData = STARTER_PACK;
+    LS_SAFE.setJSON('cscs_program_v10', STARTER_PACK);
+    
+    APP.ui.showToast(
+      '🎁 Welcome! Starter program loaded. Tap any session to begin.',
+      'success'
+    );
+  } else {
+    // Ultimate fallback - minimal structure
+    APP.state.workoutData = {};
+    console.error('[INIT] STARTER_PACK not defined - empty state!');
+    alert('⚠️ Critical Error: Starter Pack not loaded. Please refresh page.');
+  }
+}
+
+// === STEP 6: CREATE INIT SNAPSHOT ===
+APP.safety.createBackup('app_init');
+console.log('[INIT] Init snapshot created');
+    
+ 
+    // === CONTINUE NORMAL INIT ===
+    this.data.loadProfile();
+    this.nav.renderDashboard();
+    
+    if (typeof Chart !== 'undefined') {
+      this.stats.init();
+    }
+    
+    // Wake lock
+    this.core.requestWakeLock();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.core.requestWakeLock();
+      }
+    });
+    
+    console.log('[INIT] Application ready');
+    
+  } catch (e) {
+    console.error('[INIT] Fatal error:', e);
+    this.debug.showFatalError('App Initialization', e);
+  }
+},
         core: {
           saveProgram: () =>
             LS_SAFE.setJSON("cscs_program_v10", APP.state.workoutData),
