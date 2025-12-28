@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN v24 Cardio Enabled</title>
+    <title>THE GRIND DESIGN v25 Multi-Muscle Target</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -513,7 +513,7 @@
           <p
             class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
           >
-            v24 Cardio Enabled
+            v25 Multi-Muscle Target
           </p>
         </div>
       </div>
@@ -1337,6 +1337,29 @@
           class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex-1 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
         >
           <div class="mb-4">
+            <!-- 📍 INSERT THIS BEFORE <select id="bodypart-period"> -->
+            <div class="mb-4">
+              <div class="flex gap-2 justify-center">
+                <button
+                  id="view-combined-btn"
+                  onclick="APP.stats.setBodyPartView('combined')"
+                  class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-emerald-600 text-white"
+                >
+                  📊 Combined View
+                </button>
+                <button
+                  id="view-split-btn"
+                  onclick="APP.stats.setBodyPartView('split')"
+                  class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-slate-700 text-slate-400"
+                >
+                  🔀 Split View (Upper/Lower)
+                </button>
+              </div>
+              <p class="text-[9px] text-slate-500 text-center mt-2 italic">
+                Combined: All muscles vs Legs baseline | Split: Fair comparison
+                per region
+              </p>
+            </div>
             <select
               id="bodypart-period"
               onchange="APP.stats.updateBodyParts()"
@@ -4670,6 +4693,90 @@
       APP.stats = {
         chart: null,
         currentView: "dashboard",
+        bodyPartViewMode: "combined",
+
+        getTargets: (exerciseName) => {
+          const cleanName = (exerciseName || "").trim();
+
+          if (
+            typeof EXERCISE_TARGETS !== "undefined" &&
+            EXERCISE_TARGETS[cleanName]
+          ) {
+            return EXERCISE_TARGETS[cleanName];
+          }
+
+          console.warn(`[FALLBACK] Exercise not mapped: ${exerciseName}`);
+          const muscle = APP.stats.classifyExercise(exerciseName);
+          return [{ muscle: muscle, role: "PRIMARY" }];
+        },
+
+        classifyExercise: (name) => {
+          const lower = (name || "").toLowerCase();
+
+          if (
+            lower.includes("squat") ||
+            lower.includes("leg") ||
+            lower.includes("lunge") ||
+            lower.includes("hack") ||
+            lower.includes("calf") ||
+            lower.includes("rdl") ||
+            lower.includes("sumo")
+          ) {
+            return "legs";
+          }
+
+          if (
+            lower.includes("curl") ||
+            lower.includes("tricep") ||
+            lower.includes("bicep") ||
+            lower.includes("skull") ||
+            lower.includes("extension") ||
+            lower.includes("pushdown")
+          ) {
+            return "arms";
+          }
+
+          if (
+            lower.includes("shoulder") ||
+            lower.includes("overhead") ||
+            lower.includes("ohp") ||
+            lower.includes("lateral") ||
+            lower.includes("delt") ||
+            lower.includes("face pull") ||
+            lower.includes("military")
+          ) {
+            return "shoulders";
+          }
+
+          if (
+            lower.includes("bench") ||
+            lower.includes("chest") ||
+            lower.includes("fly") ||
+            lower.includes("push up") ||
+            lower.includes("pec") ||
+            lower.includes("incline") ||
+            lower.includes("dips") ||
+            (lower.includes("press") &&
+              (lower.includes("dumbbell") ||
+                lower.includes("machine") ||
+                lower.includes("barbell")))
+          ) {
+            return "chest";
+          }
+
+          if (
+            lower.includes("pull") ||
+            lower.includes("row") ||
+            lower.includes("deadlift") ||
+            lower.includes("back") ||
+            lower.includes("lat") ||
+            lower.includes("chin up")
+          ) {
+            return "back";
+          }
+
+          return "back";
+        },
 
         init: () => {
           APP.stats.loadOptions();
@@ -5046,6 +5153,77 @@
           }
         },
 
+        getTargets: (exName) => {
+          const cleanName = (exName || "").trim();
+
+          if (window.EXERCISE_TARGETS && window.EXERCISE_TARGETS[cleanName]) {
+            return window.EXERCISE_TARGETS[cleanName];
+          }
+
+          const lowerName = cleanName.toLowerCase();
+          let fallbackMuscle = null;
+
+          if (
+            lowerName.includes("squat") ||
+            lowerName.includes("leg") ||
+            lowerName.includes("lunge") ||
+            lowerName.includes("hack") ||
+            lowerName.includes("calf") ||
+            lowerName.includes("rdl") ||
+            lowerName.includes("sumo")
+          ) {
+            fallbackMuscle = "legs";
+          } else if (
+            lowerName.includes("curl") ||
+            lowerName.includes("tricep") ||
+            lowerName.includes("bicep") ||
+            lowerName.includes("skull") ||
+            lowerName.includes("extension") ||
+            lowerName.includes("pushdown")
+          ) {
+            fallbackMuscle = "arms";
+          } else if (
+            lowerName.includes("shoulder") ||
+            lowerName.includes("overhead") ||
+            lowerName.includes("ohp") ||
+            lowerName.includes("lateral") ||
+            lowerName.includes("delt") ||
+            lowerName.includes("face pull") ||
+            lowerName.includes("military")
+          ) {
+            fallbackMuscle = "shoulders";
+          } else if (
+            lowerName.includes("bench") ||
+            lowerName.includes("chest") ||
+            lowerName.includes("fly") ||
+            lowerName.includes("push up") ||
+            lowerName.includes("pec") ||
+            lowerName.includes("incline") ||
+            lowerName.includes("dips") ||
+            (lowerName.includes("press") &&
+              (lowerName.includes("dumbbell") ||
+                lowerName.includes("machine") ||
+                lowerName.includes("barbell")))
+          ) {
+            fallbackMuscle = "chest";
+          } else if (
+            lowerName.includes("pull") ||
+            lowerName.includes("row") ||
+            lowerName.includes("deadlift") ||
+            lowerName.includes("back") ||
+            lowerName.includes("lat") ||
+            lowerName.includes("chin up")
+          ) {
+            fallbackMuscle = "back";
+          }
+
+          if (fallbackMuscle) {
+            return [{ muscle: fallbackMuscle, role: "PRIMARY" }];
+          }
+
+          return [];
+        },
+
         updateBodyParts: () => {
           const periodEl = document.getElementById("bodypart-period");
           const weeks = parseInt(periodEl?.value || 4);
@@ -5056,6 +5234,20 @@
 
           const recentLogs = h.filter((log) => new Date(log.ts) >= cutoffDate);
 
+          const directVolume = {
+            chest: 0,
+            back: 0,
+            legs: 0,
+            shoulders: 0,
+            arms: 0,
+          };
+          const indirectVolume = {
+            chest: 0,
+            back: 0,
+            legs: 0,
+            shoulders: 0,
+            arms: 0,
+          };
           const bodyPartMap = {
             chest: 0,
             back: 0,
@@ -5065,105 +5257,408 @@
           };
 
           recentLogs.forEach((log) => {
-            const exName = (log.ex || "").toLowerCase();
-            let targetPart = null;
+            if (log.type === "cardio") return;
 
-            if (
-              exName.includes("squat") ||
-              exName.includes("leg") ||
-              exName.includes("lunge") ||
-              exName.includes("hack") ||
-              exName.includes("calf") ||
-              exName.includes("rdl") ||
-              exName.includes("sumo")
-            ) {
-              targetPart = "legs";
-            } else if (
-              exName.includes("curl") ||
-              exName.includes("tricep") ||
-              exName.includes("bicep") ||
-              exName.includes("skull") ||
-              exName.includes("extension") ||
-              exName.includes("pushdown")
-            ) {
-              targetPart = "arms";
-            } else if (
-              exName.includes("shoulder") ||
-              exName.includes("overhead") ||
-              exName.includes("ohp") ||
-              exName.includes("lateral") ||
-              exName.includes("delt") ||
-              exName.includes("face pull") ||
-              exName.includes("military")
-            ) {
-              targetPart = "shoulders";
-            } else if (
-              exName.includes("bench") ||
-              exName.includes("chest") ||
-              exName.includes("fly") ||
-              exName.includes("push up") ||
-              exName.includes("pec") ||
-              exName.includes("incline") ||
-              exName.includes("dips") ||
-              (exName.includes("press") &&
-                (exName.includes("dumbbell") ||
-                  exName.includes("machine") ||
-                  exName.includes("barbell")))
-            ) {
-              targetPart = "chest";
-            } else if (
-              exName.includes("pull") ||
-              exName.includes("row") ||
-              exName.includes("deadlift") ||
-              exName.includes("back") ||
-              exName.includes("lat") ||
-              exName.includes("chin up")
-            ) {
-              targetPart = "back";
-            }
+            const targets = APP.stats.getTargets(log.ex);
+            const volume = log.vol || 0;
 
-            if (targetPart) {
-              bodyPartMap[targetPart] += log.vol || 0;
+            if (targets.length > 0) {
+              targets.forEach((target) => {
+                const factor =
+                  (window.VOLUME_DISTRIBUTION &&
+                    window.VOLUME_DISTRIBUTION[target.role]) ||
+                  1.0;
+                const weightedVol = volume * factor;
+
+                if (target.role === "PRIMARY") {
+                  directVolume[target.muscle] += weightedVol;
+                } else if (target.role === "SECONDARY") {
+                  indirectVolume[target.muscle] += weightedVol;
+                }
+
+                bodyPartMap[target.muscle] += weightedVol;
+              });
             }
           });
 
-          const maxVol = Math.max(...Object.values(bodyPartMap));
+          APP.stats.renderStackedVolume(
+            directVolume,
+            indirectVolume,
+            bodyPartMap
+          );
+
+          APP.stats.checkImbalance(bodyPartMap);
+        },
+
+        setBodyPartView: (mode) => {
+          APP.stats.bodyPartViewMode = mode;
+
+          const combinedBtn = document.getElementById("view-combined-btn");
+          const splitBtn = document.getElementById("view-split-btn");
+
+          if (mode === "combined") {
+            combinedBtn.className =
+              "px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-emerald-600 text-white shadow-lg";
+            splitBtn.className =
+              "px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-slate-700 text-slate-400";
+          } else {
+            combinedBtn.className =
+              "px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-slate-700 text-slate-400";
+            splitBtn.className =
+              "px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-emerald-600 text-white shadow-lg";
+          }
+
+          APP.stats.updateBodyParts();
+        },
+
+        renderStackedVolume: (direct, indirect, total) => {
+          const container = document.getElementById("bodypart-bars");
+          if (!container) return;
+
+          const viewMode = APP.stats.bodyPartViewMode || "combined";
+
+          if (viewMode === "combined") {
+            APP.stats.renderCombinedView(direct, indirect, total);
+          } else {
+            APP.stats.renderSplitView(direct, indirect, total);
+          }
+        },
+
+        renderCombinedView: (direct, indirect, total) => {
+          const container = document.getElementById("bodypart-bars");
+          const muscles = ["chest", "back", "legs", "shoulders", "arms"];
+          const maxVol = Math.max(
+            ...muscles.map((m) => (direct[m] || 0) + (indirect[m] || 0))
+          );
+
+          if (maxVol === 0) {
+            container.innerHTML =
+              '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
+            return;
+          }
+
+          let html = '<div class="space-y-3">';
+
+          muscles.forEach((muscle) => {
+            const directVol = direct[muscle] || 0;
+            const indirectVol = indirect[muscle] || 0;
+            const totalVol = directVol + indirectVol;
+            const pctTotal = maxVol > 0 ? (totalVol / maxVol) * 100 : 0;
+            const pctDirect = totalVol > 0 ? (directVol / totalVol) * 100 : 0;
+
+            const label = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+
+            html += `
+      <div class="mb-3">
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-slate-300 font-bold">${label}</span>
+          <span class="text-slate-400 font-mono">${totalVol.toLocaleString()} kg</span>
+        </div>
+        
+        <div class="bg-slate-700/30 rounded-full h-8 overflow-hidden relative">
+          <div class="absolute inset-0 flex" style="width: ${pctTotal}%">
+            <div 
+              class="bg-emerald-500 h-full transition-all duration-500" 
+              style="width: ${pctDirect}%"
+              title="Direct: ${directVol.toLocaleString()} kg"
+            ></div>
+            <div 
+              class="bg-emerald-500/25 border-l border-emerald-500/50 h-full transition-all duration-500" 
+              style="width: ${100 - pctDirect}%"
+              title="Indirect: ${indirectVol.toLocaleString()} kg"
+            ></div>
+          </div>
+          
+          ${
+            pctTotal > 15
+              ? `
+            <div class="absolute inset-0 flex items-center justify-end pr-3">
+              <span class="text-xs font-bold text-white">${pctTotal.toFixed(
+                0
+              )}%</span>
+            </div>
+          `
+              : ""
+          }
+        </div>
+        
+        <div class="flex gap-4 mt-1 text-[10px] text-slate-500">
+          <div class="flex items-center gap-1">
+            <div class="w-2 h-2 bg-emerald-500 rounded-sm"></div>
+            <span>Direct: ${directVol.toLocaleString()} kg</span>
+          </div>
+          ${
+            indirectVol > 0
+              ? `
+            <div class="flex items-center gap-1">
+              <div class="w-2 h-2 bg-emerald-500/25 border border-emerald-500/50 rounded-sm"></div>
+              <span>Indirect: ${indirectVol.toLocaleString()} kg</span>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      </div>
+    `;
+          });
+
+          html += "</div>";
+          container.innerHTML = html;
+        },
+
+        renderSplitView: (direct, indirect, total) => {
           const container = document.getElementById("bodypart-bars");
 
-          if (!container) return;
+          const upperBody = ["chest", "back", "shoulders", "arms"];
+          const lowerBody = ["legs"];
+
+          const upperMax = Math.max(
+            ...upperBody.map((m) => (direct[m] || 0) + (indirect[m] || 0))
+          );
+          const lowerMax = Math.max(
+            ...lowerBody.map((m) => (direct[m] || 0) + (indirect[m] || 0))
+          );
 
           let html = "";
 
-          Object.keys(bodyPartMap).forEach((part) => {
-            const vol = bodyPartMap[part];
-            const pct = maxVol > 0 ? (vol / maxVol) * 100 : 0;
-            const label = part.charAt(0).toUpperCase() + part.slice(1);
+          html += `
+    <div class="mb-6 pb-4 border-b border-slate-700">
+      <h4 class="text-xs font-bold text-blue-400 uppercase mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-person-running"></i> Lower Body (Absolute Scale)
+      </h4>
+      <div class="space-y-3">
+  `;
 
-            html += `
-        <div class="mb-2">
-          <div class="flex justify-between text-xs mb-1">
-            <span class="text-slate-300">${label}</span>
-            <span class="text-slate-400 font-mono">${vol.toLocaleString()} kg</span>
-          </div>
-          <div class="bg-slate-700/30 rounded-full h-6 overflow-hidden">
-            <div class="bg-emerald-500 h-full flex items-center justify-end pr-2 transition-all" style="width: ${pct}%">
-              ${
-                pct > 15
-                  ? `<span class="text-xs font-bold text-white">${pct.toFixed(
-                      0
-                    )}%</span>`
-                  : ""
-              }
-            </div>
-          </div>
-        </div>
-      `;
+          lowerBody.forEach((muscle) => {
+            const directVol = direct[muscle] || 0;
+            const indirectVol = indirect[muscle] || 0;
+            const totalVol = directVol + indirectVol;
+            const pctTotal = lowerMax > 0 ? (totalVol / lowerMax) * 100 : 0;
+            const pctDirect = totalVol > 0 ? (directVol / totalVol) * 100 : 0;
+
+            const label = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+
+            html += APP.stats.renderMuscleBar(
+              label,
+              directVol,
+              indirectVol,
+              totalVol,
+              pctTotal,
+              pctDirect
+            );
           });
 
-          container.innerHTML =
-            html ||
-            '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
+          html += "</div></div>";
 
+          html += `
+    <div>
+      <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-dumbbell"></i> Upper Body (Relative Scale)
+      </h4>
+      <div class="space-y-3">
+  `;
+
+          upperBody.forEach((muscle) => {
+            const directVol = direct[muscle] || 0;
+            const indirectVol = indirect[muscle] || 0;
+            const totalVol = directVol + indirectVol;
+            const pctTotal = upperMax > 0 ? (totalVol / upperMax) * 100 : 0;
+            const pctDirect = totalVol > 0 ? (directVol / totalVol) * 100 : 0;
+
+            const label = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+
+            html += APP.stats.renderMuscleBar(
+              label,
+              directVol,
+              indirectVol,
+              totalVol,
+              pctTotal,
+              pctDirect
+            );
+          });
+
+          html += "</div></div>";
+
+          const upperTotal = upperBody.reduce(
+            (sum, m) => sum + (direct[m] || 0) + (indirect[m] || 0),
+            0
+          );
+          const lowerTotal = lowerBody.reduce(
+            (sum, m) => sum + (direct[m] || 0) + (indirect[m] || 0),
+            0
+          );
+
+          if (lowerTotal === 0 && upperTotal === 0) {
+            html += `
+    <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+      <div class="text-xs text-slate-500 italic text-center">
+        No volume data available for ratio calculation.
+      </div>
+    </div>
+  `;
+            container.innerHTML = html;
+            return;
+          }
+
+          if (lowerTotal === 0) {
+            html += `
+    <div class="mt-4 p-3 bg-red-900/20 rounded-lg border border-red-500">
+      <div class="text-xs text-red-400 font-bold">⚠️ No lower body volume detected</div>
+      <div class="text-[9px] text-slate-500 mt-1">Add leg exercises to enable ratio analysis.</div>
+    </div>
+  `;
+            container.innerHTML = html;
+            return;
+          }
+
+          const ratio = (upperTotal / lowerTotal) * 100;
+
+          html += `
+  <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+    <div class="text-[10px] text-slate-400 mb-1">Upper:Lower Ratio</div>
+    <div class="text-lg font-bold text-white">
+      ${ratio.toFixed(
+        0
+      )}% <span class="text-xs text-slate-500">(Upper as % of Lower)</span>
+    </div>
+    <div class="text-[9px] text-slate-500 mt-1 italic">
+      ${APP.stats.interpretRatio(ratio)}
+    </div>
+    <div class="mt-2 text-[10px] text-slate-600 border-t border-slate-700 pt-2">
+      Upper: ${upperTotal.toLocaleString()} kg | Lower: ${lowerTotal.toLocaleString()} kg
+    </div>
+  </div>
+`;
+
+          container.innerHTML = html;
+        },
+
+        interpretRatio: (ratio) => {
+          if (ratio < 50) {
+            return `
+      <span class="text-red-400">⚠️ Upper body critically lagging</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Risk: Severe imbalance. Add 3-4 upper exercises ASAP.
+      </div>
+    `;
+          }
+
+          if (ratio >= 50 && ratio < 80) {
+            return `
+      <span class="text-orange-400">⚠️ Upper body significantly lagging</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Typical for powerlifting/athletic focus. If goal is aesthetics, add upper work.
+      </div>
+    `;
+          }
+
+          if (ratio >= 80 && ratio < 90) {
+            return `
+      <span class="text-yellow-400">🦵 Lower body bias (slight)</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Common for strength programs. Upper at 80-89% of lower volume.
+      </div>
+    `;
+          }
+
+          if (ratio >= 90 && ratio <= 110) {
+            return `
+      <span class="text-emerald-400">✅ Balanced program</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Ideal ratio (90-110%). Upper and lower proportionally developed.
+      </div>
+    `;
+          }
+
+          if (ratio > 110 && ratio <= 130) {
+            return `
+      <span class="text-blue-400">💪 Upper body bias (slight)</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Common for hypertrophy/bodybuilding focus. Lower at 77-91% of upper.
+      </div>
+    `;
+          }
+
+          if (ratio > 130 && ratio <= 150) {
+            return `
+      <span class="text-indigo-400">💪 Upper body dominant</span>
+      <div class="text-[10px] text-slate-600 mt-1">
+        Strong upper focus. Ensure adequate leg volume for hormonal/metabolic benefits.
+      </div>
+    `;
+          }
+
+          return `
+    <span class="text-red-400">🚨 Skip Leg Day Alert</span>
+    <div class="text-[10px] text-slate-600 mt-1">
+      Upper >150% of lower. Add 2-3 compound leg movements immediately.
+    </div>
+  `;
+        },
+
+        renderMuscleBar: (
+          label,
+          directVol,
+          indirectVol,
+          totalVol,
+          pctTotal,
+          pctDirect
+        ) => {
+          return `
+    <div class="mb-3">
+      <div class="flex justify-between text-xs mb-1">
+        <span class="text-slate-300 font-bold">${label}</span>
+        <span class="text-slate-400 font-mono">${totalVol.toLocaleString()} kg</span>
+      </div>
+      
+      <div class="bg-slate-700/30 rounded-full h-8 overflow-hidden relative">
+        <div class="absolute inset-0 flex" style="width: ${pctTotal}%">
+          <div 
+            class="bg-emerald-500 h-full transition-all duration-500" 
+            style="width: ${pctDirect}%"
+            title="Direct: ${directVol.toLocaleString()} kg"
+          ></div>
+          <div 
+            class="bg-emerald-500/25 border-l border-emerald-500/50 h-full transition-all duration-500" 
+            style="width: ${100 - pctDirect}%"
+            title="Indirect: ${indirectVol.toLocaleString()} kg"
+          ></div>
+        </div>
+        
+        ${
+          pctTotal > 15
+            ? `
+          <div class="absolute inset-0 flex items-center justify-end pr-3">
+            <span class="text-xs font-bold text-white">${pctTotal.toFixed(
+              0
+            )}%</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+      
+      <div class="flex gap-4 mt-1 text-[10px] text-slate-500">
+        <div class="flex items-center gap-1">
+          <div class="w-2 h-2 bg-emerald-500 rounded-sm"></div>
+          <span>Direct: ${directVol.toLocaleString()} kg</span>
+        </div>
+        ${
+          indirectVol > 0
+            ? `
+          <div class="flex items-center gap-1">
+            <div class="w-2 h-2 bg-emerald-500/25 border border-emerald-500/50 rounded-sm"></div>
+            <span>Indirect: ${indirectVol.toLocaleString()} kg</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+    </div>
+  `;
+        },
+
+        checkImbalance: (bodyPartMap) => {
           const chestVol = bodyPartMap.chest;
           const backVol = bodyPartMap.back;
           const imbalanceDiv = document.getElementById("bodypart-imbalance");
@@ -5175,46 +5670,48 @@
 
           if (chestVol > 0 && backVol > 0) {
             const ratio = chestVol / backVol;
+
             if (ratio > 1.3) {
               imbalanceDiv.classList.remove("hidden");
+              imbalanceDiv.className =
+                "mt-6 bg-red-900/20 border border-red-500/30 p-4 rounded-xl";
+
               imbalanceMsg.innerHTML = `
-      <div class="mb-2">
-        Back volume is <strong>${((ratio - 1) * 100).toFixed(
-          0
-        )}% lower</strong> than chest volume.
-      </div>
-      <div class="text-xs text-slate-400 space-y-1">
-        <div>→ Risk: Shoulder impingement</div>
-        <div>→ Suggestion: Add 1-2 back exercises</div>
-      </div>
-      <button 
-        onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(
-          2
-        )})"
-        class="mt-3 w-full bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
-      >
-        <i class="fa-solid fa-robot"></i> Konsultasi dengan Gemini AI
-      </button>
-    `;
-            } else if (ratio < 0.7) {
+        <div class="mb-2 text-red-400 font-bold">
+          ⚠️ High Injury Risk (Anterior Dominant)
+        </div>
+        <div class="text-xs text-slate-300 mb-2">
+          Volume dada <strong>${((ratio - 1) * 100).toFixed(
+            0
+          )}% lebih tinggi</strong> dari punggung.
+        </div>
+        <div class="text-xs text-slate-400 space-y-1">
+          <div>→ Risk: Upper Cross Syndrome / Impingement</div>
+          <div>→ Rx: Prioritaskan Face Pulls & Rows</div>
+        </div>
+        ${APP.stats.renderConsultButton("chest", ratio)}
+      `;
+            } else if (ratio < 0.5) {
               imbalanceDiv.classList.remove("hidden");
+              imbalanceDiv.className =
+                "mt-6 bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl";
+
               const reverseRatio = 1 / ratio;
               imbalanceMsg.innerHTML = `
-      <div class="mb-2">
-        Chest volume is <strong>${((reverseRatio - 1) * 100).toFixed(
-          0
-        )}% lower</strong> than back volume.
-      </div>
-      <div class="text-xs text-slate-400 space-y-1">
-        <div>→ Consider balancing with chest work</div>
-      </div>
-      <button 
-  onclick="APP.stats.prepareImbalanceConsultation('chest', ${ratio.toFixed(2)})"
-  class="mt-3 w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-lg"
->
-  <i class="fa-solid fa-robot"></i> Analisis dengan AI Gemini
-</button>
-    `;
+        <div class="mb-2 text-blue-400 font-bold">
+          ℹ️ Aesthetic Imbalance (Lagging Chest)
+        </div>
+        <div class="text-xs text-slate-300 mb-2">
+           Volume dada tertinggal jauh (Back is <strong>${reverseRatio.toFixed(
+             1
+           )}x</strong> Chest).
+        </div>
+        <div class="text-xs text-slate-400 space-y-1">
+          <div>→ Note: Postur aman, tapi dada kurang tebal visual.</div>
+          <div>→ Rx: Tambah volume Incline Press / Fly.</div>
+        </div>
+        ${APP.stats.renderConsultButton("chest", ratio)}
+      `;
             } else {
               imbalanceDiv.classList.add("hidden");
             }
@@ -5222,6 +5719,20 @@
             imbalanceDiv.classList.add("hidden");
           }
         },
+
+        renderConsultButton: (focus, ratio) => {
+          return `
+    <button 
+      onclick="APP.stats.prepareImbalanceConsultation('${focus}', ${ratio.toFixed(
+            2
+          )})"
+      class="mt-3 w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 border border-slate-600"
+    >
+      <i class="fa-solid fa-user-doctor"></i> Analisis AI
+    </button>
+  `;
+        },
+
         prepareImbalanceConsultation: (dominantPart, ratio) => {
           const h = LS_SAFE.getJSON("gym_hist", []);
           const p = LS_SAFE.getJSON("profile", {});
@@ -5242,82 +5753,48 @@
           };
 
           recentLogs.forEach((log) => {
-            const exName = (log.ex || "").toLowerCase();
+            const targets = APP.stats.getTargets(log.ex);
+            const volume = log.vol || 0;
             const realName = log.ex || "Unknown";
-            let targetPart = null;
 
-            if (
-              exName.includes("squat") ||
-              exName.includes("leg") ||
-              exName.includes("lunge") ||
-              exName.includes("hack") ||
-              exName.includes("calf") ||
-              exName.includes("rdl") ||
-              exName.includes("sumo")
-            ) {
-              targetPart = "legs";
-            } else if (
-              exName.includes("curl") ||
-              exName.includes("tricep") ||
-              exName.includes("bicep") ||
-              exName.includes("skull") ||
-              exName.includes("extension") ||
-              exName.includes("pushdown")
-            ) {
-              targetPart = "arms";
-            } else if (
-              exName.includes("shoulder") ||
-              exName.includes("overhead") ||
-              exName.includes("ohp") ||
-              exName.includes("lateral") ||
-              exName.includes("delt") ||
-              exName.includes("face pull") ||
-              exName.includes("military")
-            ) {
-              targetPart = "shoulders";
-            } else if (
-              exName.includes("bench") ||
-              exName.includes("chest") ||
-              exName.includes("fly") ||
-              exName.includes("push up") ||
-              exName.includes("pec") ||
-              exName.includes("incline") ||
-              exName.includes("dips") ||
-              (exName.includes("press") &&
-                (exName.includes("dumbbell") ||
-                  exName.includes("machine") ||
-                  exName.includes("barbell")))
-            ) {
-              targetPart = "chest";
-            } else if (
-              exName.includes("pull") ||
-              exName.includes("row") ||
-              exName.includes("deadlift") ||
-              exName.includes("back") ||
-              exName.includes("lat") ||
-              exName.includes("chin up")
-            ) {
-              targetPart = "back";
-            }
+            if (targets.length > 0) {
+              targets.forEach((target) => {
+                const factor =
+                  (window.VOLUME_DISTRIBUTION &&
+                    window.VOLUME_DISTRIBUTION[target.role]) ||
+                  1.0;
+                const weightedVol = volume * factor;
 
-            if (targetPart) {
-              bodyPartMap[targetPart].vol += log.vol || 0;
-              if (!bodyPartMap[targetPart].exercises.includes(realName)) {
-                bodyPartMap[targetPart].exercises.push(realName);
-              }
+                if (bodyPartMap[target.muscle]) {
+                  bodyPartMap[target.muscle].vol += weightedVol;
+
+                  if (
+                    !bodyPartMap[target.muscle].exercises.includes(realName)
+                  ) {
+                    bodyPartMap[target.muscle].exercises.push(realName);
+                  }
+                }
+              });
             }
           });
 
           let promptText = `[MUSCLE IMBALANCE CONSULTATION]\n\n`;
           promptText += `DETECTED ISSUE:\n`;
 
-          if (dominantPart === "chest") {
-            promptText += `- Back volume is ${((ratio - 1) * 100).toFixed(
+          const cVol = bodyPartMap.chest.vol;
+          const bVol = bodyPartMap.back.vol;
+
+          if (cVol > bVol) {
+            const pct = cVol > 0 ? ((cVol - bVol) / cVol) * 100 : 0;
+
+            promptText += `- Back volume is ${pct.toFixed(
               0
             )}% LOWER than chest volume\n`;
             promptText += `- Risk: Shoulder impingement, postural issues, upper cross syndrome\n\n`;
-          } else if (dominantPart === "back") {
-            promptText += `- Chest volume is ${((ratio - 1) * 100).toFixed(
+          } else {
+            const pct = bVol > 0 ? ((bVol - cVol) / bVol) * 100 : 0;
+
+            promptText += `- Chest volume is ${pct.toFixed(
               0
             )}% LOWER than back volume\n`;
             promptText += `- Risk: Limited pressing strength, aesthetic imbalance\n\n`;
@@ -5330,6 +5807,11 @@
           promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
 
           promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
+          promptText += `\nVOLUME METHODOLOGY:\n`;
+          promptText += `- Primary Work (1.0x): Direct muscle targeting\n`;
+          promptText += `- Secondary Work (0.5x): Synergist contribution\n`;
+          promptText += `- Total includes weighted distribution from compound lifts\n\n`;
+
           Object.keys(bodyPartMap).forEach((part) => {
             const data = bodyPartMap[part];
             promptText += `- ${part.toUpperCase()}: ${data.vol.toLocaleString()}kg`;
