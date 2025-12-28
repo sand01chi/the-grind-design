@@ -255,8 +255,339 @@ const EXERCISE_TARGETS = {
   "[Barbell] Overhead Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" }
+  ],
+  // ═══════════════════════════════════════════════════════════════
+  // 🧘 MOBILITY, CORE & ACTIVATION (Zero Volume Contribution)
+  // ═══════════════════════════════════════════════════════════════
+  // These exercises are tracked for completion but don't contribute
+  // to muscle volume statistics (treated as TERTIARY stabilizers = 0.0x)
+  
+  // --- MOBILITY & WARMUP ---
+  "Mobility Cat-Cow Stretch": [],  // Empty array = 0 volume
+  "Mobility Thoracic Extension (Foam Roller)": [],
+  "Mobility Open Book Stretch": [],
+  "Mobility World's Greatest Stretch": [],
+  "Mobility Spider-Man Lunge": [],
+  "Mobility 90/90 Hip Switch": [],
+  
+  // --- CORE & STABILITY ---
+  "Core Deadbug": [],
+  "Core Bird Dog": [],
+  "Core Plank": [],
+  
+  // --- ACTIVATION ---
+  "Activation Glute Bridge": [],
+  "Activation Single Leg Glute Bridge": [],
+  "Activation Clamshell": [],
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 💪 ADDITIONAL RESISTANCE EXERCISES (User's Historical Data)
+  // ═══════════════════════════════════════════════════════════════
+  
+  // --- CHEST VARIANTS ---
+  "Flat Dumbbell Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Dumbbell Chest Supported Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "T-Bar Row (Chest Support)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Smith Machine Incline Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Incline DB Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Dumbbell Fly": [
+    { muscle: "chest", role: "PRIMARY" }
+  ],
+  "Fly (High to Low)": [
+    { muscle: "chest", role: "PRIMARY" }
+  ],
+  
+  // --- BACK VARIANTS ---
+  "Seated Cable Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Lat Pulldown (Wide)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Neutral Grip Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Assisted Pull Up": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "One Arm DB Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Single Arm Machine Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Single Arm Cable Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  
+  // --- SHOULDER VARIANTS ---
+  "Dumbbell Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Seated Overhead Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" }
+  ],
+  "Lateral Raise Machine": [
+    { muscle: "shoulders", role: "PRIMARY" }
+  ],
+  
+  // --- ARM VARIANTS ---
+  "Tricep Pushdown (Rope)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Skullcrushers (EZ Bar)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Overhead Tricep Extension": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Incline DB Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Hammer Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Bayesian Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  
+  // --- LEG VARIANTS ---
+  "RDL (Barbell)": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" }
+  ],
+  "Dumbbell RDL": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" }
+  ],
+  "Pull Through": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Lying Dumbbell Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Lying Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Goblet Squat (Heels Elevated)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Bulgarian Split Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Forward Lunge": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Walking Lunge": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Split Squat (Static)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Sissy Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Leg Extension": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Standing Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Leg Press Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Single Leg Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Smith Machine Seated Calf": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Seated DB Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+    // ═══════════════════════════════════════════════════════════════
+  // 🔧 USER'S NORMALIZED EXERCISES (Final Alignment)
+  // ═══════════════════════════════════════════════════════════════
+  // Mapped from actual workout data after normalization
+  // These names are post-normalization results (brackets removed)
+  
+  // --- CHEST EXERCISES ---
+  "Machine Chest Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Barbell Bench Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Machine Incline Chest Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Dumbbell Incline DB Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Machine Pec Deck Fly": [
+    { muscle: "chest", role: "PRIMARY" }
+  ],
+  "Cable Fly (High to Low)": [
+    { muscle: "chest", role: "PRIMARY" }
+  ],
+  "Dumbbell Fly": [
+    { muscle: "chest", role: "PRIMARY" }
+  ],
+  
+  // --- BACK EXERCISES ---
+  "Machine T-Bar Row (Chest Support)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Cable Lat Pulldown (Wide)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Machine Assisted Pull Up": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Cable Neutral Grip Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Dumbbell One Arm DB Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  
+  // --- SHOULDER EXERCISES ---
+  "Machine Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Barbell Seated Overhead Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" }
+  ],
+  "Dumbbell DB Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" }
+  ],
+  "Cable Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" }
+  ],
+  
+  // --- ARM EXERCISES ---
+  "Cable Tricep Pushdown (Rope)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Barbell Skullcrushers (EZ Bar)": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Dumbbell Overhead Tricep Extension": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Dumbbell Incline DB Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Dumbbell Hammer Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  "Cable Bayesian Curl": [
+    { muscle: "arms", role: "PRIMARY" }
+  ],
+  
+  // --- LEG EXERCISES ---
+  "Machine Lying Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Seated Leg Curl": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Cable Pull Through": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" }  // Hip hinge pattern
+  ],
+  "Machine Leg Press": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Bulgarian Split Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Goblet Squat (Heels Elevated)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Standing Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Leg Press Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Single Leg Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Hack Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Smith Machine Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Goblet Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Forward Lunge": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Walking Lunge": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Split Squat (Static)": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Leg Extension": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Bodyweight Sissy Squat": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Cable Leg Extension": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Machine Seated Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
+  ],
+  "Dumbbell Seated DB Calf Raise": [
+    { muscle: "legs", role: "PRIMARY" }
   ]
 };
+
+
 
 // Export for use in index.html
 if (typeof window !== 'undefined') {

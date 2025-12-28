@@ -2572,38 +2572,77 @@ normalizeExerciseNames : function(programData) {
         const originalName = option.n;
         let normalizedName = originalName;
         
-        // STEP 1: Remove duplicate brackets patterns
-        // "[Machine] Machine Chest Press" → "Machine Chest Press"
+       // STEP 1: Extract bracket content and rest of name
         const bracketMatch = normalizedName.match(/^\[(.*?)\]\s*(.*)/);
+        
         if (bracketMatch) {
-          const bracketContent = bracketMatch[1]; // "Machine"
-          const restOfName = bracketMatch[2];     // "Machine Chest Press" or "Chest Press"
+          const bracketContent = bracketMatch[1].trim(); // "DB", "Machine", "Barbell", etc
+          const restOfName = bracketMatch[2].trim();     // Everything after bracket
           
-          // If rest of name already starts with bracket content, remove bracket
-          if (restOfName.toLowerCase().startsWith(bracketContent.toLowerCase())) {
+          // STEP 2: Smart prefix resolution (avoid double prefix)
+          
+          // Map bracket abbreviations to full words
+          const expansionMap = {
+            'DB': 'Dumbbell',
+            'BB': 'Barbell',
+            'BW': 'Bodyweight',
+            'Machine': 'Machine',
+            'Barbell': 'Barbell',
+            'Cable': 'Cable',
+            'Bodyweight': 'Bodyweight',
+            'Stretch': 'Stretch',
+            'Mobility': 'Mobility',
+            'Core': 'Core',
+            'Activation': 'Activation',
+            'Cardio': 'Cardio'
+          };
+          
+const expandedPrefix = expansionMap[bracketContent] || bracketContent;
+          
+          // === SMART PREFIX HANDLING ===
+          const restLower = restOfName.toLowerCase();
+          const prefixLower = expandedPrefix.toLowerCase();
+          
+          // Check if rest already contains the equipment type
+          const equipmentWords = restLower.split(/\s+/);
+          const prefixWords = prefixLower.split(/\s+/);
+          
+          let alreadyHasEquipment = false;
+          
+          // Check if ANY word in rest matches prefix
+          prefixWords.forEach(prefixWord => {
+            equipmentWords.forEach(equipWord => {
+              if (equipWord === prefixWord || 
+                  equipWord.includes(prefixWord) || 
+                  prefixWord.includes(equipWord)) {
+                alreadyHasEquipment = true;
+              }
+            });
+          });
+          
+          if (alreadyHasEquipment) {
+            // Equipment type already in name - just use it as is
             normalizedName = restOfName;
+            console.log(`[NORMALIZE] Equipment already present: "${bracketContent}" found in "${restOfName}"`);
           } else {
-            // Otherwise, prepend bracket content to name
-            normalizedName = `${bracketContent} ${restOfName}`;
+            // Need to prepend equipment type
+            normalizedName = `${expandedPrefix} ${restOfName}`;
+            console.log(`[NORMALIZE] Adding prefix: "${expandedPrefix}" + "${restOfName}"`);
           }
         }
         
-        // STEP 2: Standardize common variations
-        const substitutions = {
-          'DB ': 'Dumbbell ',
-          'BB ': 'Barbell ',
-          'BW ': 'Bodyweight ',
-          // Add more as needed
-        };
+// STEP 3: Comprehensive cleanup
+        normalizedName = normalizedName
+          .trim()                    // Remove leading/trailing spaces
+          .replace(/\s+/g, ' ')      // Collapse multiple spaces to single
+          .replace(/\s+([,.:;])/g, '$1') // Remove space before punctuation
+          .replace(/\(\s+/g, '(')    // Remove space after opening bracket
+          .replace(/\s+\)/g, ')');   // Remove space before closing bracket
         
-        Object.keys(substitutions).forEach(pattern => {
-          if (normalizedName.startsWith(pattern)) {
-            normalizedName = normalizedName.replace(pattern, substitutions[pattern]);
-          }
-        });
-        
-        // STEP 3: Trim and clean whitespace
-        normalizedName = normalizedName.trim().replace(/\s+/g, ' ');
+        // STEP 4: Final validation - ensure first letter is uppercase
+        if (normalizedName.length > 0) {
+          normalizedName = normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1);
+        }
         
         // STEP 4: If name changed, update and log
         if (normalizedName !== originalName) {
@@ -2735,9 +2774,11 @@ validateExerciseIntegrity: function(sessionData) {
     exercise.options.forEach((option, optIdx) => {
       const exName = option.n || '';
       
-      // CRITICAL: Check if exercise exists in EXERCISE_TARGETS
+  // CRITICAL: Check if exercise exists in EXERCISE_TARGETS
       if (typeof EXERCISE_TARGETS !== 'undefined') {
-        if (!EXERCISE_TARGETS[exName]) {
+       if (!EXERCISE_TARGETS[exName]) {
+          // Exercise not found in library
+          
           // Try to find suggestion
           const suggestion = this.suggestExerciseMatch(exName);
           
@@ -2754,8 +2795,16 @@ validateExerciseIntegrity: function(sessionData) {
           } else {
             report.valid = false;
             report.errors.push(
-              `Exercise #${idx + 1} Option ${optIdx + 1}: "${exName}" not found in library and no close match available.`
+              `Exercise #${idx + 1} Option ${optIdx + 1}: "${exName}" not found in library. Multi Muscle Target calculation will fail!`
             );
+          }
+        } else {
+          // Exercise found - check if it's passive (empty array)
+          const targets = EXERCISE_TARGETS[exName];
+          
+          if (Array.isArray(targets) && targets.length === 0) {
+            // Passive exercise - log but don't warn
+            console.log(`[VALIDATION] Passive exercise: "${exName}" (0 volume contribution)`);
           }
         }
       } else {
@@ -3279,10 +3328,10 @@ if (stored && Object.keys(stored).length > 0) {
     LS_SAFE.setJSON('cscs_program_v10', stored);
     
     APP.ui.showToast(
-      `🔄 Migrated ${normalizeReport.normalized} exercise names to new format`,
-      'success'
+      `🔄 Migrated ${normalizeReport.normalized} exercises. ${normalizeReport.errors.length > 0 ? '⚠️ Some issues detected.' : '✅ All clear!'}`,
+      normalizeReport.errors.length > 0 ? 'warning' : 'success'
     );
-  }
+    }
   
   if (normalizeReport.errors.length > 0) {
     console.warn('[INIT] Normalization errors:', normalizeReport.errors);
@@ -5712,21 +5761,31 @@ console.log('[INIT] Init snapshot created');
         currentView: "dashboard",
         bodyPartViewMode: "combined",
 
-        getTargets: (exerciseName) => {
-          const cleanName = (exerciseName || "").trim();
-
-          if (
-            typeof EXERCISE_TARGETS !== "undefined" &&
-            EXERCISE_TARGETS[cleanName]
-          ) {
-            return EXERCISE_TARGETS[cleanName];
-          }
-
-          console.warn(`[FALLBACK] Exercise not mapped: ${exerciseName}`);
-          const muscle = APP.stats.classifyExercise(exerciseName);
-          return [{ muscle: muscle, role: "PRIMARY" }];
-        },
-
+getTargets: (exerciseName) => {
+  const cleanName = (exerciseName || "").trim();
+  
+  // === LIBRARY LOOKUP ===
+  if (
+    typeof EXERCISE_TARGETS !== "undefined" &&
+    EXERCISE_TARGETS.hasOwnProperty(cleanName)
+  ) {
+    const targets = EXERCISE_TARGETS[cleanName];
+    
+    // Empty array = passive exercise (0 volume contribution)
+    if (Array.isArray(targets) && targets.length === 0) {
+      console.log(`[VOLUME] Passive exercise (0 volume): ${cleanName}`);
+      return [];
+    }
+    
+    return targets;
+  }
+  
+  // === FALLBACK CLASSIFICATION ===
+  // Only reached if exercise truly not in library
+  console.warn(`[VOLUME] Exercise not in library: ${exerciseName} - using fallback classification`);
+  const muscle = APP.stats.classifyExercise(exerciseName);
+  return [{ muscle: muscle, role: "PRIMARY" }];
+},
         classifyExercise: (name) => {
           const lower = (name || "").toLowerCase();
 
