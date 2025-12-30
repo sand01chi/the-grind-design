@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN v25 Multi-Muscle Target</title>
+    <title>THE GRIND DESIGN v26 Architect Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -513,7 +513,7 @@
           <p
             class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
           >
-            v25 Multi-Muscle Target
+            v26 Architect Update
           </p>
         </div>
       </div>
@@ -662,6 +662,20 @@
           >
         </div>
         <div id="schedule-list" class="space-y-3 pb-10"></div>
+        <!-- ADD NEW SESSION BUTTON -->
+        <div class="mt-4">
+          <button
+            onclick="APP.session.openCreator()"
+            class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition border border-emerald-400/30"
+          >
+            <i class="fa-solid fa-plus-circle text-xl"></i>
+            <span>BUAT SESI LATIHAN BARU</span>
+          </button>
+
+          <p class="text-[10px] text-slate-500 text-center mt-2 italic">
+            Buat sesi custom atau clone dari sesi existing
+          </p>
+        </div>
       </div>
       <div id="workout-view" class="hidden fade-in space-y-4">
         <div class="flex justify-between items-center mb-2">
@@ -787,6 +801,290 @@
       </div>
     </main>
     <div id="toast-container"></div>
+
+    <!-- DEEP SESSION EDITOR MODAL -->
+    <div
+      id="session-editor-modal"
+      class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-slate-800 w-full max-w-2xl rounded-2xl border border-slate-700 p-5 flex flex-col fade-in max-h-[90vh]"
+      >
+        <div
+          class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700"
+        >
+          <h3 class="font-bold text-white text-lg">
+            <i class="fa-solid fa-pen-to-square text-emerald-400 mr-2"></i>
+            Edit Sesi Lengkap
+          </h3>
+          <button
+            onclick="APP.ui.closeModal('session-editor')"
+            class="text-slate-400 hover:text-white"
+          >
+            <i class="fa-solid fa-xmark fa-lg"></i>
+          </button>
+        </div>
+
+        <div class="overflow-y-auto no-scrollbar flex-1 space-y-4">
+          <!-- Session Metadata -->
+          <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+            <h4
+              class="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center"
+            >
+              <i class="fa-solid fa-tag mr-2"></i>Session Metadata
+            </h4>
+
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label class="text-[10px] text-slate-500 block mb-1"
+                  >Label Tag</label
+                >
+                <input
+                  type="text"
+                  id="edit-session-label"
+                  class="w-full bg-slate-950 border border-slate-700 text-white text-sm p-2 rounded focus:border-emerald-500"
+                  placeholder="UPPER A"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 block mb-1"
+                  >Session Name</label
+                >
+                <input
+                  type="text"
+                  id="edit-session-title"
+                  class="w-full bg-slate-950 border border-slate-700 text-white text-sm p-2 rounded focus:border-emerald-500"
+                  placeholder="Upper Body Strength"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1"
+                >Warmup Protocol</label
+              >
+              <textarea
+                id="edit-session-warmup"
+                rows="2"
+                class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded focus:border-emerald-500"
+                placeholder="Arm Circles, Band Pull-Aparts, Light Cardio"
+              ></textarea>
+            </div>
+
+            <!-- Rotation Control -->
+            <div class="mt-3 pt-3 border-t border-slate-700">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-[10px] text-slate-400 font-bold uppercase">
+                    Rotation Status
+                  </p>
+                  <p id="rotation-status" class="text-xs text-slate-300 mt-1">
+                    Last performed: <span class="text-emerald-400">Never</span>
+                  </p>
+                </div>
+                <button
+                  onclick="APP.session.resetRotation()"
+                  class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg font-bold transition"
+                  title="Tandai sesi ini sebagai 'belum pernah dilakukan' agar muncul sebagai Next Workout"
+                >
+                  <i class="fa-solid fa-rotate-left mr-1"></i>Reset Rotation
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Volume Preview -->
+          <div
+            id="live-volume-preview"
+            class="bg-gradient-to-br from-indigo-900/30 to-slate-900/50 p-4 rounded-xl border border-indigo-500/30"
+          >
+            <h4
+              class="text-xs font-bold text-indigo-300 uppercase mb-3 flex items-center"
+            >
+              <i class="fa-solid fa-chart-bar mr-2"></i>Live Volume Distribution
+            </h4>
+            <div id="volume-bars-container" class="space-y-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Exercise List -->
+          <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+            <div class="flex justify-between items-center mb-3">
+              <h4
+                class="text-xs font-bold text-slate-400 uppercase flex items-center"
+              >
+                <i class="fa-solid fa-dumbbell mr-2"></i>Exercises
+                <span
+                  id="exercise-count-badge"
+                  class="ml-2 text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded"
+                  >0</span
+                >
+              </h4>
+              <button
+                onclick="APP.session.addExerciseToSession()"
+                class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg font-bold transition flex items-center gap-1"
+              >
+                <i class="fa-solid fa-plus"></i> Add Exercise
+              </button>
+            </div>
+
+            <div
+              id="editor-exercise-list"
+              class="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar"
+            >
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex gap-2 mt-4 pt-4 border-t border-slate-700">
+          <button
+            onclick="APP.session.saveSessionEdits()"
+            class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition active:scale-95 flex items-center justify-center gap-2"
+          >
+            <i class="fa-solid fa-floppy-disk"></i>
+            SAVE CHANGES
+          </button>
+          <button
+            onclick="APP.ui.closeModal('session-editor')"
+            class="px-6 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION CREATOR MODAL -->
+    <div
+      id="session-creator-modal"
+      class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-slate-800 w-full max-w-md rounded-2xl border border-emerald-500/50 p-5 flex flex-col fade-in max-h-[90vh] overflow-y-auto"
+      >
+        <div
+          class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700"
+        >
+          <h3 class="font-bold text-white">
+            <i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i>Buat
+            Sesi Baru
+          </h3>
+          <button
+            onclick="APP.ui.closeModal('session-creator')"
+            class="text-slate-400 hover:text-white"
+          >
+            <i class="fa-solid fa-xmark fa-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Session Name -->
+          <div>
+            <label
+              class="text-xs text-slate-400 font-bold uppercase block mb-2"
+            >
+              Nama Sesi
+            </label>
+            <input
+              type="text"
+              id="new-session-name"
+              placeholder="contoh: Upper Body A"
+              class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-emerald-500"
+            />
+          </div>
+
+          <!-- Session Label -->
+          <div>
+            <label
+              class="text-xs text-slate-400 font-bold uppercase block mb-2"
+            >
+              Label Tag
+            </label>
+            <input
+              type="text"
+              id="new-session-label"
+              placeholder="contoh: UPPER A"
+              class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-emerald-500"
+            />
+          </div>
+
+          <!-- Warmup Protocol -->
+          <div>
+            <label
+              class="text-xs text-slate-400 font-bold uppercase block mb-2"
+            >
+              Warmup Protocol
+            </label>
+            <textarea
+              id="new-session-warmup"
+              placeholder="contoh: Arm Circles, Band Pull-Aparts"
+              rows="2"
+              class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-emerald-500"
+            ></textarea>
+          </div>
+
+          <!-- Create Options -->
+          <div class="border-t border-slate-700 pt-4">
+            <p class="text-xs text-slate-400 mb-3 font-bold uppercase">
+              Pilih Metode
+            </p>
+
+            <div class="grid grid-cols-1 gap-2">
+              <button
+                onclick="APP.session.createEmpty()"
+                class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-3 px-4 rounded-lg flex items-center gap-3 transition active:scale-95"
+              >
+                <i class="fa-solid fa-file text-emerald-400"></i>
+                <div class="text-left">
+                  <div>Buat Kosong</div>
+                  <div class="text-[10px] text-slate-400 font-normal">
+                    Mulai dari nol, tambah exercise manual
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onclick="APP.session.showCloneOptions()"
+                class="bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-3 px-4 rounded-lg flex items-center gap-3 transition active:scale-95"
+              >
+                <i class="fa-solid fa-clone text-blue-400"></i>
+                <div class="text-left">
+                  <div>Clone dari Sesi Lain</div>
+                  <div class="text-[10px] text-slate-400 font-normal">
+                    Salin struktur sesi existing
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Clone Options (Hidden by default) -->
+            <div id="clone-options" class="hidden mt-3">
+              <label
+                class="text-xs text-slate-400 font-bold uppercase block mb-2"
+              >
+                Pilih Sesi untuk di-Clone
+              </label>
+              <select
+                id="clone-source-select"
+                class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg"
+              >
+                <option value="">-- Pilih Sesi --</option>
+              </select>
+              <button
+                onclick="APP.session.createClone()"
+                class="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition"
+              >
+                Clone Sekarang
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div
       id="spontaneous-modal"
       class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm"
@@ -2224,6 +2522,202 @@
               });
         },
       };
+
+      const STARTER_PACK = {
+        1704067200000: {
+          label: "UPPER",
+          title: "Upper Body Foundation",
+          dynamic: "Arm Circles, Band Pull-Aparts, Shoulder Dislocates",
+          exercises: [
+            {
+              sets: 3,
+              rest: 150,
+              note: "Primary compound push - chest focus",
+              options: [
+                {
+                  n: "[Barbell] Bench Press",
+                  t_r: "6-8",
+                  t_k: 60,
+                  vid: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
+                  bio: "Gold standard untuk total horizontal pressing power dan densitas otot pectoral.",
+                  note: "Gunakan leg drive. Turunkan bar ke sternum bawah. Siku tidak flaring 90 derajat.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 120,
+              note: "Primary compound pull - back thickness",
+              options: [
+                {
+                  n: "[Barbell] Barbell Row",
+                  t_r: "8-10",
+                  t_k: 50,
+                  vid: "https://www.youtube.com/watch?v=9efgcAjQe7E",
+                  bio: "Compound horizontal pull primer untuk ketebalan mid-back dan stabilitas core.",
+                  note: "Bent-over 45-60 derajat. Tarik bar ke perut bawah. Squeeze scapula di puncak.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 90,
+              note: "Vertical press - shoulder development",
+              options: [
+                {
+                  n: "[Barbell] Overhead Press",
+                  t_r: "8-10",
+                  t_k: 30,
+                  vid: "https://www.youtube.com/watch?v=2yjwXTZQDDI",
+                  bio: "Membangun kekuatan bahu murni dan stabilitas core.",
+                  note: "Mundurkan dagu saat bar naik. Kunci core dan bokong untuk stabilitas lumbal.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 90,
+              note: "Vertical pull - back width",
+              options: [
+                {
+                  n: "[Cable] Lat Pulldown (wide)",
+                  t_r: "10-12",
+                  t_k: 55,
+                  vid: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+                  bio: "Vertical pull utama untuk membangun lebar punggung (V-Taper).",
+                  note: "Tarik bar ke dada atas. Bayangkan siku masuk ke saku celana belakang.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 60,
+              note: "Arm isolation - biceps",
+              options: [
+                {
+                  n: "[Barbell] Barbell Curl",
+                  t_r: "10-12",
+                  t_k: 25,
+                  vid: "https://www.youtube.com/watch?v=lyn7kj8v_XU",
+                  bio: "Membangun massa bicep keseluruhan.",
+                  note: "Kunci siku di samping rusuk. Hindari ayunan pinggang. Kontraksi puncak dan turun terkontrol.",
+                },
+              ],
+            },
+          ],
+        },
+
+        1704067201000: {
+          label: "LOWER",
+          title: "Lower Body Foundation",
+          dynamic: "Leg Swings, Hip Circles, Ankle Mobility",
+          exercises: [
+            {
+              sets: 3,
+              rest: 180,
+              note: "Primary compound - quad dominant",
+              options: [
+                {
+                  n: "[Barbell] Barbell Squat",
+                  t_r: "6-8",
+                  t_k: 80,
+                  vid: "https://www.youtube.com/watch?v=gcNh17Ckjgg",
+                  bio: "Raja dari semua latihan lower body. Membangun kekuatan sistemik dan stabilitas core.",
+                  note: "Chest up, knee tracking mengikuti jari kaki. Turun sedalam mungkin tanpa butt wink.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 120,
+              note: "Hip hinge - posterior chain",
+              options: [
+                {
+                  n: "[Barbell] RDL (Barbell)",
+                  t_r: "8-10",
+                  t_k: 70,
+                  vid: "https://www.youtube.com/watch?v=JCXUYuzwNrM",
+                  bio: "Raja posterior chain. Fokus pada hip-hinge.",
+                  note: "Lutut soft lock. Dorong pinggul ke belakang. Barbell menempel paha.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 120,
+              note: "Quad isolation - knee extension",
+              options: [
+                {
+                  n: "[Machine] Leg Extension",
+                  t_r: "10-12",
+                  t_k: 45,
+                  vid: "https://www.youtube.com/watch?v=YyvSfVjQeL0",
+                  bio: "Isolasi Rectus Femoris secara maksimal.",
+                  note: "Wajib pause 1 detik di posisi kaki lurus. No momentum.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 90,
+              note: "Hamstring isolation - knee flexion",
+              options: [
+                {
+                  n: "[Machine] Lying Leg Curl",
+                  t_r: "10-12",
+                  t_k: 40,
+                  vid: "https://www.youtube.com/watch?v=1Tq3QdYUuHs",
+                  bio: "Pre-exhaust hamstring. Fokus pada kontraksi puncak.",
+                  note: "Tekan pinggul ke pad. Kontraksi 1 detik, turun pelan 3 detik.",
+                },
+              ],
+            },
+            {
+              sets: 3,
+              rest: 60,
+              note: "Calf isolation - ankle plantarflexion",
+              options: [
+                {
+                  n: "[Machine] Seated Calf Raise",
+                  t_r: "15-20",
+                  t_k: 35,
+                  vid: "https://www.youtube.com/watch?v=JbyjNymZOt0",
+                  bio: "Target Soleus (otot betis dalam/lebar).",
+                  note: "Full ROM. Pause di bawah untuk menghilangkan refleks regangan.",
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      if (typeof EXERCISE_TARGETS !== "undefined") {
+        console.log("[STARTER_PACK] Validating exercises against library...");
+
+        let invalidCount = 0;
+        Object.keys(STARTER_PACK).forEach((sessionId) => {
+          const session = STARTER_PACK[sessionId];
+          session.exercises.forEach((ex) => {
+            ex.options.forEach((opt) => {
+              if (!EXERCISE_TARGETS[opt.n]) {
+                console.error(
+                  `[STARTER_PACK] Invalid exercise: "${opt.n}" not in EXERCISE_TARGETS`
+                );
+                invalidCount++;
+              }
+            });
+          });
+        });
+
+        if (invalidCount === 0) {
+          console.log("[STARTER_PACK] ✅ All exercises validated successfully");
+        } else {
+          console.error(
+            `[STARTER_PACK] ❌ ${invalidCount} invalid exercises found!`
+          );
+        }
+      }
+
       const APP = {
         state: {
           wakeLock: null,
@@ -2345,10 +2839,786 @@
             if (num > max) return max;
             return num;
           },
+
+          normalizeExerciseNames: function (programData) {
+            const report = {
+              normalized: 0,
+              errors: [],
+              changes: [],
+            };
+
+            if (!programData || typeof programData !== "object") {
+              report.errors.push("Invalid program data for normalization");
+              return report;
+            }
+
+            console.log("[NORMALIZE] Starting exercise name normalization...");
+
+            Object.keys(programData).forEach((sessionId) => {
+              const session = programData[sessionId];
+
+              if (!session || !session.exercises) return;
+
+              session.exercises.forEach((exercise, exIdx) => {
+                if (!exercise.options) return;
+
+                exercise.options.forEach((option, optIdx) => {
+                  if (!option.n) return;
+
+                  const originalName = option.n;
+                  let normalizedName = originalName;
+
+                  const bracketMatch =
+                    normalizedName.match(/^\[(.*?)\]\s*(.*)/);
+
+                  if (bracketMatch) {
+                    const bracketContent = bracketMatch[1].trim();
+                    const restOfName = bracketMatch[2].trim();
+
+                    const expansionMap = {
+                      DB: "Dumbbell",
+                      BB: "Barbell",
+                      BW: "Bodyweight",
+                      Machine: "Machine",
+                      Barbell: "Barbell",
+                      Cable: "Cable",
+                      Bodyweight: "Bodyweight",
+                      Stretch: "Stretch",
+                      Mobility: "Mobility",
+                      Core: "Core",
+                      Activation: "Activation",
+                      Cardio: "Cardio",
+                    };
+
+                    const expandedPrefix =
+                      expansionMap[bracketContent] || bracketContent;
+
+                    const restLower = restOfName.toLowerCase();
+                    const prefixLower = expandedPrefix.toLowerCase();
+
+                    const equipmentWords = restLower.split(/\s+/);
+                    const prefixWords = prefixLower.split(/\s+/);
+
+                    let alreadyHasEquipment = false;
+
+                    prefixWords.forEach((prefixWord) => {
+                      equipmentWords.forEach((equipWord) => {
+                        if (
+                          equipWord === prefixWord ||
+                          equipWord.includes(prefixWord) ||
+                          prefixWord.includes(equipWord)
+                        ) {
+                          alreadyHasEquipment = true;
+                        }
+                      });
+                    });
+
+                    if (alreadyHasEquipment) {
+                      normalizedName = restOfName;
+                      console.log(
+                        `[NORMALIZE] Equipment already present: "${bracketContent}" found in "${restOfName}"`
+                      );
+                    } else {
+                      normalizedName = `${expandedPrefix} ${restOfName}`;
+                      console.log(
+                        `[NORMALIZE] Adding prefix: "${expandedPrefix}" + "${restOfName}"`
+                      );
+                    }
+                  }
+
+                  normalizedName = normalizedName
+                    .trim()
+                    .replace(/\s+/g, " ")
+                    .replace(/\s+([,.:;])/g, "$1")
+                    .replace(/\(\s+/g, "(")
+                    .replace(/\s+\)/g, ")");
+
+                  if (normalizedName.length > 0) {
+                    normalizedName =
+                      normalizedName.charAt(0).toUpperCase() +
+                      normalizedName.slice(1);
+                  }
+
+                  if (normalizedName !== originalName) {
+                    option.n = normalizedName;
+                    report.normalized++;
+
+                    const change = `Session ${sessionId}, Ex ${
+                      exIdx + 1
+                    }, Opt ${
+                      optIdx + 1
+                    }: "${originalName}" → "${normalizedName}"`;
+                    report.changes.push(change);
+                    console.log(`[NORMALIZE] ${change}`);
+
+                    if (typeof EXERCISE_TARGETS !== "undefined") {
+                      if (!EXERCISE_TARGETS[normalizedName]) {
+                        report.errors.push(
+                          `Normalized name "${normalizedName}" still not found in library (from: "${originalName}")`
+                        );
+                      }
+                    }
+                  }
+                });
+              });
+            });
+
+            console.log(
+              `[NORMALIZE] Complete. Normalized ${report.normalized} exercise names.`
+            );
+
+            if (report.errors.length > 0) {
+              console.warn("[NORMALIZE] Errors:", report.errors);
+            }
+
+            return report;
+          },
+
+          suggestExerciseMatch: function (exerciseName) {
+            if (typeof EXERCISE_TARGETS === "undefined") {
+              return null;
+            }
+
+            const libraryKeys = Object.keys(EXERCISE_TARGETS);
+            const lowerSearch = exerciseName.toLowerCase();
+
+            for (let key of libraryKeys) {
+              if (key.toLowerCase() === lowerSearch) {
+                return key;
+              }
+            }
+
+            for (let key of libraryKeys) {
+              if (
+                key.toLowerCase().includes(lowerSearch) ||
+                lowerSearch.includes(key.toLowerCase())
+              ) {
+                return key;
+              }
+            }
+
+            const searchWords = lowerSearch.split(/\s+/);
+            let bestMatch = null;
+            let maxScore = 0;
+
+            libraryKeys.forEach((key) => {
+              const keyWords = key.toLowerCase().split(/\s+/);
+              let score = 0;
+
+              searchWords.forEach((searchWord) => {
+                keyWords.forEach((keyWord) => {
+                  if (
+                    keyWord.includes(searchWord) ||
+                    searchWord.includes(keyWord)
+                  ) {
+                    score++;
+                  }
+                });
+              });
+
+              if (score > maxScore) {
+                maxScore = score;
+                bestMatch = key;
+              }
+            });
+
+            return maxScore > 0 ? bestMatch : null;
+          },
+
+          fuzzyMatchExercise: function (exerciseName) {
+            if (!exerciseName) return null;
+
+            if (EXERCISE_TARGETS[exerciseName]) {
+              return exerciseName;
+            }
+
+            const originalName = exerciseName;
+            console.groupCollapsed(`[FUZZY] 🔍 Matching: "${originalName}"`);
+
+            const patterns = [
+              (name) => name.replace(/^\[.*?\]\s*/, ""),
+
+              (name) => `[Barbell] ${name}`,
+              (name) => `[DB] ${name}`,
+              (name) => `[Dumbbell] ${name}`,
+              (name) => `[Machine] ${name}`,
+              (name) => `[Cable] ${name}`,
+              (name) => `[Bodyweight] ${name}`,
+
+              (name) => name.replace(/\bDB\b/gi, "Dumbbell"),
+              (name) => name.replace(/\bDumbbell\b/gi, "DB"),
+              (name) => name.replace(/\bBB\b/gi, "Barbell"),
+
+              (name) => name.replace(/\bBench\b/gi, "Bench Press"),
+              (name) => name.replace(/\bOHP\b/gi, "Overhead Press"),
+              (name) => name.replace(/\bRDL\b/gi, "Romanian Deadlift"),
+
+              (name) => {
+                const words = name.split(" ");
+                if (words[0].match(/^(Barbell|Dumbbell|Machine|Cable|DB)/i)) {
+                  return words.slice(1).join(" ");
+                }
+                return name;
+              },
+            ];
+
+            for (let pattern of patterns) {
+              try {
+                const normalized = pattern(exerciseName);
+                if (normalized && EXERCISE_TARGETS[normalized]) {
+                  console.log(
+                    `[FUZZY] ✅ Matched: "${originalName}" → "${normalized}"`
+                  );
+                  console.groupEnd();
+                  return normalized;
+                }
+              } catch (e) {
+                console.warn(`[FUZZY] Pattern failed:`, e);
+              }
+            }
+
+            const keywords = exerciseName.toLowerCase().split(/\s+/);
+            const libraryKeys = Object.keys(EXERCISE_TARGETS);
+
+            for (let libKey of libraryKeys) {
+              const libKeyLower = libKey.toLowerCase();
+              let matchCount = 0;
+
+              keywords.forEach((keyword) => {
+                if (keyword.length > 3 && libKeyLower.includes(keyword)) {
+                  matchCount++;
+                }
+              });
+
+              if (matchCount >= 2) {
+                console.log(
+                  `[FUZZY] 🎯 Keyword match: "${originalName}" → "${libKey}" (${matchCount} keywords)`
+                );
+                return libKey;
+              }
+            }
+
+            const suggestion = this.suggestExerciseMatch(exerciseName);
+            if (suggestion) {
+              console.log(
+                `[FUZZY] 💡 Suggestion: "${originalName}" → "${suggestion}"`
+              );
+              return suggestion;
+            }
+
+            console.warn(`[FUZZY] ❌ No match found for: "${originalName}"`);
+            return null;
+          },
+
+          validateExerciseIntegrity: function (sessionData) {
+            const report = {
+              valid: true,
+              errors: [],
+              warnings: [],
+              suggestions: [],
+            };
+
+            if (!sessionData || !sessionData.exercises) {
+              report.valid = false;
+              report.errors.push(
+                "Invalid session structure: missing exercises array"
+              );
+              return report;
+            }
+
+            sessionData.exercises.forEach((exercise, idx) => {
+              if (!exercise.options || exercise.options.length === 0) {
+                report.valid = false;
+                report.errors.push(`Exercise #${idx + 1}: No options defined`);
+                return;
+              }
+
+              exercise.options.forEach((option, optIdx) => {
+                const exName = option.n || "";
+
+                if (typeof EXERCISE_TARGETS !== "undefined") {
+                  if (!EXERCISE_TARGETS[exName]) {
+                    const suggestion = this.suggestExerciseMatch(exName);
+
+                    if (suggestion) {
+                      report.warnings.push(
+                        `Exercise #${idx + 1} Option ${
+                          optIdx + 1
+                        }: "${exName}" not found. Did you mean "${suggestion}"?`
+                      );
+                      report.suggestions.push({
+                        index: idx,
+                        optionIndex: optIdx,
+                        original: exName,
+                        suggested: suggestion,
+                      });
+                    } else {
+                      report.valid = false;
+                      report.errors.push(
+                        `Exercise #${idx + 1} Option ${
+                          optIdx + 1
+                        }: "${exName}" not found in library. Multi Muscle Target calculation will fail!`
+                      );
+                    }
+                  } else {
+                    const targets = EXERCISE_TARGETS[exName];
+
+                    if (Array.isArray(targets) && targets.length === 0) {
+                      console.log(
+                        `[VALIDATION] Passive exercise: "${exName}" (0 volume contribution)`
+                      );
+                    }
+                  }
+                } else {
+                  report.warnings.push(
+                    "EXERCISE_TARGETS library not loaded - cannot validate"
+                  );
+                }
+
+                if (!option.t_r) {
+                  report.warnings.push(
+                    `Exercise #${idx + 1}: Missing target reps (t_r)`
+                  );
+                }
+
+                if (!option.bio) {
+                  report.warnings.push(
+                    `Exercise #${idx + 1}: Missing biomechanics description`
+                  );
+                }
+              });
+            });
+
+            return report;
+          },
+
+          validateProgramStructure: function (programData) {
+            const report = {
+              valid: true,
+              errors: [],
+              warnings: [],
+            };
+
+            if (!programData || typeof programData !== "object") {
+              report.valid = false;
+              report.errors.push("Invalid program structure: not an object");
+              return report;
+            }
+
+            const sessionIds = Object.keys(programData);
+
+            if (sessionIds.length === 0) {
+              report.warnings.push("Program has no sessions");
+            }
+
+            sessionIds.forEach((sessionId) => {
+              const session = programData[sessionId];
+              const sessionReport = this.validateSessionStructure(
+                session,
+                sessionId
+              );
+
+              report.errors.push(...sessionReport.errors);
+              report.warnings.push(...sessionReport.warnings);
+
+              if (!sessionReport.valid) {
+                report.valid = false;
+              }
+            });
+
+            return report;
+          },
+
+          validateSessionStructure: function (session, sessionId = "unknown") {
+            const report = {
+              valid: true,
+              errors: [],
+              warnings: [],
+            };
+
+            if (!session.title) {
+              report.warnings.push(`Session ${sessionId}: Missing title`);
+            }
+
+            if (!session.exercises) {
+              report.valid = false;
+              report.errors.push(
+                `Session ${sessionId}: Missing exercises array`
+              );
+              return report;
+            }
+
+            if (!Array.isArray(session.exercises)) {
+              report.valid = false;
+              report.errors.push(
+                `Session ${sessionId}: exercises is not an array`
+              );
+              return report;
+            }
+
+            if (session.exercises.length === 0) {
+              report.warnings.push(
+                `Session ${sessionId}: No exercises defined`
+              );
+            }
+
+            const exerciseReport = this.validateExerciseIntegrity(session);
+
+            report.errors.push(...exerciseReport.errors);
+            report.warnings.push(...exerciseReport.warnings);
+
+            if (!exerciseReport.valid) {
+              report.valid = false;
+            }
+
+            return report;
+          },
+
+          showValidationReport: function (report, context = "Operation") {
+            if (report.valid && report.warnings.length === 0) {
+              return true;
+            }
+
+            let message = `${context} Validation:\n\n`;
+
+            if (report.errors.length > 0) {
+              message += "❌ ERRORS (Cannot proceed):\n";
+              report.errors.forEach((err) => {
+                message += `• ${err}\n`;
+              });
+
+              message += "\n⚠️ Fix these errors before saving.";
+              alert(message);
+              return false;
+            }
+
+            if (report.warnings.length > 0) {
+              message += "⚠️ WARNINGS:\n";
+              report.warnings.forEach((warn) => {
+                message += `• ${warn}\n`;
+              });
+
+              message += "\nThese are optional. Continue anyway?";
+              return confirm(message);
+            }
+
+            return true;
+          },
+        },
+
+        safety: {
+          MAX_BACKUPS: 5,
+
+          createBackup: function (operation) {
+            try {
+              const timestamp = Date.now();
+              const backupId = `backup_${timestamp}_${operation.replace(
+                /\s+/g,
+                "_"
+              )}`;
+
+              const backup = {
+                id: backupId,
+                operation: operation,
+                timestamp: timestamp,
+                date: new Date(timestamp).toISOString(),
+
+                workoutData: JSON.parse(
+                  JSON.stringify(APP.state.workoutData || {})
+                ),
+                gym_hist: LS_SAFE.getJSON("gym_hist", []),
+                profile: LS_SAFE.getJSON("profile", {}),
+                weights: LS_SAFE.getJSON("weights", []),
+                blueprints: LS_SAFE.getJSON("blueprints", []),
+
+                version: "v26",
+                userAgent: navigator.userAgent,
+              };
+
+              if (
+                !backup.workoutData ||
+                Object.keys(backup.workoutData).length === 0
+              ) {
+                console.warn("[SAFETY] Backup created with empty workoutData");
+              }
+
+              const saved = LS_SAFE.setJSON(backupId, backup);
+
+              if (!saved) {
+                throw new Error("Failed to save backup to localStorage");
+              }
+
+              console.log(`[SAFETY] Backup created: ${backupId}`);
+
+              this.pruneOldBackups(this.MAX_BACKUPS);
+
+              return backupId;
+            } catch (e) {
+              console.error("[SAFETY] Backup creation failed:", e);
+              APP.ui.showToast(
+                "⚠️ Backup gagal! Operation tetap dilanjutkan.",
+                "warning"
+              );
+              return null;
+            }
+          },
+
+          restore: function (backupId) {
+            try {
+              const backup = LS_SAFE.getJSON(backupId);
+
+              if (!backup) {
+                throw new Error("Backup not found: " + backupId);
+              }
+
+              if (!backup.workoutData || !backup.timestamp) {
+                throw new Error("Invalid backup structure");
+              }
+
+              console.log(`[SAFETY] Restoring backup from ${backup.date}`);
+
+              const preRestoreId = this.createBackup("pre_restore");
+
+              APP.state.workoutData = backup.workoutData;
+              LS_SAFE.setJSON("cscs_program_v10", backup.workoutData);
+              LS_SAFE.setJSON("gym_hist", backup.gym_hist);
+              LS_SAFE.setJSON("profile", backup.profile);
+              LS_SAFE.setJSON("weights", backup.weights);
+
+              if (backup.blueprints) {
+                LS_SAFE.setJSON("blueprints", backup.blueprints);
+              }
+
+              console.log(
+                "[SAFETY] Restore complete. Pre-restore backup:",
+                preRestoreId
+              );
+
+              return true;
+            } catch (e) {
+              console.error("[SAFETY] Restore failed:", e);
+              alert("Restore gagal: " + e.message);
+              return false;
+            }
+          },
+
+          pruneOldBackups: function (maxCount) {
+            try {
+              const backups = this.listBackups();
+
+              if (backups.length <= maxCount) {
+                return;
+              }
+
+              backups.sort((a, b) => a.timestamp - b.timestamp);
+
+              const toDelete = backups.length - maxCount;
+
+              for (let i = 0; i < toDelete; i++) {
+                LS_SAFE.remove(backups[i].id);
+                console.log(`[SAFETY] Pruned old backup: ${backups[i].id}`);
+              }
+
+              console.log(
+                `[SAFETY] Pruned ${toDelete} old backups. Kept ${maxCount} most recent.`
+              );
+            } catch (e) {
+              console.error("[SAFETY] Prune failed:", e);
+            }
+          },
+
+          listBackups: function () {
+            const backups = [];
+
+            try {
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+
+                if (key && key.startsWith("backup_")) {
+                  const backup = LS_SAFE.getJSON(key);
+
+                  if (backup && backup.timestamp) {
+                    backups.push({
+                      id: key,
+                      operation: backup.operation,
+                      timestamp: backup.timestamp,
+                      date:
+                        backup.date || new Date(backup.timestamp).toISOString(),
+                      sessionCount: Object.keys(backup.workoutData || {})
+                        .length,
+                      historyCount: (backup.gym_hist || []).length,
+                    });
+                  }
+                }
+              }
+
+              backups.sort((a, b) => b.timestamp - a.timestamp);
+            } catch (e) {
+              console.error("[SAFETY] List backups failed:", e);
+            }
+
+            return backups;
+          },
+
+          getLatestBackup: function () {
+            const backups = this.listBackups();
+            return backups.length > 0 ? backups[0] : null;
+          },
+
+          deleteBackup: function (backupId) {
+            try {
+              LS_SAFE.remove(backupId);
+              console.log(`[SAFETY] Deleted backup: ${backupId}`);
+
+              if (
+                document
+                  .getElementById("profile-modal")
+                  .classList.contains("hidden") === false
+              ) {
+                this.renderBackupHistory();
+              }
+            } catch (e) {
+              console.error("[SAFETY] Delete backup failed:", e);
+            }
+          },
+
+          renderBackupHistory: function () {
+            const container = document.getElementById(
+              "backup-history-container"
+            );
+
+            if (!container) {
+              console.warn("[SAFETY] backup-history-container not found");
+              return;
+            }
+
+            const backups = this.listBackups();
+
+            if (backups.length === 0) {
+              container.innerHTML = `
+        <div class="text-center text-slate-500 py-8">
+          <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 opacity-30"></i>
+          <p class="text-xs italic">Belum ada backup tersimpan.</p>
+          <p class="text-[10px] text-slate-600 mt-1">Backup otomatis dibuat saat edit/delete sesi.</p>
+        </div>
+      `;
+              return;
+            }
+
+            let html = '<div class="space-y-2">';
+
+            backups.forEach((backup, index) => {
+              const isLatest = index === 0;
+              const dateObj = new Date(backup.timestamp);
+              const dateStr = DT.formatRelative(backup.timestamp);
+              const timeStr = dateObj.toLocaleTimeString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              let opLabel = backup.operation;
+              let opIcon = "💾";
+
+              if (backup.operation.includes("delete")) opIcon = "🗑️";
+              else if (backup.operation.includes("edit")) opIcon = "✏️";
+              else if (backup.operation.includes("create")) opIcon = "➕";
+              else if (backup.operation.includes("restore")) opIcon = "🔄";
+              else if (backup.operation.includes("init")) opIcon = "🚀";
+
+              html += `
+        <div class="bg-slate-800/50 rounded-lg border ${
+          isLatest ? "border-emerald-500/50" : "border-slate-700"
+        } p-3">
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-lg">${opIcon}</span>
+                <span class="text-xs font-bold text-white">${opLabel
+                  .replace(/_/g, " ")
+                  .toUpperCase()}</span>
+                ${
+                  isLatest
+                    ? '<span class="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded font-bold">LATEST</span>'
+                    : ""
+                }
+              </div>
+              <div class="text-[10px] text-slate-400">
+                ${dateStr} • ${timeStr}
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button 
+                onclick="APP.safety.confirmRestore('${backup.id}')"
+                class="text-emerald-400 hover:text-emerald-300 px-2 py-1 text-xs bg-emerald-900/20 rounded border border-emerald-900/50"
+                title="Restore backup ini"
+              >
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button 
+                onclick="APP.safety.deleteBackup('${backup.id}')"
+                class="text-red-400 hover:text-red-300 px-2 py-1 text-xs bg-red-900/20 rounded border border-red-900/50"
+                title="Hapus backup"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-500">
+            <div>
+              <i class="fa-solid fa-dumbbell mr-1"></i>
+              ${backup.sessionCount} Sessions
+            </div>
+            <div>
+              <i class="fa-solid fa-clock-rotate-left mr-1"></i>
+              ${backup.historyCount} Logs
+            </div>
+          </div>
+        </div>
+      `;
+            });
+
+            html += "</div>";
+
+            container.innerHTML = html;
+          },
+
+          confirmRestore: function (backupId) {
+            const backup = LS_SAFE.getJSON(backupId);
+
+            if (!backup) {
+              alert("Backup tidak ditemukan!");
+              return;
+            }
+
+            const dateStr = new Date(backup.timestamp).toLocaleString("id-ID");
+            const currentSessions = Object.keys(APP.state.workoutData).length;
+            const backupSessions = Object.keys(backup.workoutData).length;
+
+            const confirmed = confirm(
+              `🔄 RESTORE BACKUP\n\n` +
+                `From: ${dateStr}\n` +
+                `Operation: ${backup.operation}\n\n` +
+                `Current Sessions: ${currentSessions}\n` +
+                `Backup Sessions: ${backupSessions}\n\n` +
+                `⚠️ Data saat ini akan ditimpa!\n\n` +
+                `Lanjutkan restore?`
+            );
+
+            if (!confirmed) return;
+
+            const success = this.restore(backupId);
+
+            if (success) {
+              APP.ui.showToast("✅ Restore berhasil! Reloading...", "success");
+              setTimeout(() => location.reload(), 1500);
+            }
+          },
         },
 
         init: function () {
           try {
+            console.log("[INIT] Starting application...");
+
             if (typeof dayjs !== "undefined") {
               dayjs.extend(window.dayjs_plugin_relativeTime);
               dayjs.locale("id");
@@ -2357,27 +3627,261 @@
             if (APP.validation && APP.validation.cleanCorruptData) {
               const cleaned = APP.validation.cleanCorruptData();
               if (cleaned > 0) {
-                console.log(`[STARTUP] Cleaned ${cleaned} corrupt entries`);
+                console.log(`[INIT] Cleaned ${cleaned} corrupt entries`);
               }
             }
 
             const stored = LS_SAFE.getJSON("cscs_program_v10");
-            if (stored) {
-              this.state.workoutData = stored;
-            } else {
-              this.state.workoutData = this.state.defaultTemplate;
-              LS_SAFE.setJSON("cscs_program_v10", this.state.workoutData);
+
+            console.groupCollapsed(`[INIT] 🔄 Normalizing exercise names...`);
+
+            const normalizeReport =
+              APP.validation.normalizeExerciseNames(stored);
+
+            if (normalizeReport.normalized > 0) {
+              console.log(
+                `✅ Normalized ${normalizeReport.normalized} exercise names`
+              );
+
+              if (normalizeReport.changes.length > 0) {
+                console.log("Detailed changes:");
+                normalizeReport.changes.forEach((change) =>
+                  console.log(`  - ${change}`)
+                );
+              }
+
+              LS_SAFE.setJSON("cscs_program_v10", stored);
+
+              APP.ui.showToast(
+                `🔄 Migrated ${normalizeReport.normalized} exercises. ${
+                  normalizeReport.errors.length > 0
+                    ? "⚠️ Some issues detected."
+                    : "✅ All clear!"
+                }`,
+                normalizeReport.errors.length > 0 ? "warning" : "success"
+              );
             }
+
+            if (normalizeReport.errors.length > 0) {
+              console.warn("⚠️ Normalization errors:");
+              normalizeReport.errors.forEach((err) =>
+                console.warn(`  - ${err}`)
+              );
+            }
+
+            console.groupEnd();
+
+            let validationPassed = false;
+
+            if (stored && Object.keys(stored).length > 0) {
+              if (stored && stored.spontaneous) {
+                let fixed = false;
+
+                if (!stored.spontaneous.title) {
+                  stored.spontaneous.title = "Spontaneous & Mobility";
+                  fixed = true;
+                }
+                if (!stored.spontaneous.label) {
+                  stored.spontaneous.label = "SPONTANEOUS";
+                  fixed = true;
+                }
+                if (!stored.spontaneous.dynamic) {
+                  stored.spontaneous.dynamic = "Arm Circles, Jumping Jacks";
+                  fixed = true;
+                }
+                if (!stored.spontaneous.exercises) {
+                  stored.spontaneous.exercises = [];
+                  fixed = true;
+                }
+
+                if (fixed) {
+                  console.log(
+                    "[INIT] 🔧 Auto-fixed spontaneous session structure"
+                  );
+
+                  LS_SAFE.setJSON("cscs_program_v10", stored);
+                }
+              }
+
+              console.groupCollapsed(
+                "[INIT] 🔍 Validating program structure..."
+              );
+
+              const validation =
+                APP.validation.validateProgramStructure(stored);
+
+              console.log(
+                "Validation result:",
+                validation.valid ? "✅ PASSED" : "⚠️ ISSUES DETECTED"
+              );
+
+              if (!validation.valid && validation.errors.length > 0) {
+                console.warn("Errors found:");
+                validation.errors.forEach((err) => console.warn(`  - ${err}`));
+              }
+
+              if (validation.warnings.length > 0) {
+                console.warn("Warnings:");
+                validation.warnings.forEach((warn) =>
+                  console.warn(`  - ${warn}`)
+                );
+              }
+
+              console.groupEnd();
+
+              if (validation.valid) {
+                APP.state.workoutData = stored;
+                validationPassed = true;
+                console.log("[INIT] Data validation passed");
+
+                if (validation.warnings.length > 0) {
+                  console.warn(
+                    "[INIT] Validation warnings:",
+                    validation.warnings
+                  );
+                }
+
+                if (
+                  validation.suggestions &&
+                  validation.suggestions.length > 0
+                ) {
+                  console.log(
+                    "[INIT] Exercise suggestions available:",
+                    validation.suggestions
+                  );
+                }
+              } else {
+                console.error(
+                  "[INIT] Data validation FAILED after normalization:",
+                  validation.errors
+                );
+
+                const latestBackup = APP.safety.getLatestBackup();
+
+                if (latestBackup) {
+                  console.log(
+                    "[INIT] Corrupt data detected. Latest backup found:",
+                    latestBackup.id
+                  );
+
+                  const shouldRestore = confirm(
+                    `⚠️ DATA VALIDATION FAILED!\n\n` +
+                      `After attempting normalization, ${validation.errors.length} errors remain.\n\n` +
+                      `Latest backup available:\n` +
+                      `Date: ${latestBackup.date}\n` +
+                      `Sessions: ${latestBackup.sessionCount}\n\n` +
+                      `Restore from backup?\n\n` +
+                      `(Cancel = Use Starter Pack)`
+                  );
+
+                  if (shouldRestore) {
+                    const restored = APP.safety.restore(latestBackup.id);
+
+                    if (restored) {
+                      validationPassed = true;
+                      console.log("[INIT] Restored from backup successfully");
+                      APP.ui.showToast(
+                        "✅ Data restored from backup",
+                        "success"
+                      );
+                    } else {
+                      console.error(
+                        "[INIT] Restore failed - falling back to STARTER_PACK"
+                      );
+                    }
+                  }
+                } else {
+                  console.warn("[INIT] No backup available for restore");
+                }
+              }
+            }
+
+            if (!validationPassed) {
+              console.warn(
+                "[INIT] Validation issues detected - attempting graceful recovery"
+              );
+
+              APP.safety.createBackup("emergency_pre_merge");
+
+              if (stored && Object.keys(stored).length > 0) {
+                APP.state.workoutData = stored;
+                APP.state.hasUnmappedExercises = true;
+
+                console.log("[INIT] Loaded data with validation warnings");
+
+                let unmappedCount = 0;
+                Object.keys(stored).forEach((sessionId) => {
+                  const session = stored[sessionId];
+                  if (session.exercises) {
+                    session.exercises.forEach((ex) => {
+                      ex.options?.forEach((opt) => {
+                        if (opt.n && !EXERCISE_TARGETS[opt.n]) {
+                          unmappedCount++;
+                        }
+                      });
+                    });
+                  }
+                });
+
+                if (unmappedCount > 0) {
+                  APP.ui.showToast(
+                    `⚠️ ${unmappedCount} unmapped exercise(s) detected. Volume tracking may be incomplete.`,
+                    "warning"
+                  );
+                }
+              } else {
+                console.log(
+                  "[INIT] No stored data found - loading STARTER_PACK"
+                );
+
+                if (typeof STARTER_PACK !== "undefined") {
+                  APP.state.workoutData = STARTER_PACK;
+                  LS_SAFE.setJSON("cscs_program_v10", STARTER_PACK);
+                  APP.ui.showToast(
+                    "🎁 Welcome! Starter program loaded.",
+                    "success"
+                  );
+                } else {
+                  APP.state.workoutData = {};
+                  alert(
+                    "⚠️ Critical Error: No data available. Please refresh page."
+                  );
+                }
+              }
+            }
+
+            APP.safety.createBackup("app_init");
+            console.log("[INIT] Init snapshot created");
+
             this.data.loadProfile();
             this.nav.renderDashboard();
-            if (typeof Chart !== "undefined") this.stats.init();
+
+            if (typeof Chart !== "undefined") {
+              this.stats.init();
+            }
+
             this.core.requestWakeLock();
             document.addEventListener("visibilitychange", () => {
-              if (document.visibilityState === "visible")
+              if (document.visibilityState === "visible") {
                 this.core.requestWakeLock();
+              }
             });
+
+            try {
+              const remappedLogs = APP.data.reconcileLogs();
+
+              if (remappedLogs > 0) {
+                console.log(
+                  `[INIT] ✅ Reconciled ${remappedLogs} orphaned log(s)`
+                );
+              }
+            } catch (e) {
+              console.error("[INIT] ❌ Log reconciliation failed:", e);
+            }
+            console.log("[INIT] Application ready");
           } catch (e) {
-            this.debug.showFatalError("Init Error", e);
+            console.error("[INIT] Fatal error:", e);
+            this.debug.showFatalError("App Initialization", e);
           }
         },
         core: {
@@ -2541,38 +4045,98 @@
                 }
               });
               Object.keys(wData).forEach((k) => {
-                if (k === "spontaneous") return;
-                const d = wData[k];
-                const last = LS_SAFE.get(`last_${k}`);
-                const timeStr = DT.formatRelative(last);
-                const isRec = k === recommended;
-                htmlBuffer += `
-            <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${
-                  isRec
-                    ? "border-emerald-500/50 pulse-border"
-                    : "border-slate-700"
-                } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
-                <div>
-                    <div class="flex items-center mb-1">
-                        <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
-                          d.label
-                        }</span>
-                        ${
-                          isRec
-                            ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
-                            : ""
-                        }
-                    </div>
-                    <h3 class="font-bold text-white text-lg flex items-center gap-2">${
-                      d.title
-                    } <button onclick="APP.data.editSessionTitle(event, '${k}')" class="z-10 relative p-1 text-slate-600 hover:text-white"><i class="fa-solid fa-pen text-xs"></i></button></h3>
-                    <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}</div>
-                </div>
-                <div class="flex flex-col items-end gap-2">
-                    <button onclick="APP.data.deleteSession(event, '${k}')" class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition" title="Hapus Sesi"><i class="fa-solid fa-trash text-xs"></i></button>
-                    <i class="fa-solid fa-chevron-right text-slate-500"></i>
-                </div>
-            </div>`;
+                try {
+                  if (k === "spontaneous") return;
+
+                  const d = wData[k];
+
+                  if (!d || typeof d !== "object") {
+                    console.warn(
+                      `[DASHBOARD] Session ${k} has invalid structure - skipping`
+                    );
+                    return;
+                  }
+
+                  if (!d.title) {
+                    console.warn(
+                      `[DASHBOARD] Session ${k} has no title - using fallback`
+                    );
+                    d.title = "Untitled Session";
+                  }
+
+                  if (!d.label) {
+                    d.label = "CUSTOM";
+                  }
+
+                  const last = LS_SAFE.get(`last_${k}`);
+                  const timeStr = DT.formatRelative(last);
+                  const isRec = k === recommended;
+
+                  htmlBuffer += `
+      <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${
+                    isRec
+                      ? "border-emerald-500/50 pulse-border"
+                      : "border-slate-700"
+                  } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
+        <div>
+          <div class="flex items-center mb-1">
+            <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
+              d.label
+            }</span>
+            ${
+              isRec
+                ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
+                : ""
+            }
+          </div>
+          <h3 class="font-bold text-white text-lg flex items-center gap-2">
+            ${d.title} 
+            <button 
+              onclick="APP.session.openEditor(event, '${k}')" 
+              class="z-10 relative p-1 text-slate-600 hover:text-emerald-400 transition"
+              title="Edit Sesi Lengkap"
+            >
+              <i class="fa-solid fa-pen-to-square text-xs"></i>
+            </button>
+          </h3>
+          <div class="text-xs text-slate-400 mt-1">
+            <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+          <div class="flex gap-1">
+            <button
+              onclick="APP.session.reorder('${k}', -1); event.stopPropagation();"
+              class="text-slate-500 hover:text-emerald-400 px-2 py-1 text-xs bg-slate-700/50 rounded transition"
+              title="Pindah ke atas"
+            >
+              <i class="fa-solid fa-arrow-up"></i>
+            </button>
+            <button
+              onclick="APP.session.reorder('${k}', 1); event.stopPropagation();"
+              class="text-slate-500 hover:text-emerald-400 px-2 py-1 text-xs bg-slate-700/50 rounded transition"
+              title="Pindah ke bawah"
+            >
+              <i class="fa-solid fa-arrow-down"></i>
+            </button>
+            <button
+              onclick="APP.session.confirmDelete(event, '${k}')"
+              class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition text-xs bg-slate-700/50 rounded"
+              title="Hapus Sesi"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <i class="fa-solid fa-chevron-right text-slate-500"></i>
+        </div>
+      </div>
+    `;
+                } catch (e) {
+                  console.error(
+                    `[DASHBOARD] Failed to render session ${k}:`,
+                    e
+                  );
+                }
               });
               list.innerHTML = htmlBuffer;
             } catch (e) {
@@ -2976,6 +4540,652 @@
             } catch (e) {
               APP.debug.showFatalError("Load Workout Error", e);
             }
+          },
+        },
+
+        session: {
+          openCreator: function () {
+            document.getElementById("new-session-name").value = "";
+            document.getElementById("new-session-label").value = "";
+            document.getElementById("new-session-warmup").value =
+              "Arm Circles, Leg Swings";
+
+            document.getElementById("clone-options").classList.add("hidden");
+
+            APP.ui.openModal("session-creator");
+          },
+
+          createEmpty: function () {
+            const name = document
+              .getElementById("new-session-name")
+              .value.trim();
+            const label = document
+              .getElementById("new-session-label")
+              .value.trim();
+            const warmup = document
+              .getElementById("new-session-warmup")
+              .value.trim();
+
+            if (!name) {
+              alert("⚠️ Nama sesi harus diisi!");
+              return;
+            }
+
+            const sessionId = Date.now().toString();
+
+            const newSession = {
+              label: label || "CUSTOM",
+              title: name,
+              dynamic: warmup || "Arm Circles",
+              exercises: [],
+            };
+
+            APP.state.workoutData[sessionId] = newSession;
+
+            APP.safety.createBackup(`create_session_${sessionId}`);
+
+            APP.core.saveProgram();
+
+            APP.ui.closeModal("session-creator");
+
+            APP.ui.showToast(`✅ Sesi "${name}" berhasil dibuat!`, "success");
+
+            APP.nav.renderDashboard();
+
+            setTimeout(() => {
+              if (
+                confirm(
+                  `Sesi berhasil dibuat!\n\nBuka sekarang untuk menambah exercises?`
+                )
+              ) {
+                APP.nav.loadWorkout(sessionId);
+              }
+            }, 300);
+          },
+
+          showCloneOptions: function () {
+            const container = document.getElementById("clone-options");
+            const select = document.getElementById("clone-source-select");
+
+            let options = '<option value="">-- Pilih Sesi --</option>';
+
+            Object.keys(APP.state.workoutData).forEach((sessionId) => {
+              const session = APP.state.workoutData[sessionId];
+              if (sessionId !== "spontaneous") {
+                options += `<option value="${sessionId}">${
+                  session.title || session.label
+                }</option>`;
+              }
+            });
+
+            select.innerHTML = options;
+            container.classList.remove("hidden");
+          },
+
+          createClone: function () {
+            const name = document
+              .getElementById("new-session-name")
+              .value.trim();
+            const label = document
+              .getElementById("new-session-label")
+              .value.trim();
+            const warmup = document
+              .getElementById("new-session-warmup")
+              .value.trim();
+            const sourceId = document.getElementById(
+              "clone-source-select"
+            ).value;
+
+            if (!name) {
+              alert("⚠️ Nama sesi harus diisi!");
+              return;
+            }
+
+            if (!sourceId) {
+              alert("⚠️ Pilih sesi yang akan di-clone!");
+              return;
+            }
+
+            const sourceSession = APP.state.workoutData[sourceId];
+            if (!sourceSession) {
+              alert("❌ Sesi source tidak ditemukan!");
+              return;
+            }
+
+            const newSessionId = Date.now().toString();
+
+            const clonedSession = JSON.parse(JSON.stringify(sourceSession));
+
+            clonedSession.label = label || clonedSession.label;
+            clonedSession.title = name;
+            clonedSession.dynamic = warmup || clonedSession.dynamic;
+
+            APP.state.workoutData[newSessionId] = clonedSession;
+
+            APP.safety.createBackup(
+              `clone_session_${sourceId}_to_${newSessionId}`
+            );
+
+            APP.core.saveProgram();
+
+            APP.ui.closeModal("session-creator");
+
+            APP.ui.showToast(
+              `✅ Sesi "${name}" berhasil dibuat dari "${sourceSession.title}"!`,
+              "success"
+            );
+
+            APP.nav.renderDashboard();
+          },
+
+          reorder: function (sessionId, direction) {
+            try {
+              const sessions = Object.keys(APP.state.workoutData).filter(
+                (id) => id !== "spontaneous"
+              );
+
+              const currentIndex = sessions.indexOf(sessionId);
+
+              if (currentIndex === -1) {
+                console.error("Session not found:", sessionId);
+                return;
+              }
+
+              const newIndex = currentIndex + direction;
+
+              if (newIndex < 0 || newIndex >= sessions.length) {
+                console.log("Cannot move: out of bounds");
+                return;
+              }
+
+              [sessions[currentIndex], sessions[newIndex]] = [
+                sessions[newIndex],
+                sessions[currentIndex],
+              ];
+
+              const reordered = {};
+
+              sessions.forEach((id) => {
+                reordered[id] = APP.state.workoutData[id];
+              });
+
+              if (APP.state.workoutData.spontaneous) {
+                reordered.spontaneous = APP.state.workoutData.spontaneous;
+              }
+
+              APP.safety.createBackup("reorder_sessions");
+
+              APP.state.workoutData = reordered;
+
+              APP.core.saveProgram();
+
+              APP.nav.renderDashboard();
+
+              console.log(
+                `[SESSION] Reordered: ${sessionId} moved ${
+                  direction > 0 ? "down" : "up"
+                }`
+              );
+            } catch (e) {
+              console.error("[SESSION] Reorder error:", e);
+              alert("Gagal reorder sesi: " + e.message);
+            }
+          },
+
+          confirmDelete: function (event, sessionId) {
+            event.stopPropagation();
+
+            const session = APP.state.workoutData[sessionId];
+            if (!session) return;
+
+            const confirmed = confirm(
+              `🗑️ HAPUS SESI\n\n` +
+                `Nama: ${session.title}\n` +
+                `Exercises: ${session.exercises.length}\n\n` +
+                `⚠️ Sesi akan hilang permanen!\n` +
+                `(History logs tetap tersimpan)\n\n` +
+                `Lanjutkan hapus?`
+            );
+
+            if (!confirmed) return;
+
+            APP.safety.createBackup(`delete_session_${sessionId}`);
+
+            delete APP.state.workoutData[sessionId];
+
+            this.cleanupSessionKeys(sessionId);
+
+            APP.core.saveProgram();
+
+            APP.nav.renderDashboard();
+
+            APP.ui.showToast(
+              `✅ Sesi "${session.title}" berhasil dihapus`,
+              "success"
+            );
+          },
+
+          cleanupSessionKeys: function (sessionId) {
+            const keysToRemove = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+
+              if (
+                key &&
+                (key.startsWith(`${sessionId}_ex`) ||
+                  key.startsWith(`last_${sessionId}`) ||
+                  key.startsWith(`pref_${sessionId}`) ||
+                  key.startsWith(`note_${sessionId}`) ||
+                  key.startsWith(`vid_ovr_${sessionId}`))
+              ) {
+                keysToRemove.push(key);
+              }
+            }
+
+            keysToRemove.forEach((key) => LS_SAFE.remove(key));
+
+            console.log(
+              `[SESSION] Cleaned up ${keysToRemove.length} localStorage keys for session ${sessionId}`
+            );
+          },
+
+          openEditor: function (event, sessionId) {
+            if (event) event.stopPropagation();
+
+            const session = APP.state.workoutData[sessionId];
+            if (!session) {
+              alert("Session not found!");
+              return;
+            }
+
+            APP.state.currentEditingSessionId = sessionId;
+
+            document.getElementById("edit-session-label").value =
+              session.label || "";
+            document.getElementById("edit-session-title").value =
+              session.title || "";
+            document.getElementById("edit-session-warmup").value =
+              session.dynamic || "";
+
+            this.updateRotationStatus(sessionId);
+
+            this.renderExerciseList();
+
+            this.updateVolumePreview();
+
+            APP.ui.openModal("session-editor");
+          },
+
+          updateRotationStatus: function (sessionId) {
+            const lastPerformed = LS_SAFE.get(`last_${sessionId}`);
+            const statusEl = document.getElementById("rotation-status");
+
+            if (!statusEl) return;
+
+            if (lastPerformed) {
+              const date = new Date(parseInt(lastPerformed));
+              const dateStr = DT.formatRelative(lastPerformed);
+              statusEl.innerHTML = `Last performed: <span class="text-blue-400">${dateStr}</span>`;
+            } else {
+              statusEl.innerHTML = `Last performed: <span class="text-emerald-400">Never</span>`;
+            }
+          },
+
+          resetRotation: function () {
+            const sessionId = APP.state.currentEditingSessionId;
+
+            if (
+              !confirm(
+                `Tandai sesi ini sebagai "Belum Pernah Dilakukan"?\n\n` +
+                  `Sesi ini akan menjadi prioritas "Next Workout" pada dashboard.`
+              )
+            ) {
+              return;
+            }
+
+            LS_SAFE.remove(`last_${sessionId}`);
+
+            this.updateRotationStatus(sessionId);
+
+            APP.ui.showToast("✅ Rotation status direset", "success");
+          },
+
+          renderExerciseList: function () {
+            const sessionId = APP.state.currentEditingSessionId;
+            const session = APP.state.workoutData[sessionId];
+            const container = document.getElementById("editor-exercise-list");
+            const badge = document.getElementById("exercise-count-badge");
+
+            if (!session || !container) return;
+
+            const exercises = session.exercises || [];
+            badge.innerText = exercises.length;
+
+            if (exercises.length === 0) {
+              container.innerHTML = `
+        <div class="text-center py-6 text-slate-500">
+          <i class="fa-solid fa-dumbbell text-3xl mb-2 opacity-30"></i>
+          <p class="text-xs italic">Belum ada exercise di sesi ini.</p>
+          <p class="text-[10px] mt-1">Klik "Add Exercise" untuk menambah.</p>
+        </div>
+      `;
+              return;
+            }
+
+            let html = "";
+
+            exercises.forEach((exercise, idx) => {
+              const option = exercise.options[0] || {};
+              const exerciseName = option.n || "Unknown Exercise";
+              const sets = exercise.sets || 0;
+              const rest = exercise.rest || 0;
+
+              html += `
+        <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3 flex items-center gap-3">
+          <div class="flex flex-col gap-1">
+            <button
+              onclick="APP.session.moveExercise(${idx}, -1)"
+              class="text-slate-500 hover:text-emerald-400 text-xs transition"
+              title="Move up"
+              ${idx === 0 ? 'disabled style="opacity:0.3"' : ""}
+            >
+              <i class="fa-solid fa-chevron-up"></i>
+            </button>
+            <button
+              onclick="APP.session.moveExercise(${idx}, 1)"
+              class="text-slate-500 hover:text-emerald-400 text-xs transition"
+              title="Move down"
+              ${
+                idx === exercises.length - 1
+                  ? 'disabled style="opacity:0.3"'
+                  : ""
+              }
+            >
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-bold text-white truncate">${exerciseName}</div>
+            <div class="text-[10px] text-slate-400 mt-1">
+              ${sets} sets × ${rest}s rest
+              ${option.t_k ? ` • Target: ${option.t_k}kg × ${option.t_r}` : ""}
+            </div>
+          </div>
+
+          <button
+            onclick="APP.session.deleteExercise(${idx})"
+            class="text-red-500/70 hover:text-red-500 px-2 transition"
+            title="Delete exercise"
+          >
+            <i class="fa-solid fa-trash text-sm"></i>
+          </button>
+        </div>
+      `;
+            });
+
+            container.innerHTML = html;
+          },
+
+          moveExercise: function (index, direction) {
+            const sessionId = APP.state.currentEditingSessionId;
+            const session = APP.state.workoutData[sessionId];
+
+            if (!session || !session.exercises) return;
+
+            const newIndex = index + direction;
+
+            if (newIndex < 0 || newIndex >= session.exercises.length) return;
+
+            [session.exercises[index], session.exercises[newIndex]] = [
+              session.exercises[newIndex],
+              session.exercises[index],
+            ];
+
+            this.renderExerciseList();
+            this.updateVolumePreview();
+          },
+
+          deleteExercise: function (index) {
+            const sessionId = APP.state.currentEditingSessionId;
+            const session = APP.state.workoutData[sessionId];
+
+            if (!session || !session.exercises) return;
+
+            const exercise = session.exercises[index];
+            const exerciseName = exercise.options[0]?.n || "Unknown";
+
+            if (!confirm(`Hapus "${exerciseName}" dari sesi ini?`)) return;
+
+            session.exercises.splice(index, 1);
+
+            this.renderExerciseList();
+            this.updateVolumePreview();
+
+            APP.ui.showToast(`✅ "${exerciseName}" dihapus`, "success");
+          },
+
+          addExerciseToSession: function () {
+            APP.state.pickerContext = {
+              mode: "add-to-editor",
+              sessionId: APP.state.currentEditingSessionId,
+            };
+
+            APP.ui.openExercisePicker(
+              "editor",
+              APP.state.currentEditingSessionId,
+              null
+            );
+          },
+
+          updateVolumePreview: function () {
+            const sessionId = APP.state.currentEditingSessionId;
+            const session = APP.state.workoutData[sessionId];
+            const container = document.getElementById("volume-bars-container");
+
+            if (!session || !container) return;
+
+            const volumeMap = {
+              chest: 0,
+              back: 0,
+              legs: 0,
+              shoulders: 0,
+              arms: 0,
+            };
+
+            console.log(
+              "[VOLUME] Starting volume calculation for session:",
+              sessionId
+            );
+            console.log(
+              "[VOLUME] Total exercises to process:",
+              session.exercises.length
+            );
+
+            session.exercises.forEach((exercise, exIndex) => {
+              const option = exercise.options[0] || {};
+              const exerciseName = option.n;
+              const targetWeight = parseFloat(option.t_k) || 0;
+              const targetReps = option.t_r
+                ? parseInt(option.t_r.split("-")[0])
+                : 10;
+              const sets = exercise.sets || 3;
+
+              console.log(
+                `[VOLUME] Exercise ${exIndex + 1}: "${exerciseName}"`
+              );
+              console.log(
+                `[VOLUME]   - Target: ${targetWeight}kg × ${targetReps} reps × ${sets} sets`
+              );
+
+              const estimatedVolume = targetWeight * targetReps * sets;
+
+              console.log(
+                `[VOLUME]   - Estimated volume: ${estimatedVolume}kg`
+              );
+
+              const targets = APP.stats.getTargets(exerciseName);
+
+              console.log(`[VOLUME]   - Muscle targets:`, targets);
+
+              targets.forEach((target) => {
+                const factor = target.role === "PRIMARY" ? 1.0 : 0.5;
+                const weightedVolume = estimatedVolume * factor;
+
+                if (volumeMap.hasOwnProperty(target.muscle)) {
+                  volumeMap[target.muscle] += weightedVolume;
+                  console.log(
+                    `[VOLUME]   - Added ${weightedVolume}kg to ${target.muscle} (${target.role}, factor: ${factor})`
+                  );
+                }
+              });
+            });
+
+            console.log("[VOLUME] Final volume map:", volumeMap);
+
+            const totalVolume = Object.values(volumeMap).reduce(
+              (sum, v) => sum + v,
+              0
+            );
+            const maxVolume = Math.max(...Object.values(volumeMap));
+
+            console.log("[VOLUME] Total volume:", totalVolume);
+            console.log("[VOLUME] Max muscle volume:", maxVolume);
+
+            if (totalVolume === 0) {
+              container.innerHTML = `
+        <div class="text-center py-4 text-indigo-400/50 text-xs italic">
+          Tambahkan exercises dengan target weight untuk melihat preview
+        </div>
+      `;
+              return;
+            }
+
+            let html = "";
+
+            Object.keys(volumeMap).forEach((muscle) => {
+              const volume = volumeMap[muscle];
+              const percentage = maxVolume > 0 ? (volume / maxVolume) * 100 : 0;
+              const percentOfTotal =
+                totalVolume > 0 ? (volume / totalVolume) * 100 : 0;
+
+              const label = muscle.charAt(0).toUpperCase() + muscle.slice(1);
+
+              html += `
+        <div class="flex items-center gap-2">
+          <div class="w-16 text-[10px] text-slate-400 font-bold">${label}</div>
+          <div class="flex-1 bg-slate-900 rounded-full h-6 overflow-hidden relative">
+            <div 
+              class="bg-gradient-to-r from-indigo-500 to-indigo-400 h-full transition-all duration-500"
+              style="width: ${percentage}%"
+            ></div>
+            ${
+              percentage > 20
+                ? `
+              <div class="absolute inset-0 flex items-center justify-end pr-2">
+                <span class="text-[10px] font-bold text-white">${Math.round(
+                  percentOfTotal
+                )}%</span>
+              </div>
+            `
+                : ""
+            }
+          </div>
+          <div class="w-20 text-[10px] text-indigo-300 text-right font-mono">
+            ${Math.round(volume).toLocaleString()}kg
+          </div>
+        </div>
+      `;
+            });
+
+            const pushVolume =
+              volumeMap.chest + volumeMap.shoulders + volumeMap.arms * 0.5;
+            const pullVolume = volumeMap.back + volumeMap.arms * 0.5;
+            const ratio = pullVolume > 0 ? pushVolume / pullVolume : 0;
+
+            let ratioStatus = "";
+            let ratioColor = "";
+
+            if (ratio > 1.3) {
+              ratioStatus = "⚠️ Push-Dominant (Risk: Shoulder impingement)";
+              ratioColor = "text-red-400";
+            } else if (ratio < 0.7) {
+              ratioStatus = "⚠️ Pull-Dominant (Uncommon pattern)";
+              ratioColor = "text-yellow-400";
+            } else {
+              ratioStatus = "✅ Balanced Push/Pull";
+              ratioColor = "text-emerald-400";
+            }
+
+            html += `
+      <div class="mt-3 pt-3 border-t border-indigo-900/30">
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="text-slate-400">Push/Pull Ratio:</span>
+          <span class="${ratioColor} font-bold">${
+              ratio > 0 ? ratio.toFixed(2) : "N/A"
+            }</span>
+        </div>
+        <div class="text-[10px] ${ratioColor} mt-1 font-bold">${ratioStatus}</div>
+      </div>
+    `;
+
+            container.innerHTML = html;
+          },
+
+          saveSessionEdits: function () {
+            const sessionId = APP.state.currentEditingSessionId;
+            const session = APP.state.workoutData[sessionId];
+
+            if (!session) {
+              alert("Error: Session not found!");
+              return;
+            }
+
+            const newLabel = document
+              .getElementById("edit-session-label")
+              .value.trim();
+            const newTitle = document
+              .getElementById("edit-session-title")
+              .value.trim();
+            const newWarmup = document
+              .getElementById("edit-session-warmup")
+              .value.trim();
+
+            if (!newTitle) {
+              alert("⚠️ Session name tidak boleh kosong!");
+              return;
+            }
+
+            const validation = APP.validation.validateSessionStructure(
+              session,
+              sessionId
+            );
+
+            if (!validation.valid) {
+              const proceed = APP.validation.showValidationReport(
+                validation,
+                "Save Session"
+              );
+              if (!proceed) return;
+            }
+
+            session.label = newLabel || session.label;
+            session.title = newTitle;
+            session.dynamic = newWarmup || session.dynamic;
+
+            APP.safety.createBackup(`edit_session_${sessionId}`);
+
+            APP.core.saveProgram();
+
+            APP.ui.closeModal("session-editor");
+
+            APP.nav.renderDashboard();
+
+            APP.ui.showToast(
+              `✅ Sesi "${newTitle}" berhasil diupdate!`,
+              "success"
+            );
           },
         },
 
@@ -3607,17 +5817,7 @@
             }
           },
           deleteSession: (e, k) => {
-            e.stopPropagation();
-            if (
-              confirm(
-                `Hapus Sesi "${APP.state.workoutData[k].title}"?\n\nPERINGATAN: Sesi ini akan hilang permanen dari program.`
-              )
-            ) {
-              delete APP.state.workoutData[k];
-              APP.core.saveProgram();
-              APP.nav.renderDashboard();
-              alert("Sesi berhasil dihapus.");
-            }
+            APP.session.confirmDelete(e, k);
           },
           editVideo: (k) => {
             const n = prompt("URL:", LS_SAFE.get(k) || "");
@@ -3653,6 +5853,207 @@
             const tdee = Math.round(bmr * p.act);
             LS_SAFE.set("tdee", tdee);
             APP.data.loadProfile();
+          },
+
+          mergeProgram: function (newData) {
+            console.log("[MERGE] Starting smart merge...");
+
+            if (!newData || typeof newData !== "object") {
+              alert("Invalid program data");
+              return false;
+            }
+
+            APP.safety.createBackup("emergency_pre_merge");
+            console.log("[MERGE] Emergency backup created");
+
+            let autoMappedCount = 0;
+            let unmappedExercises = [];
+
+            Object.keys(newData).forEach((sessionId) => {
+              const session = newData[sessionId];
+
+              if (!session.exercises || !Array.isArray(session.exercises)) {
+                console.warn(
+                  `[MERGE] Session ${sessionId} has invalid exercises array`
+                );
+                return;
+              }
+
+              session.exercises.forEach((ex, exIdx) => {
+                if (!ex.options || !Array.isArray(ex.options)) {
+                  console.warn(
+                    `[MERGE] Exercise ${exIdx} in session ${sessionId} has invalid options`
+                  );
+                  return;
+                }
+
+                ex.options.forEach((opt, optIdx) => {
+                  if (!opt.n) {
+                    console.warn(
+                      `[MERGE] Option ${optIdx} in exercise ${exIdx} has no name`
+                    );
+                    return;
+                  }
+
+                  if (!EXERCISE_TARGETS[opt.n]) {
+                    const matched = APP.validation.fuzzyMatchExercise(opt.n);
+
+                    if (matched && matched !== opt.n) {
+                      console.log(
+                        `[MERGE] 🔄 Auto-mapped: "${opt.n}" → "${matched}"`
+                      );
+                      opt.n = matched;
+                      autoMappedCount++;
+                    } else {
+                      unmappedExercises.push({
+                        sessionId,
+                        exerciseIdx: exIdx,
+                        optionIdx: optIdx,
+                        name: opt.n,
+                      });
+                    }
+                  }
+                });
+              });
+            });
+
+            if (autoMappedCount > 0) {
+              console.log(
+                `[MERGE] ✅ Auto-corrected ${autoMappedCount} exercise(s) to match library`
+              );
+              APP.ui.showToast(
+                `🔄 Auto-corrected ${autoMappedCount} exercise(s) to match library`,
+                "success"
+              );
+            }
+
+            if (unmappedExercises.length > 0) {
+              console.warn(
+                `[MERGE] ⚠️ ${unmappedExercises.length} exercise(s) remain unmapped:`,
+                unmappedExercises
+              );
+              APP.ui.showToast(
+                `⚠️ ${unmappedExercises.length} unmapped exercise(s). Volume tracking incomplete.`,
+                "warning"
+              );
+            }
+
+            const conflicts = [];
+            Object.keys(newData).forEach((sessionId) => {
+              if (APP.state.workoutData[sessionId]) {
+                conflicts.push({
+                  sessionId: sessionId,
+                  oldTitle: APP.state.workoutData[sessionId].title,
+                  newTitle: newData[sessionId].title,
+                });
+              }
+            });
+
+            if (conflicts.length > 0) {
+              const conflictList = conflicts
+                .map((c) => `  • "${c.oldTitle}" → "${c.newTitle}"`)
+                .join("\n");
+
+              const userChoice = confirm(
+                `🔄 MERGE CONFLICT DETECTED\n\n` +
+                  `${conflicts.length} existing session(s) will be overwritten:\n\n` +
+                  conflictList +
+                  `\n\n` +
+                  `Continue merge?\n` +
+                  `(Cancel = keep existing sessions, only add new ones)`
+              );
+
+              if (!userChoice) {
+                console.log("[MERGE] User chose to skip conflicts");
+                const conflictIds = conflicts.map((c) => c.sessionId);
+
+                Object.keys(newData).forEach((sessionId) => {
+                  if (!conflictIds.includes(sessionId)) {
+                    APP.state.workoutData[sessionId] = newData[sessionId];
+                  }
+                });
+
+                APP.core.saveProgram();
+                APP.ui.showToast(
+                  `✅ Merged ${
+                    Object.keys(newData).length - conflicts.length
+                  } new session(s)`,
+                  "success"
+                );
+                return true;
+              }
+            }
+
+            APP.state.workoutData = {
+              ...APP.state.workoutData,
+              ...newData,
+            };
+
+            APP.core.saveProgram();
+
+            console.log(
+              `[MERGE] ✅ Successfully merged ${
+                Object.keys(newData).length
+              } session(s)`
+            );
+            APP.ui.showToast(
+              `✅ Merged ${
+                Object.keys(newData).length
+              } session(s) successfully`,
+              "success"
+            );
+
+            return true;
+          },
+
+          reconcileLogs: function () {
+            console.groupCollapsed("[RECONCILE] 🔗 Log reconciliation");
+
+            const hist = LS_SAFE.getJSON("gym_hist", []);
+            const currentSessions = Object.keys(APP.state.workoutData);
+            let remappedCount = 0;
+            let orphanedCount = 0;
+
+            hist.forEach((log, logIdx) => {
+              if (!log.src) {
+                console.warn(`⚠️ Log ${logIdx} has no src field`);
+                return;
+              }
+
+              if (currentSessions.includes(log.src)) {
+                return;
+              }
+
+              const matchingSession = currentSessions.find((sid) => {
+                const session = APP.state.workoutData[sid];
+                return session && session.title === log.title;
+              });
+
+              if (matchingSession) {
+                console.log(`🔗 Remapped: "${log.src}" → "${matchingSession}"`);
+                log.src = matchingSession;
+                remappedCount++;
+              } else {
+                console.warn(`⚠️ Orphaned: "${log.title}" (src: ${log.src})`);
+                orphanedCount++;
+              }
+            });
+
+            if (remappedCount > 0) {
+              LS_SAFE.setJSON("gym_hist", hist);
+              console.log(`✅ Remapped ${remappedCount} log(s)`);
+            }
+
+            if (orphanedCount > 0) {
+              console.warn(`⚠️ ${orphanedCount} orphaned log(s) remain`);
+            }
+
+            if (remappedCount === 0 && orphanedCount === 0) {
+              console.log("✅ All logs properly linked");
+            }
+
+            console.groupEnd();
+            return remappedCount;
           },
           loadProfile: () => {
             const p = LS_SAFE.getJSON("profile", {
@@ -3825,28 +6226,64 @@
           applyAIProgram: () => {
             try {
               const inputStr = document.getElementById("ai-input").value;
+
+              if (!inputStr || inputStr.trim().length === 0) {
+                alert("⚠️ Paste JSON program dulu");
+                return;
+              }
+
               const newData = JSON.parse(inputStr);
-              const keys = Object.keys(newData);
-              const validKeys = ["s1", "s2", "s3", "s4", "spontaneous"];
-              const isValid = keys.some((k) => validKeys.includes(k));
-              if (
-                isValid &&
-                confirm("Terapkan pembaruan resep? (Sesi lain aman)")
-              ) {
-                APP.state.workoutData = {
-                  ...APP.state.workoutData,
-                  ...newData,
-                };
-                APP.core.saveProgram();
-                alert("Resep berhasil dikalibrasi & digabungkan!");
-                location.reload();
-              } else {
-                alert(
-                  "Format JSON tidak dikenali (Harus mengandung key s1/s2/s3/s4)."
+
+              if (!newData || typeof newData !== "object") {
+                alert("⚠️ Format JSON tidak valid");
+                return;
+              }
+
+              const hasSessionData = Object.keys(newData).some((key) => {
+                const session = newData[key];
+                return (
+                  session &&
+                  session.exercises &&
+                  Array.isArray(session.exercises)
                 );
+              });
+
+              if (!hasSessionData) {
+                alert("⚠️ JSON tidak mengandung data sesi latihan yang valid");
+                return;
+              }
+
+              console.log(
+                `[AI-IMPORT] Importing ${
+                  Object.keys(newData).length
+                } session(s)`
+              );
+
+              const success = APP.data.mergeProgram(newData);
+
+              if (success) {
+                const remapped = APP.data.reconcileLogs();
+                if (remapped > 0) {
+                  console.log(
+                    `[AI-IMPORT] ✅ Reconciled ${remapped} history log(s)`
+                  );
+                }
+
+                APP.ui.closeModal("library");
+                APP.nav.renderDashboard();
+
+                APP.ui.showToast(
+                  "✅ Program merged successfully! Check dashboard for new sessions.",
+                  "success"
+                );
+
+                document.getElementById("ai-input").value = "";
+              } else {
+                console.error("[AI-IMPORT] Merge failed");
               }
             } catch (e) {
-              alert("JSON Invalid: " + e.message);
+              console.error("[AI-IMPORT] Error:", e);
+              alert("❌ JSON Invalid: " + e.message);
             }
           },
           copyProgramToClipboard: () => {
@@ -4700,16 +7137,24 @@
 
           if (
             typeof EXERCISE_TARGETS !== "undefined" &&
-            EXERCISE_TARGETS[cleanName]
+            EXERCISE_TARGETS.hasOwnProperty(cleanName)
           ) {
-            return EXERCISE_TARGETS[cleanName];
+            const targets = EXERCISE_TARGETS[cleanName];
+
+            if (Array.isArray(targets) && targets.length === 0) {
+              console.log(`[VOLUME] Passive exercise (0 volume): ${cleanName}`);
+              return [];
+            }
+
+            return targets;
           }
 
-          console.warn(`[FALLBACK] Exercise not mapped: ${exerciseName}`);
+          console.warn(
+            `[VOLUME] Exercise not in library: ${exerciseName} - using fallback classification`
+          );
           const muscle = APP.stats.classifyExercise(exerciseName);
           return [{ muscle: muscle, role: "PRIMARY" }];
         },
-
         classifyExercise: (name) => {
           const lower = (name || "").toLowerCase();
 
@@ -6433,7 +8878,6 @@
       };
 
       APP.ui.openExercisePicker = (mode, sessionId, exerciseIndex) => {
-        console.log("[DEBUG] openExercisePicker called with mode:", mode);
         try {
           if (typeof EXERCISES_LIBRARY === "undefined") {
             console.error("[ERROR] EXERCISES_LIBRARY not loaded!");
@@ -6450,13 +8894,10 @@
 
           let allExercises = [];
           const categories = EXERCISES_LIBRARY.getCategories();
-          console.log("[DEBUG] Found categories:", categories);
 
           categories.forEach((cat) => {
             const exercises = EXERCISES_LIBRARY[cat] || [];
-            console.log(
-              `[DEBUG] Category ${cat} has ${exercises.length} exercises`
-            );
+
             exercises.forEach((ex) => {
               allExercises.push({
                 category: cat,
@@ -6465,10 +8906,6 @@
             });
           });
 
-          console.log(
-            "[DEBUG] Total exercises collected:",
-            allExercises.length
-          );
           APP.ui.exercisePicker.allExercises = allExercises;
           APP.ui.exercisePicker.filteredExercises = allExercises;
 
@@ -6485,9 +8922,6 @@
               btn.onclick = () => APP.ui.filterByCategory(cat);
               categoryFilter.appendChild(btn);
             });
-            console.log("[DEBUG] Categories rendered");
-          } else {
-            console.error("[ERROR] category-filter element not found!");
           }
 
           const searchInput = document.getElementById("exercise-search");
@@ -6496,9 +8930,7 @@
           }
 
           APP.ui.openModal("exercise-picker");
-          console.log("[DEBUG] Modal opened");
 
-          console.log("[DEBUG] Calling renderExerciseList...");
           APP.ui.renderExerciseList();
         } catch (e) {
           console.error("openExercisePicker Error:", e);
@@ -6613,7 +9045,69 @@
         try {
           const mode = APP.ui.exercisePicker.mode;
 
-          if (mode === "new") {
+          if (mode === "editor") {
+            const sessionId =
+              APP.state.currentEditingSessionId ||
+              APP.ui.exercisePicker.sessionId;
+            const session = APP.state.workoutData[sessionId];
+
+            if (!session) {
+              alert("Session not found!");
+              return;
+            }
+
+            let targetWeight = 0;
+
+            if (typeof EXERCISES_LIBRARY !== "undefined") {
+              const categories = EXERCISES_LIBRARY.getCategories();
+
+              for (let cat of categories) {
+                const exercises = EXERCISES_LIBRARY[cat] || [];
+                const found = exercises.find((ex) => ex.n === name);
+
+                if (found && found.t_k) {
+                  targetWeight = found.t_k;
+                  console.log(
+                    `[PICKER] Found library target weight for "${name}": ${targetWeight}kg`
+                  );
+                  break;
+                }
+              }
+            }
+
+            if (targetWeight === 0) {
+              targetWeight = 20;
+              console.log(
+                `[PICKER] Using default target weight for "${name}": ${targetWeight}kg`
+              );
+            }
+
+            const newExercise = {
+              sets: 3,
+              rest: 90,
+              note: note || "From Library",
+              options: [
+                {
+                  n: name,
+                  t_r: targetReps,
+                  t_k: targetWeight,
+                  bio: bio,
+                  vid: "",
+                  note: note || "",
+                },
+              ],
+            };
+
+            console.log("[PICKER] New exercise object created:", newExercise);
+
+            session.exercises.push(newExercise);
+
+            APP.session.renderExerciseList();
+            APP.session.updateVolumePreview();
+
+            APP.ui.closeModal("exercise-picker");
+            APP.ui.showToast(`✅ "${name}" ditambahkan ke sesi`, "success");
+          } else if (mode === "new") {
             const sessionId = APP.state.currentSessionId;
 
             const isCardio =
@@ -6733,10 +9227,6 @@
         };
       }
 
-      console.log(
-        "[DEBUG] APP.ui.openExercisePicker available:",
-        typeof APP.ui.openExercisePicker
-      );
       window.onload = () => APP.init();
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
