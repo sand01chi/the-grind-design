@@ -2840,140 +2840,72 @@
             return num;
           },
 
-          normalizeExerciseNames: function (programData) {
-            const report = {
-              normalized: 0,
-              errors: [],
-              changes: [],
-            };
+normalizeExerciseNames: function () {
+  // V26.6 HOTFIX - Data Integrity Fix for Workout History
 
-            if (!programData || typeof programData !== "object") {
-              report.errors.push("Invalid program data for normalization");
-              return report;
-            }
+  // 1. MANDATORY BACKUP
+  console.log("[V26.6] Creating safety backup before normalization...");
+  APP.safety.createBackup("v26_6_integrity_fix");
 
-            console.log("[NORMALIZE] Starting exercise name normalization...");
+  const report = {
+    normalized: 0,
+    errors: [],
+    changes: [],
+  };
 
-            Object.keys(programData).forEach((sessionId) => {
-              const session = programData[sessionId];
+  // 2. Load workout history (gym_hist)
+  const workoutLogs = LS_SAFE.getJSON("gym_hist", []);
 
-              if (!session || !session.exercises) return;
+  if (!Array.isArray(workoutLogs) || workoutLogs.length === 0) {
+    console.log("[V26.6] No workout history to normalize.");
+    return report;
+  }
 
-              session.exercises.forEach((exercise, exIdx) => {
-                if (!exercise.options) return;
+  console.groupCollapsed(
+    `[V26.6] 🛡️ Running Data Integrity Check on ${workoutLogs.length} workout logs...`
+  );
 
-                exercise.options.forEach((option, optIdx) => {
-                  if (!option.n) return;
+  // 3. Loop all workout logs
+  workoutLogs.forEach((log, logIdx) => {
+    if (!log.exercises || !Array.isArray(log.exercises)) return;
 
-                  const originalName = option.n;
-                  let normalizedName = originalName;
+    log.exercises.forEach((exercise, exIdx) => {
+      if (!exercise.name) return;
 
-                  const bracketMatch =
-                    normalizedName.match(/^\[(.*?)\]\s*(.*)/);
+      const currentName = exercise.name;
 
-                  if (bracketMatch) {
-                    const bracketContent = bracketMatch[1].trim();
-                    const restOfName = bracketMatch[2].trim();
+      // 4. Get canonical name from fuzzy matcher
+      const canonicalName = APP.validation.fuzzyMatchExercise(currentName);
 
-                    const expansionMap = {
-                      DB: "Dumbbell",
-                      BB: "Barbell",
-                      BW: "Bodyweight",
-                      Machine: "Machine",
-                      Barbell: "Barbell",
-                      Cable: "Cable",
-                      Bodyweight: "Bodyweight",
-                      Stretch: "Stretch",
-                      Mobility: "Mobility",
-                      Core: "Core",
-                      Activation: "Activation",
-                      Cardio: "Cardio",
-                    };
+      // 5. If found and different, OVERWRITE
+      if (canonicalName && canonicalName !== currentName) {
+        exercise.name = canonicalName; // ENFORCE CANONICAL
 
-                    const expandedPrefix =
-                      expansionMap[bracketContent] || bracketContent;
+        report.normalized++;
+        const changeLog = `Log ${logIdx + 1}, Ex ${exIdx + 1}: "${currentName}" → "${canonicalName}"`;
+        report.changes.push(changeLog);
+        console.log(`✅ ${changeLog}`);
+      }
+    });
+  });
 
-                    const restLower = restOfName.toLowerCase();
-                    const prefixLower = expandedPrefix.toLowerCase();
+  // 6. Save if changes made
+  if (report.normalized > 0) {
+    LS_SAFE.setJSON("gym_hist", workoutLogs);
+    console.log(`🎉 SUCCESS: Unified ${report.normalized} fragmented records.`);
+    console.groupEnd();
 
-                    const equipmentWords = restLower.split(/\s+/);
-                    const prefixWords = prefixLower.split(/\s+/);
+    APP.ui.showToast(
+      `✅ V26.6: Fixed ${report.normalized} exercise names in history`,
+      "success"
+    );
+  } else {
+    console.log("✅ Data integrity excellent - no fragmentation found.");
+    console.groupEnd();
+  }
 
-                    let alreadyHasEquipment = false;
-
-                    prefixWords.forEach((prefixWord) => {
-                      equipmentWords.forEach((equipWord) => {
-                        if (
-                          equipWord === prefixWord ||
-                          equipWord.includes(prefixWord) ||
-                          prefixWord.includes(equipWord)
-                        ) {
-                          alreadyHasEquipment = true;
-                        }
-                      });
-                    });
-
-                    if (alreadyHasEquipment) {
-                      normalizedName = restOfName;
-                      console.log(
-                        `[NORMALIZE] Equipment already present: "${bracketContent}" found in "${restOfName}"`
-                      );
-                    } else {
-                      normalizedName = `${expandedPrefix} ${restOfName}`;
-                      console.log(
-                        `[NORMALIZE] Adding prefix: "${expandedPrefix}" + "${restOfName}"`
-                      );
-                    }
-                  }
-
-                  normalizedName = normalizedName
-                    .trim()
-                    .replace(/\s+/g, " ")
-                    .replace(/\s+([,.:;])/g, "$1")
-                    .replace(/\(\s+/g, "(")
-                    .replace(/\s+\)/g, ")");
-
-                  if (normalizedName.length > 0) {
-                    normalizedName =
-                      normalizedName.charAt(0).toUpperCase() +
-                      normalizedName.slice(1);
-                  }
-
-                  if (normalizedName !== originalName) {
-                    option.n = normalizedName;
-                    report.normalized++;
-
-                    const change = `Session ${sessionId}, Ex ${
-                      exIdx + 1
-                    }, Opt ${
-                      optIdx + 1
-                    }: "${originalName}" → "${normalizedName}"`;
-                    report.changes.push(change);
-                    console.log(`[NORMALIZE] ${change}`);
-
-                    if (typeof EXERCISE_TARGETS !== "undefined") {
-                      if (!EXERCISE_TARGETS[normalizedName]) {
-                        report.errors.push(
-                          `Normalized name "${normalizedName}" still not found in library (from: "${originalName}")`
-                        );
-                      }
-                    }
-                  }
-                });
-              });
-            });
-
-            console.log(
-              `[NORMALIZE] Complete. Normalized ${report.normalized} exercise names.`
-            );
-
-            if (report.errors.length > 0) {
-              console.warn("[NORMALIZE] Errors:", report.errors);
-            }
-
-            return report;
-          },
-
+  return report;
+},
           suggestExerciseMatch: function (exerciseName) {
             if (typeof EXERCISE_TARGETS === "undefined") {
               return null;
@@ -3025,91 +2957,80 @@
             return maxScore > 0 ? bestMatch : null;
           },
 
-          fuzzyMatchExercise: function (exerciseName) {
-            if (!exerciseName) return null;
+fuzzyMatchExercise: function (exerciseName) {
+  if (!exerciseName) return null;
 
-            if (EXERCISE_TARGETS[exerciseName]) {
-              return exerciseName;
-            }
+  // 1. Exact Match (Fast Path)
+  if (EXERCISE_TARGETS[exerciseName]) {
+    return exerciseName;
+  }
 
-            const originalName = exerciseName;
-            console.groupCollapsed(`[FUZZY] 🔍 Matching: "${originalName}"`);
+  const originalName = exerciseName;
 
-            const patterns = [
-              (name) => name.replace(/^\[.*?\]\s*/, ""),
+  // 2. Strip Helper - Clean to essentials for comparison
+  const strip = (str) => {
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") // Remove all non-alphanumeric
+      .trim();
+  };
 
-              (name) => `[Barbell] ${name}`,
-              (name) => `[DB] ${name}`,
-              (name) => `[Dumbbell] ${name}`,
-              (name) => `[Machine] ${name}`,
-              (name) => `[Cable] ${name}`,
-              (name) => `[Bodyweight] ${name}`,
+  const cleanInput = strip(originalName);
 
-              (name) => name.replace(/\bDB\b/gi, "Dumbbell"),
-              (name) => name.replace(/\bDumbbell\b/gi, "DB"),
-              (name) => name.replace(/\bBB\b/gi, "Barbell"),
+  // 3. Canonical Match - Loop Library with stripped comparison
+  const libraryKeys = Object.keys(EXERCISE_TARGETS);
 
-              (name) => name.replace(/\bBench\b/gi, "Bench Press"),
-              (name) => name.replace(/\bOHP\b/gi, "Overhead Press"),
-              (name) => name.replace(/\bRDL\b/gi, "Romanian Deadlift"),
+  for (let key of libraryKeys) {
+    const cleanKey = strip(key);
 
-              (name) => {
-                const words = name.split(" ");
-                if (words[0].match(/^(Barbell|Dumbbell|Machine|Cable|DB)/i)) {
-                  return words.slice(1).join(" ");
-                }
-                return name;
-              },
-            ];
+    // Full match (with prefix if user typed it)
+    if (cleanKey === cleanInput && cleanInput.length > 3) {
+      console.log(`[FUZZY] ✅ Canonical Match: "${originalName}" → "${key}"`);
+      return key; // Return ORIGINAL library key
+    }
 
-            for (let pattern of patterns) {
-              try {
-                const normalized = pattern(exerciseName);
-                if (normalized && EXERCISE_TARGETS[normalized]) {
-                  console.log(
-                    `[FUZZY] ✅ Matched: "${originalName}" → "${normalized}"`
-                  );
-                  console.groupEnd();
-                  return normalized;
-                }
-              } catch (e) {
-                console.warn(`[FUZZY] Pattern failed:`, e);
-              }
-            }
+    // Partial match (user didn't type prefix)
+    // e.g., "pendulum squat" matches "[Machine] Pendulum Squat"
+    const keyWithoutBracket = key.replace(/^\[.*?\]\s*/, "");
+    const cleanKeyNoBracket = strip(keyWithoutBracket);
 
-            const keywords = exerciseName.toLowerCase().split(/\s+/);
-            const libraryKeys = Object.keys(EXERCISE_TARGETS);
+    if (cleanKeyNoBracket === cleanInput && cleanInput.length > 3) {
+      console.log(
+        `[FUZZY] ✅ No-Prefix Match: "${originalName}" → "${key}"`
+      );
+      return key;
+    }
+  }
 
-            for (let libKey of libraryKeys) {
-              const libKeyLower = libKey.toLowerCase();
-              let matchCount = 0;
+  // 4. Fallback Patterns (Legacy compatibility)
+  const patterns = [
+    (name) => name.replace(/^\[.*?\]\s*/, ""),
+    (name) => `[Machine] ${name}`,
+    (name) => `[Barbell] ${name}`,
+    (name) => `[DB] ${name}`,
+    (name) => `[Dumbbell] ${name}`,
+    (name) => `[Cable] ${name}`,
+    (name) => `[Bodyweight] ${name}`,
+    (name) => name.replace(/\bDB\b/gi, "Dumbbell"),
+    (name) => name.replace(/\bDumbbell\b/gi, "DB"),
+  ];
 
-              keywords.forEach((keyword) => {
-                if (keyword.length > 3 && libKeyLower.includes(keyword)) {
-                  matchCount++;
-                }
-              });
+  for (let pattern of patterns) {
+    try {
+      const normalized = pattern(exerciseName);
+      if (EXERCISE_TARGETS[normalized]) {
+        console.log(
+          `[FUZZY] ✅ Pattern Match: "${originalName}" → "${normalized}"`
+        );
+        return normalized;
+      }
+    } catch (e) {}
+  }
 
-              if (matchCount >= 2) {
-                console.log(
-                  `[FUZZY] 🎯 Keyword match: "${originalName}" → "${libKey}" (${matchCount} keywords)`
-                );
-                return libKey;
-              }
-            }
-
-            const suggestion = this.suggestExerciseMatch(exerciseName);
-            if (suggestion) {
-              console.log(
-                `[FUZZY] 💡 Suggestion: "${originalName}" → "${suggestion}"`
-              );
-              return suggestion;
-            }
-
-            console.warn(`[FUZZY] ❌ No match found for: "${originalName}"`);
-            return null;
-          },
-
+  // 5. No match found
+  console.warn(`[FUZZY] ❌ No canonical match for: "${originalName}"`);
+  return null;
+},
           validateExerciseIntegrity: function (sessionData) {
             const report = {
               valid: true,
@@ -3616,6 +3537,10 @@
         },
 
         init: function () {
+
+  console.groupCollapsed("[APP] 🚀 Initializing The Grind Design...");
+  console.time("Init Duration");
+
           try {
             console.log("[INIT] Starting application...");
 
@@ -3651,6 +3576,22 @@
               }
 
               LS_SAFE.setJSON("cscs_program_v10", stored);
+
+try {
+  console.log("[V26.6] Running automatic data integrity check...");
+  const integrityReport = APP.data.normalizeExerciseNames();
+
+  if (integrityReport.normalized > 0) {
+    console.warn(
+      `[V26.6] 🔧 Repaired ${integrityReport.normalized} fragmented exercise names`
+    );
+  } else {
+    console.log("[V26.6] ✅ Data integrity verified - no issues found");
+  }
+} catch (e) {
+  console.error("[V26.6] Integrity check failed:", e);
+  // Non-blocking - app continues to load
+}
 
               APP.ui.showToast(
                 `🔄 Migrated ${normalizeReport.normalized} exercises. ${
@@ -3727,7 +3668,7 @@
                 );
               }
 
-              console.groupEnd();
+             
 
               if (validation.valid) {
                 APP.state.workoutData = stored;
@@ -3740,6 +3681,7 @@
                     validation.warnings
                   );
                 }
+                 console.groupEnd();
 
                 if (
                   validation.suggestions &&
@@ -3883,6 +3825,11 @@
             console.error("[INIT] Fatal error:", e);
             this.debug.showFatalError("App Initialization", e);
           }
+console.groupEnd();
+           console.timeEnd("Init Duration");
+  console.log("✅ Application ready");
+  
+
         },
         core: {
           saveProgram: () =>
