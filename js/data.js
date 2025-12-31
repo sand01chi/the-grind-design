@@ -1157,6 +1157,10 @@
           ),
         ].join(" & ");
 
+        // Add spontaneous tag if session is spontaneous
+        const isSpontaneous = dayLogs.some((l) => l.src === "spontaneous");
+        const spontaneousTag = isSpontaneous ? " [SPONTANEOUS]" : "";
+
         const dur = dayLogs[0].dur ? `${dayLogs[0].dur} menit` : "N/A";
 
         const totalSessionVol = dayLogs.reduce((acc, curr) => {
@@ -1178,7 +1182,7 @@
           return acc;
         }, 0);
 
-        rep += `\n📅 ${d} | 🏷️ ${titles}\n`;
+        rep += `\n📅 ${d} | 🏷️ ${titles}${spontaneousTag}\n`;
 
         rep += `⏱️ Durasi: ${dur} | 🗃️ Volume Load: ${totalSessionVol.toLocaleString()} kg\n`;
         dayLogs.forEach((l) => {
