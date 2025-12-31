@@ -2376,11 +2376,15 @@
         },
       };
       window.onerror = function (msg, url, line, col, error) {
-        APP.debug.showFatalError(
-          "System Crash",
-          error || msg,
-          `Line: ${line}:${col}\nURL: ${url}`
-        );
+        if (window.APP && APP.debug && APP.debug.showFatalError) {
+          APP.debug.showFatalError(
+            "System Crash",
+            error || msg,
+            `Line: ${line}:${col}\nURL: ${url}`
+          );
+        } else {
+          console.error("Fatal Error:", msg, error, `at ${url}:${line}:${col}`);
+        }
         return false;
       };
 
@@ -2584,6 +2588,9 @@
       // APP object is initialized in js/core.js with state and core properties
       // APP.validation is loaded from js/validation.js
       // Extending APP with additional namespaces below
+
+      // Create APP namespace if modules haven't loaded yet
+      if (!window.APP) window.APP = {};
 
       // APP.safety moved to js/safety.js
 

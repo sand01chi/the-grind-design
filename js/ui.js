@@ -55,7 +55,7 @@
         btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Exit Focus`;
       } else {
         btn.className =
-          "text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2`;
+          "text-xs bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1.5 rounded-full hover:text-white transition flex items-center gap-2";
         btn.innerHTML = `<i class="fa-solid fa-eye"></i> Focus Mode`;
       }
     },
