@@ -1136,8 +1136,8 @@ The codebase is now ready for:
 
 ---
 
-**Refactoring Lead:** Irvan  
-**Architecture & Debugging:** Collaborative (Irvan + Claude AI via VS Code Claude Code)  
+**Refactoring Lead:** sand01chi  
+**Architecture & Debugging:** Collaborative (sand01chi + Claude AI via VS Code Claude Code)  
 **Duration:** 3 days (January 1-3, 2026)  
 **Commits:** 25+ across 8 phases  
 **Lines Refactored:** ~9,000 lines  
@@ -1153,6 +1153,6 @@ The codebase is now ready for:
 ---
 
 **🤖 Generated as part of V27 - The Great Split**  
-**Powered by: Irvan + Claude AI collaboration**
+**Powered by: sand01chi + Claude AI collaboration**
 
 **END OF HANDOVER_V27.md**
