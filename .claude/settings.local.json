@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(node --check:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nV27 Phase 7: Extract ui.js + Fix spontaneous tag rendering\n\nCHANGES:\n✅ Created js/ui.js \\(1049 lines\\) - UI rendering & modal system\n✅ Reduced index.html from ~4500+ to 3748 lines\n✅ Fixed spontaneous tag rendering in 3 locations\n\nEXTRACTION:\n- APP.ui namespace → js/ui.js with IIFE structure\n- All modal system methods \\(openModal, closeModal\\)\n- All rendering methods \\(renderCalendar, renderHistory, renderLibrary, renderWeight\\)\n- Exercise picker system \\(openExercisePicker, filterExercises, selectExercise\\)\n- Toast notifications \\(showToast\\)\n- Focus mode utilities\n- Warmup calculator \\(openCalc, getPlates\\)\n\nBUG FIXES - Spontaneous Tag Rendering:\n1. openHist\\(\\) - Added purple \"SPONTANEOUS\" badge to history modal\n   Line ~370: Added spontaneousTag variable and inserted into date row\n   \n2. renderCalendar\\(\\) - Added purple left border indicator\n   Line ~650: Check hasSpontaneous, add border-l-4 border-purple-500\n   \n3. viewDay\\(\\) - Added \"SPONTANEOUS\" tag to calendar day view\n   Line ~740: Added spontaneousTag next to session title\n   \n4. exportForConsultation\\(\\) in data.js - Added [SPONTANEOUS] prefix\n   Line 1161-1185: Added spontaneousTag to exported log output\n\nSCRIPT LOAD ORDER:\nindex.html head section:\n  exercises-library.js\n  js/core.js\n  js/validation.js\n  js/data.js\n  js/safety.js\n  js/stats.js\n  js/session.js\n  js/ui.js ← NEW\n\nDEPENDENCIES:\n- Uses: APP.state, APP.data, APP.stats, APP.session, APP.core, APP.nav\n- Uses: LS_SAFE, DT, EXERCISES_LIBRARY\n- Uses: Chart.js CDN \\(already in head\\)\n\nFILE SIZE:\n- js/ui.js: 1049 lines \\(largest module - expected\\)\n- index.html: 3748 lines \\(reduced from ~4500+\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Bash(awk:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(python:*)"
     ]
   }
 }
