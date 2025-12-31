@@ -316,11 +316,11 @@
           if (sessId !== "spontaneous") {
             LS_SAFE.set(`last_${sessId}`, now.getTime());
           }
-          APP.nav.switchView("dashboard");
+          window.APP.nav.switchView("dashboard");
         } catch (e) {
           console.error("[FINISH SESSION ERROR]", e);
-          if (APP.debug && APP.debug.showFatalError) {
-            APP.debug.showFatalError("Finish Session", e);
+          if (window.APP.debug && window.APP.debug.showFatalError) {
+            window.APP.debug.showFatalError("Finish Session", e);
           } else {
             alert("Error finishing session: " + (e.message || e));
           }
