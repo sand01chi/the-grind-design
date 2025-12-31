@@ -514,8 +514,8 @@ APP.nav.switchView();  // ❌ TypeScript error: nav doesn't exist!
 
 ### 🏆 **Contributors**
 
-**Refactoring Lead:** Irvan (with Claude AI assistance via VS Code Claude Code)  
-**Architecture Design:** Collaborative (Irvan + Claude)  
+**Refactoring Lead:** sand01chi (with Claude AI assistance via VS Code Claude Code)  
+**Architecture Design:** Collaborative (sand01chi + Claude)  
 **Debugging:** Intensive pairing session  
 **Documentation:** Comprehensive handover packages
 

@@ -303,8 +303,8 @@ See [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) for complete rules.
 
 ## 👥 Credits
 
-**Lead Developer:** Irvan  
-**Architecture & Refactoring:** Collaborative (Irvan + Claude AI)  
+**Lead Developer:** sand01chi  
+**Architecture & Refactoring:** Collaborative (sand01chi + Claude AI)  
 **V27 Refactoring:** 8 phases, 3 days, 11 critical bugs solved  
 
 ---
