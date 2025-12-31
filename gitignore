@@ -41,6 +41,7 @@ $RECYCLE.BIN/
 .vscode/
 .vscode-test/
 *.code-workspace
+.claude/
 
 # JetBrains IDEs (WebStorm, IntelliJ)
 .idea/
