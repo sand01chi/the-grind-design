@@ -302,9 +302,14 @@
   // ============================================
 
   APP.nav = {
-          },
+    switchView: (v) => {
+      document.getElementById("dashboard-view").classList.add("hidden");
+      document.getElementById("workout-view").classList.add("hidden");
+      document.getElementById(`${v}-view`).classList.remove("hidden");
+      if (v === "dashboard") APP.nav.renderDashboard();
+    },
 
-          renderDashboard: () => {
+    renderDashboard: () => {
             try {
               const list = document.getElementById("schedule-list");
 
