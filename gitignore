@@ -41,6 +41,7 @@ $RECYCLE.BIN/
 .vscode/
 .vscode-test/
 *.code-workspace
+.claude/
 
 # JetBrains IDEs (WebStorm, IntelliJ)
 .idea/
@@ -139,6 +140,7 @@ exercises-library.local.js
 # Documentation drafts
 docs/drafts/
 *.draft.md
+docs/handovers/
 
 # User data exports (from testing)
 export_*.json
