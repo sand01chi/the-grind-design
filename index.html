@@ -2883,6 +2883,11 @@
           console.groupEnd();
           console.timeEnd("Init Duration");
           console.log("✅ Application ready");
+
+          console.log("[DEBUG INIT] At end of init:");
+          console.log("[DEBUG INIT] APP.nav exists?", !!APP.nav);
+          console.log("[DEBUG INIT] APP.nav value:", APP.nav);
+          console.log("[DEBUG INIT] APP keys:", Object.keys(APP));
         },
 
         // APP.core moved to js/core.js
