@@ -23,14 +23,6 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/id.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="exercises-library.js"></script>
-    <script src="js/core.js"></script>
-    <script src="js/validation.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/safety.js"></script>
-    <script src="js/stats.js"></script>
-    <script src="js/session.js"></script>
-    <script src="js/ui.js"></script>
     <style>
       body {
         background-color: #0f172a;
@@ -3421,7 +3413,7 @@
         // APP.data moved to js/data.js
         // APP.ui moved to js/ui.js
         },
-      });
+      );
 
       // APP.stats moved to js/stats.js
 
@@ -3516,7 +3508,7 @@
 
         console.log("Storage Stats:", stats);
       };
-      };
+     
 
       APP.debug = {
         showFatalError: (ctx, err, extra) => {
@@ -3744,5 +3736,15 @@
         gsiLoaded();
       });
     </script>
+
+    <!-- Load modules AFTER inline scripts -->
+    <script src="exercises-library.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/safety.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/ui.js"></script>
   </body>
 </html>
