@@ -6,6 +6,8 @@
 
 (function () {
   'use strict';
+  console.log("[STATS] Loading... APP.nav =", window.APP?.nav);
+
 
   // Ensure APP exists
   if (!window.APP) window.APP = {};

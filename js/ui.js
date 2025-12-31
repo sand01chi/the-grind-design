@@ -6,6 +6,8 @@
   // ============================================================
   // APP.ui - UI Rendering & Modal System
   // ============================================================
+  console.log("[UI] Loading... APP.nav =", window.APP?.nav);
+
 
   APP.ui = {
     // Exercise Picker State

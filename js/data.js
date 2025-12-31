@@ -7,6 +7,8 @@
 (function () {
   'use strict';
 
+  console.log("[DATA] Loading... APP.nav =", window.APP?.nav);
+
   if (!window.APP) window.APP = {};
 
   APP.data = {
