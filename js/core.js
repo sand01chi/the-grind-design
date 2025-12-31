@@ -336,7 +336,7 @@
     Object.assign(window.APP, APP);
     console.log("[CORE] Keys after merge:", Object.keys(window.APP));
   } else {
-    console.warn("[CORE] No existing APP found, creating new one");
+    console.log("[CORE] Initializing APP namespace");
     window.APP = APP;
   }
 
