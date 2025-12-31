@@ -332,8 +332,11 @@
 
   // Merge with existing APP if it exists (from inline scripts)
   if (window.APP) {
+    console.log("[CORE] Merging with existing APP. Keys before:", Object.keys(window.APP));
     Object.assign(window.APP, APP);
+    console.log("[CORE] Keys after merge:", Object.keys(window.APP));
   } else {
+    console.warn("[CORE] No existing APP found, creating new one");
     window.APP = APP;
   }
 
