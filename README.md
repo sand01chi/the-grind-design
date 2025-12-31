@@ -297,7 +297,7 @@ See [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) for complete rules.
 
 ## 📝 License
 
-[Your License Here]
+[Not yet]
 
 ---
 
