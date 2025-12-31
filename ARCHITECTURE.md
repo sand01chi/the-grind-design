@@ -1,7 +1,7 @@
 # 🏗️ ARCHITECTURE DOCUMENTATION - THE GRIND DESIGN
 
-**Version:** V26.6  
-**Last Updated:** December 31, 2025  
+**Version:** V27.0  
+**Last Updated:** January 1, 2026  
 **Purpose:** System design decisions, patterns, and architectural principles
 
 ---
@@ -21,6 +21,7 @@
 ├─────────────────────────────────────────────────────────────┤
 │  APP.validation  │  APP.data    │  APP.session  │  APP.ui   │
 │  APP.stats       │  APP.safety  │  APP.nav      │  APP.core │
+│  APP.cardio      │  APP.timer   │  APP.debug    │  APP.init │
 └───────────────────┬─────────────────────────────────────────┘
                     │
                     ▼
@@ -38,8 +39,9 @@
 EXTERNAL:
 ├── EXERCISE_TARGETS (exercises-library.js)
 ├── EXERCISES_LIBRARY (exercises-library.js)
+├── PRESETS & STARTER_PACK (js/constants.js)
 ├── Service Worker (sw.js - PWA offline capability)
-└── Google Drive API (Cloud Backup/Restore)
+└── Google Drive API (js/cloud.js - Cloud Backup/Restore)
 ```
 
 ---
@@ -60,32 +62,37 @@ EXTERNAL:
 
 ---
 
-### 2. **MODULE-BASED NAMESPACE**
-**Decision:** Single global `APP` object with sub-namespaces  
+### 2. **MODULAR ARCHITECTURE (V27+)**
+**Decision:** Separate JavaScript modules with IIFE pattern  
 **Rationale:**
-- Avoid global scope pollution
-- Logical code organization
-- Easy debugging (console.log(APP))
+- Maintainability (9000 lines → organized modules)
+- AI context efficiency (load specific modules only)
+- Git-friendly (cleaner diffs, parallel development)
+- Testing-friendly (isolated module testing)
 
-**Pattern:**
+**Module Pattern:**
 ```javascript
-const APP = {
-  state: {},        // Application state
-  validation: {},   // Input validation & fuzzy matching
-  data: {},         // CRUD operations
-  session: {},      // Session management
-  stats: {},        // Analytics & charts
-  safety: {},       // Backup/restore
-  ui: {},          // UI rendering
-  nav: {},         // Navigation
-  core: {}         // Core utilities
-};
+(function() {
+  'use strict';
+  
+  if (!window.APP) window.APP = {};
+  
+  APP.moduleName = {
+    method: function() {
+      // ⚠️ CRITICAL: Use window.APP for cross-module access!
+      window.APP.otherModule.method();
+    }
+  };
+  
+  console.log("[MODULE] ✅ Module loaded");
+})();
 ```
 
-**Why NOT classes/modules?**
+**Why NOT ES6 modules or frameworks?**
 - Vanilla JS requirement (no build step)
-- Single HTML file deployment
-- Performance (no module loading overhead)
+- Browser compatibility (no transpilation)
+- Deployment simplicity (multiple .js files, no bundling)
+- Performance (no module loading overhead beyond script tags)
 
 ---
 
@@ -129,7 +136,7 @@ After V26.6:
 
 **Implementation:**
 ```javascript
-// V26.6 Hotfix
+// V26.6+ Hotfix
 APP.validation.fuzzyMatchExercise(userInput)
 // Returns: canonical string or null (not boolean)
 ```
@@ -151,6 +158,258 @@ APP.validation.fuzzyMatchExercise(userInput)
 - Conflict detection (prompt user)
 - Preserve existing data integrity
 - Backup before merge
+
+---
+
+## 📦 V27 MODULAR FILE STRUCTURE
+
+**Complete Module Breakdown (12 files, 9,656 lines total):**
+
+```
+project-root/
+├── index.html              (2,203 lines) - HTML skeleton + minimal init
+├── exercises-library.js    (1,817 lines) - Exercise database
+├── js/
+│   ├── constants.js        (430 lines)   - PRESETS, STARTER_PACK
+│   ├── core.js            (344 lines)   - LS_SAFE, DT, APP.state, APP.core
+│   ├── validation.js      (491 lines)   - APP.validation, fuzzy matching
+│   ├── data.js            (1,218 lines)  - APP.data, CRUD operations
+│   ├── safety.js          (325 lines)   - APP.safety, backup/restore
+│   ├── stats.js           (1,665 lines)  - APP.stats, charts, analytics
+│   ├── session.js         (750 lines)   - APP.session, session management
+│   ├── cardio.js          (111 lines)   - APP.cardio, APP.timer, storage stats
+│   ├── ui.js              (1,051 lines)  - APP.ui, rendering, modals, toasts
+│   ├── debug.js           (46 lines)    - APP.debug, window.onerror
+│   ├── nav.js             (827 lines)   - APP.nav, APP.init
+│   └── cloud.js           (195 lines)   - Google Drive integration
+├── sw.js                   - Service Worker (PWA)
+└── manifest.json           - PWA manifest
+```
+
+**Reduction:** 9,000+ lines (monolithic) → 2,203 lines (index.html) + 7,453 lines (modules)
+
+---
+
+## 🔄 CRITICAL MODULE LOAD ORDER
+
+**MUST maintain this exact order in index.html:**
+
+```html
+<!-- 1. Data layer -->
+<script src="exercises-library.js"></script>
+<script src="js/constants.js"></script>
+
+<!-- 2. Foundation -->
+<script src="js/core.js"></script>
+
+<!-- 3. Business logic (no interdependencies) -->
+<script src="js/validation.js"></script>
+<script src="js/data.js"></script>
+<script src="js/safety.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/session.js"></script>
+<script src="js/cardio.js"></script>
+
+<!-- 4. UI layer (depends on all above) -->
+<script src="js/ui.js"></script>
+
+<!-- 5. Error handling (must load before nav) -->
+<script src="js/debug.js"></script>
+
+<!-- 6. Initialization (depends on ALL modules) -->
+<script src="js/nav.js"></script>
+
+<!-- 7. Cloud (standalone) -->
+<script src="js/cloud.js"></script>
+```
+
+**Why this order matters:**
+- `constants.js` must load before modules that use PRESETS/STARTER_PACK
+- `core.js` initializes APP namespace (merge pattern, not overwrite)
+- `debug.js` must load before `nav.js` (APP.init uses APP.debug)
+- `nav.js` loads last because APP.init() references ALL other modules
+- `cloud.js` is standalone and can load anytime after core
+
+**⚠️ CRITICAL:** Never reorder these scripts! Breaks module dependencies.
+
+---
+
+## 🧩 MODULE RESPONSIBILITIES
+
+### **constants.js (430 lines)**
+**Exports:**
+- `window.PRESETS` - Quick workout templates (Blood Flow, Mini Pump, Core, Mobility, Home)
+- `window.STARTER_PACK` - Default program with UPPER/LOWER splits
+- Exercise validation against EXERCISE_TARGETS
+
+**Dependencies:** exercises-library.js
+**Used by:** data.js, session.js, nav.js
+
+---
+
+### **core.js (344 lines)**
+**Exports:**
+- `LS_SAFE` - LocalStorage wrapper with error handling
+- `DT` - Day.js wrapper for date manipulation
+- `APP.state` - Global application state
+- `APP.core` - Core utilities (saveProgram, finishSession, etc.)
+
+**Dependencies:** None
+**Used by:** ALL modules (foundation layer)
+
+**Critical Pattern:**
+```javascript
+// Merge instead of overwrite!
+if (window.APP) {
+  Object.assign(window.APP, APP);  // ✅ Add to existing
+} else {
+  window.APP = APP;
+}
+```
+
+---
+
+### **validation.js (491 lines)**
+**Exports:**
+- `APP.validation.fuzzyMatchExercise()` - Canonical name matching
+- `APP.validation.validateSession()` - Session structure validation
+- `APP.validation.validateExercise()` - Exercise validation
+- `APP.validation.sanitizeNumber()` - Number input sanitization
+
+**Dependencies:** core.js, exercises-library.js
+**Used by:** data.js, session.js, ui.js, nav.js
+
+---
+
+### **data.js (1,218 lines)**
+**Exports:**
+- `APP.data.addNewExerciseCard()` - Add exercise to session
+- `APP.data.saveSet()` - Save set data
+- `APP.data.mergeProgram()` - Smart Merge Engine (AI integration)
+- `APP.data.normalizeExerciseNames()` - Data integrity migration
+- `APP.data.copyProgramToClipboard()` - Export JSON
+- All CRUD operations
+
+**Dependencies:** core.js, validation.js, safety.js
+**Used by:** session.js, nav.js, ui.js
+
+---
+
+### **safety.js (325 lines)**
+**Exports:**
+- `APP.safety.createBackup()` - Create timestamped backup
+- `APP.safety.listBackups()` - List all backups
+- `APP.safety.restore()` - Restore from backup
+- `APP.safety.deleteBackup()` - Delete specific backup
+
+**Dependencies:** core.js
+**Used by:** data.js, session.js, nav.js
+
+---
+
+### **stats.js (1,665 lines)**
+**Exports:**
+- `APP.stats.renderVolumeChart()` - Volume progression chart
+- `APP.stats.renderProgressionChart()` - Top set progression
+- `APP.stats.renderMuscleDistribution()` - Volume by muscle group
+- `APP.stats.calculateVolume()` - Volume calculation utilities
+- All analytics functions
+
+**Dependencies:** core.js, Chart.js (CDN)
+**Used by:** ui.js, nav.js
+
+---
+
+### **session.js (750 lines)**
+**Exports:**
+- `APP.session.openEditor()` - Session edit modal
+- `APP.session.confirmDelete()` - Delete session with confirmation
+- `APP.session.spontaneous.*` - Spontaneous workout methods
+  - `startEmpty()` - Create empty spontaneous session
+  - `loadFromJSON()` - Load from JSON paste
+  - `saveToPresets()` - Save as preset template
+
+**Dependencies:** core.js, validation.js, data.js, safety.js
+**Used by:** nav.js, ui.js
+
+---
+
+### **cardio.js (111 lines)**
+**Exports:**
+- `APP.cardio.setDuration()` - Set cardio duration
+- `APP.cardio.validateHR()` - Validate heart rate zones
+- `APP.cardio.toggleComplete()` - Mark cardio complete
+- `APP.timer` - Timer utilities (future expansion)
+- `APP.showStorageStats()` - Display localStorage usage
+
+**Dependencies:** core.js
+**Used by:** nav.js, ui.js
+
+---
+
+### **ui.js (1,051 lines) - LARGEST UI MODULE**
+**Exports:**
+- Modal system: `openModal()`, `closeModal()`
+- Exercise picker: `openExercisePicker()`, `renderExerciseList()`, `confirmExercisePicker()`
+- Rendering: `renderProgram()`, `renderHistory()`, `renderCalendar()`
+- Toasts: `showToast()`
+- All UI rendering logic
+
+**Dependencies:** ALL previous modules (uses everything)
+**Used by:** ALL modules (UI entry points)
+
+**Critical Note:** Must load AFTER all business logic modules.
+
+---
+
+### **debug.js (46 lines)**
+**Exports:**
+- `APP.debug.showFatalError()` - Display error modal
+- `APP.debug.copyErrorLog()` - Copy error to clipboard
+- `window.onerror` - Global error handler
+
+**Dependencies:** None (standalone error handling)
+**Used by:** nav.js (APP.init uses APP.debug)
+
+**Critical Note:** Must load BEFORE nav.js!
+
+---
+
+### **nav.js (827 lines) - INITIALIZATION MODULE**
+**Exports:**
+- `APP.init()` - Main application initialization (294 lines)
+  - Day.js locale setup
+  - Data validation and normalization
+  - Backup/restore logic
+  - Spontaneous session auto-fix
+  - Initial data loading
+- `APP.nav.switchView()` - View switching
+- `APP.nav.renderDashboard()` - Dashboard rendering
+- `APP.nav.loadWorkout()` - Load workout session (526 lines)
+
+**Dependencies:** ALL other modules (loaded last for this reason)
+**Used by:** index.html DOMContentLoaded listener
+
+**Critical Pattern:**
+```javascript
+// Always use window.APP for cross-module access!
+APP.core.finishSession = () => {
+  // ❌ WRONG: APP.nav.switchView() (captures local APP in closure)
+  // ✅ CORRECT:
+  window.APP.nav.switchView("dashboard");
+};
+```
+
+---
+
+### **cloud.js (195 lines)**
+**Exports:**
+- `window.syncToCloud()` - Backup to Google Drive
+- `window.restoreFromCloud()` - Restore from Google Drive
+- `window.gapiLoaded()`, `window.gsiLoaded()` - Google API init
+
+**Dependencies:** Google APIs (CDN)
+**Used by:** Standalone (manual trigger by user)
 
 ---
 
@@ -382,10 +641,10 @@ APP.nav.switchView('dashboard');
 - Limit data points displayed (performance threshold)
 - Lazy load chart data
 
-### **3. Exercise Library**
-- Loaded once from external .js file
-- Cached in window.EXERCISE_TARGETS
-- No runtime fetching needed
+### **3. Module Loading**
+- Scripts load sequentially (browser default)
+- No async/defer (maintain load order)
+- Total load time: <2s on 3G
 
 ---
 
@@ -450,7 +709,7 @@ APP.nav.switchView('dashboard');
 ### **Backwards Compatibility**
 - Never delete localStorage keys without backup
 - Add new keys, don't rename existing
-- Data from V1 should work in V26.6
+- Data from V1 should work in V27
 
 ### **Migration Functions**
 ```javascript
@@ -462,26 +721,111 @@ APP.data.normalizeExerciseNames()
 
 ---
 
+## 🎯 V27 ARCHITECTURAL GOTCHAS
+
+### **GOTCHA #1: Arrow Functions Capture Closure Scope**
+```javascript
+// ❌ WRONG - Captures local APP in closure
+const APP = {local: true};
+APP.core = {
+  method: () => APP.nav.switchView()  // undefined! (local APP has no nav)
+};
+
+// ✅ CORRECT - Access global APP
+APP.core = {
+  method: () => window.APP.nav.switchView()  // ✅ Global APP
+};
+```
+
+**Why this happens:**
+- Each module creates local `const APP = {...}`
+- Arrow functions capture this LOCAL reference
+- When merged to `window.APP`, the local reference persists in closure
+- Solution: ALWAYS use `window.APP` for cross-module access
+
+---
+
+### **GOTCHA #2: Module Load Order is Critical**
+```javascript
+// ❌ WRONG ORDER
+<script src="js/nav.js"></script>     // nav.js needs debug.js!
+<script src="js/debug.js"></script>   // Loaded too late
+
+// ✅ CORRECT ORDER
+<script src="js/debug.js"></script>   // Load first
+<script src="js/nav.js"></script>     // Can use APP.debug
+```
+
+**Dependencies:**
+- nav.js → requires ALL modules (load last)
+- ui.js → requires validation, data, session, stats
+- debug.js → required by nav.js (load before nav)
+
+---
+
+### **GOTCHA #3: Object.assign vs Direct Assignment**
+```javascript
+// ❌ WRONG - Destroys existing namespaces
+window.APP = APP;  // Overwrites existing APP.ui, APP.data, etc.
+
+// ✅ CORRECT - Merges namespaces
+if (window.APP) {
+  Object.assign(window.APP, APP);  // Add to existing
+} else {
+  window.APP = APP;
+}
+```
+
+---
+
+### **GOTCHA #4: Script Position in HTML**
+```javascript
+// ❌ WRONG - Scripts in <head> load before inline scripts in <body>
+<head>
+  <script src="js/core.js"></script>
+</head>
+<body>
+  <script>
+    APP.init();  // Fails! core.js loaded, but inline APP not yet defined
+  </script>
+</body>
+
+// ✅ CORRECT - All scripts at end of <body>
+<body>
+  <!-- HTML content -->
+  <script>
+    // Inline scripts extend APP
+  </script>
+  <script src="js/core.js"></script>  // Merges with inline APP
+  <script>
+    APP.init();  // Success!
+  </script>
+</body>
+```
+
+---
+
 ## 🎯 DESIGN DECISIONS RATIONALE
 
 ### **Why Vanilla JS?**
 - ✅ No build complexity
-- ✅ Single file deployment
-- ✅ Easy debugging
+- ✅ Easy debugging (source maps = actual code)
 - ✅ Fast load times
+- ✅ Deployable anywhere (drag & drop HTML)
 - ❌ No framework goodies (but not needed for this scope)
 
 ### **Why LocalStorage instead of IndexedDB?**
-- ✅ Simpler API
-- ✅ Synchronous access (no async complexity)
+- ✅ Simpler API (synchronous)
 - ✅ Sufficient for data size (<5MB typical)
+- ✅ No async complexity
 - ❌ Lower storage limit (but adequate for use case)
 
-### **Why Module Pattern instead of Classes?**
+### **Why Modular Pattern (V27) instead of Classes?**
 - ✅ No transpilation needed
 - ✅ Better console debugging (single global object)
 - ✅ Simpler mental model
-- ✅ All code in one place
+- ✅ No build step (just script tags)
+- ❌ Manual dependency management (load order critical)
 
 ### **Why Smart Merge instead of Full Replace?**
 - ✅ Preserve user customizations
@@ -508,6 +852,10 @@ APP.data.normalizeExerciseNames()
 - Descriptive: `cscs_program_v10`, `gym_hist`
 - Prefixed for grouping: `backup_*`, `pref_*`, `last_*`
 
+### **Module Files**
+- kebab-case: `data.js`, `session.js`, `nav.js`
+- Namespace match: `data.js` exports `APP.data`
+
 ---
 
 ## 🧩 EXTENSIBILITY POINTS
@@ -522,18 +870,32 @@ Location: `exercises-library.js`
 { n: "[Barbell] New Exercise", t_r: "8-12", bio: "...", note: "..." }
 ```
 
-### **Adding New Session Type**
-Location: `index.html` → `APP.state.workoutData`
+### **Adding New Module**
+Location: `js/new-module.js`
 ```javascript
-APP.state.workoutData.newSession = {
-  label: "SESI X",
-  title: "Custom Session",
-  exercises: []
-};
+(function() {
+  'use strict';
+  
+  if (!window.APP) window.APP = {};
+  
+  APP.newModule = {
+    method: function() {
+      // Use window.APP for cross-module access!
+      window.APP.otherModule.method();
+    }
+  };
+  
+  console.log("[NEW-MODULE] ✅ Module loaded");
+})();
+```
+
+Then add to `index.html`:
+```html
+<script src="js/new-module.js"></script>
 ```
 
 ### **Adding New Analytics Chart**
-Location: `index.html` → `APP.stats`
+Location: `js/stats.js` → `APP.stats`
 ```javascript
 APP.stats.renderNewChart = (data) => {
   // Chart.js implementation
@@ -545,16 +907,22 @@ APP.stats.renderNewChart = (data) => {
 ## 🎓 LEARNING RESOURCES
 
 **For understanding the codebase:**
-1. Read `index.html` → `APP` object structure
-2. Read `exercises-library.js` → Data schema
-3. Read `HANDOVER_PACKAGE_V26.6.md` → Context & rules
-4. Read this file → Architecture decisions
+1. Read `HANDOVER_V27.md` → Complete V27 story
+2. Read this file → Architecture decisions
+3. Read `CODING_GUIDELINES.md` → Code patterns
+4. Read module files in order:
+   - `js/core.js` → Foundation
+   - `js/validation.js` → Data validation
+   - `js/data.js` → Business logic
+   - `js/ui.js` → Rendering patterns
+   - `js/nav.js` → Initialization flow
 
-**Critical sections to understand:**
-- Lines 150-300: LS_SAFE wrapper (data safety)
-- Lines 2800-3100: fuzzyMatchExercise (canonical names)
-- Lines 3100-3200: normalizeExerciseNames (data integrity)
-- Lines 5500-6000: Smart Merge Engine (AI integration)
+**Critical concepts to understand:**
+- IIFE module pattern
+- Closure scoping (window.APP vs local APP)
+- Object.assign merge pattern
+- Module load order dependencies
+- LS_SAFE wrapper pattern
 
 ---
 

@@ -1,99 +1,101 @@
-# 🐛 KNOWN ISSUES & WORKAROUNDS - THE GRIND DESIGN
+# 🐛 KNOWN ISSUES - THE GRIND DESIGN
 
-**Version:** V26.6  
-**Last Updated:** December 31, 2025  
-**Purpose:** Document active bugs, edge cases, and their workarounds
+**Version:** V27.0  
+**Last Updated:** January 1, 2026  
+**Purpose:** Active bugs, edge cases, and documented workarounds
 
 ---
 
-## 🔴 ACTIVE ISSUES
+## 📋 ACTIVE ISSUES
 
-### **ISSUE #1: Console Validation Warning Flood (Minor - Cosmetic)**
+### **ISSUE #1: Console Validation Warning Flood (Cosmetic)**
 
-**Status:** ⚠️ Known, Non-blocking  
-**Severity:** LOW (cosmetic only)  
-**Affected Version:** V26.6+  
-**Discovered:** December 31, 2025
+**Status:** 🟡 Known, Documented  
+**Severity:** LOW (cosmetic only, no functional impact)  
+**Affected Version:** All versions
 
 **Symptom:**
-During app initialization, console shows many individual validation warnings:
+Console shows repetitive validation warnings during app initialization:
 ```
-[FUZZY] ❌ No canonical match for: "Custom Exercise 1"
-[FUZZY] ❌ No canonical match for: "Custom Exercise 2"
-[FUZZY] ❌ No canonical match for: "Custom Exercise 3"
+[VALIDATION] ⚠️ Exercise not in EXERCISE_TARGETS: "Custom Exercise"
+[VALIDATION] ⚠️ Exercise not in EXERCISE_TARGETS: "Another Custom"
 ...
 ```
 
 **Root Cause:**
-- `APP.data.normalizeExerciseNames()` runs at init
-- Logs every non-matching exercise individually
-- Custom user exercises (not in library) trigger warnings
-- NOT an error - working as designed
+```javascript
+// In APP.validation.validateExerciseIntegrity()
+// Warns for EVERY exercise not in EXERCISE_TARGETS library
+// Including user-defined custom exercises
+```
 
 **Impact:**
-- ❌ Console clutter (hard to see other important logs)
-- ✅ App functionality: UNAFFECTED
-- ✅ Data integrity: UNAFFECTED
+- 🟢 No functional issues
+- 🟡 Console noise (can hide real errors)
+- 🟡 May confuse users checking DevTools
 
-**Workaround (Temporary):**
+**Workaround:**
+- Filter console by log level (hide warnings)
+- Or ignore warnings (app works correctly)
+
+**Permanent Fix Options:**
 ```javascript
-// User can ignore these warnings - they're informational only
-// Or: Open DevTools → Console → Filter by "warn" and hide
+// Option 1: Suppress warnings for custom exercises
+// Check if exercise has "_custom" suffix or similar flag
+
+// Option 2: Add "mute" flag to validation
+APP.validation.validateExerciseIntegrity(data, { mute: true });
+
+// Option 3: Only warn once per unique exercise name
+const warnedExercises = new Set();
 ```
 
-**Planned Fix:**
-```javascript
-// Location: index.html, search for "normalizeExerciseNames"
-// Current (lines ~3100-3200):
-console.log(`✅ ${changeLog}`);
-
-// Proposed Fix:
-console.groupCollapsed(`[V26.6] 🔍 Found ${unmatchedCount} custom exercises`);
-unmatchedExercises.forEach(ex => console.log(`  - ${ex}`));
-console.groupEnd();
-```
-
-**Priority:** P3 (Low - cosmetic improvement)  
-**Estimated Effort:** 5 minutes  
-**Owner:** Pending
+**Priority:** P3 (Low - cosmetic)  
+**Estimated Effort:** 1-2 hours  
+**Owner:** Backlog
 
 ---
 
 ### **ISSUE #2: Fuzzy Match Ambiguity with Short Queries**
 
-**Status:** ⚠️ Known, Edge Case  
-**Severity:** MEDIUM (usability issue)  
+**Status:** 🟡 Known, Documented  
+**Severity:** MEDIUM (UX degradation, not critical)  
 **Affected Version:** V26.6+
 
 **Symptom:**
-User types short generic term (e.g., "press") → Could match multiple exercises:
-- "Bench Press"
-- "Shoulder Press"
-- "Leg Press"
-- "[Machine] Chest Press"
+User searches "press" in exercise picker:
+- Matches "[Barbell] Bench Press" (intended)
+- Also matches "[Machine] Leg Press" (unintended)
+- Returns first match only (not comprehensive results)
 
 **Root Cause:**
 ```javascript
 // fuzzyMatchExercise() returns FIRST match found
-// No ranking/scoring system
-// Order depends on EXERCISE_TARGETS key order
+// Doesn't rank by relevance
+// Short queries match too broadly
+
+// Example:
+"press" matches:
+- "Bench Press" ✅
+- "Leg Press" ✅  
+- "Overhead Press" ✅
+- "Chest Press" ✅
+// But only returns first found
 ```
 
 **Impact:**
-- User gets unexpected exercise selected
-- Must type more specific name to disambiguate
+- 🟡 User may not find desired exercise
+- 🟡 Requires longer, more specific search terms
+- 🟡 Exercise picker UX could be better
 
 **Workaround:**
-```javascript
-// User should be more specific:
-"press" → "bench press" or "shoulder press"
+- Use more specific search terms: "bench press" instead of "press"
+- Use category filters in exercise picker
+- Browse by muscle group
 
-// Or: Use exercise picker UI (shows all matches)
-```
-
-**Potential Fix (Not Implemented):**
+**Permanent Fix Options:**
 ```javascript
-// Add ranking system:
+// Option 1: Relevance scoring
 // 1. Exact match (highest priority)
 // 2. Starts with query
 // 3. Contains query
@@ -105,7 +107,7 @@ User types short generic term (e.g., "press") → Could match multiple exercises
 
 **Priority:** P2 (Medium - improve UX)  
 **Estimated Effort:** 2-3 hours (refactor fuzzy logic)  
-**Owner:** Pending
+**Owner:** Backlog
 
 ---
 
@@ -172,7 +174,7 @@ if (sizeKB > 1024) {
 
 **Priority:** P1 (High - data loss risk)  
 **Estimated Effort:** 1-2 days (depends on approach)  
-**Owner:** Pending
+**Owner:** Backlog
 
 ---
 
@@ -203,457 +205,386 @@ User adds custom exercise "My Special Press":
 // If user wants exercise in library:
 // 1. Add to exercises-library.js
 // 2. Commit to GitHub
-// 3. Refresh app
+// 3. Pull request to add permanently
 
-// For immediate use:
-// Keep custom name, accept no auto-targeting
+// OR: Keep as custom (works fine)
 ```
 
-**This is NOT a bug** - custom exercises are supported by design.
+**This is intentional behavior.** Custom exercises are allowed and supported.
 
 ---
 
-## ⚠️ EDGE CASES & GOTCHAS
+## 🏗️ V27 ARCHITECTURAL GOTCHAS
 
-### **EDGE CASE #1: Empty Exercise Options Array**
+### **GOTCHA #1: Arrow Functions Capture Closure Scope** 🚨 CRITICAL
 
-**Scenario:**
+**Status:** ⚠️ **MUST UNDERSTAND** for V27+ development  
+**Severity:** **CRITICAL** (breaks core functionality if violated)
+
+**The Problem:**
 ```javascript
-// User somehow creates exercise with no options
+// In any module file (e.g., core.js)
+const APP = {
+  state: {},
+  core: {}
+};
+
+APP.core = {
+  finishSession: () => {
+    // ❌ WRONG - This captures LOCAL APP (no nav property!)
+    APP.nav.switchView("dashboard");  // undefined!
+  }
+};
+
+// Even after merging to window.APP:
+Object.assign(window.APP, APP);
+// The arrow function STILL references local APP in its closure!
+```
+
+**Why This Happens:**
+- Arrow functions capture variables from their lexical scope
+- `const APP = {...}` creates a LOCAL reference
+- This local reference is "frozen" in the closure
+- Even after merging to `window.APP`, the closure persists
+
+**The Solution:**
+```javascript
+APP.core = {
+  finishSession: () => {
+    // ✅ CORRECT - Explicitly use window.APP
+    window.APP.nav.switchView("dashboard");
+  }
+};
+
+// Or use regular function (binds 'this' differently):
+APP.core = {
+  finishSession: function() {
+    // 'this' approach (less clear)
+    this.nav.switchView("dashboard");
+  }
+};
+```
+
+**RULE:** **ALWAYS use `window.APP.*` for cross-module calls in V27+**
+
+**Impact if Violated:**
+- Cross-module calls fail with "is not a function"
+- Debugging is extremely difficult (console shows property exists!)
+- Critical features break (workout completion, navigation, etc.)
+
+**How to Identify:**
+```javascript
+// Symptom in console:
+console.log(APP.nav);  // {switchView: ƒ, ...} ✅ Exists!
+
+// But in code:
+APP.nav.switchView();  // ❌ Error: Cannot read property 'switchView' of undefined
+
+// Cause: Code is using local APP, console is showing window.APP
+```
+
+---
+
+### **GOTCHA #2: Module Load Order is Non-Negotiable** ⚠️
+
+**Status:** ⚠️ **MUST FOLLOW** exact order  
+**Severity:** **HIGH** (app breaks if wrong)
+
+**The Rule:**
+```html
+<!-- ❌ WRONG ORDER -->
+<script src="js/nav.js"></script>      <!-- nav needs debug! -->
+<script src="js/debug.js"></script>    <!-- Too late -->
+
+<!-- ✅ CORRECT ORDER -->
+<script src="js/debug.js"></script>    <!-- Load first -->
+<script src="js/nav.js"></script>      <!-- Can use APP.debug -->
+```
+
+**Required Order:**
+```
+1. exercises-library.js     (data foundation)
+2. js/constants.js          (PRESETS, STARTER_PACK)
+3. js/core.js              (APP namespace foundation)
+4. js/validation.js        (no dependencies beyond core)
+5. js/data.js              (uses validation)
+6. js/safety.js            (uses core)
+7. js/stats.js             (uses core, data)
+8. js/session.js           (uses validation, data, safety)
+9. js/cardio.js            (uses core)
+10. js/ui.js               (uses ALL above)
+11. js/debug.js            (standalone, but before nav!)
+12. js/nav.js              (uses ALL modules, including debug)
+13. js/cloud.js            (standalone)
+```
+
+**Why:**
+- nav.js calls `APP.debug.showFatalError()` in APP.init()
+- ui.js calls `APP.validation.validateSession()`, `APP.data.mergeProgram()`, etc.
+- Each module depends on previous modules being loaded
+
+**Impact if Violated:**
+- `APP.X is not a function` errors
+- `Cannot read property of undefined` errors
+- App fails to initialize
+
+**How to Fix:**
+- Check script tag order in index.html
+- Move dependent modules AFTER their dependencies
+- Refer to ARCHITECTURE.md for dependency diagram
+
+---
+
+### **GOTCHA #3: Object.assign Merges, = Overwrites** 🚨
+
+**Status:** ⚠️ **CRITICAL PATTERN** for modules  
+**Severity:** **CRITICAL** (destroys namespaces if wrong)
+
+**The Problem:**
+```javascript
+// In inline script (index.html body):
+const APP = {
+  init: function() { },
+  nav: { },
+  cardio: { }
+};
+
+// In core.js module:
+const APP = {
+  state: {},
+  core: {}
+};
+
+// ❌ WRONG - This OVERWRITES everything!
+window.APP = APP;  // Destroys init, nav, cardio!
+
+// Result: APP only has state & core, other namespaces gone!
+```
+
+**The Solution:**
+```javascript
+// In every module:
+if (window.APP) {
+  Object.assign(window.APP, APP);  // ✅ MERGE
+} else {
+  window.APP = APP;  // First module can set directly
+}
+```
+
+**Pattern Explanation:**
+- `Object.assign(target, source)` - Copies properties from source to target
+- `window.APP = APP` - Replaces entire object (destructive)
+- Always check if `window.APP` exists before merging
+
+**Impact if Violated:**
+- Previous namespaces destroyed
+- `APP.init is not a function` errors
+- `APP.nav is undefined` errors
+- Multiple initialization failures
+
+---
+
+### **GOTCHA #4: Script Position in HTML** ⚠️
+
+**Status:** ⚠️ **MUST PLACE** at end of body  
+**Severity:** **HIGH** (initialization failures)
+
+**The Problem:**
+```html
+<!-- ❌ WRONG - Scripts in <head> load before <body> inline scripts -->
+<head>
+  <script src="js/core.js"></script>
+</head>
+<body>
+  <script>
+    // This runs AFTER head scripts!
+    const APP = {
+      init: function() { },
+      nav: { }
+    };
+  </script>
+</body>
+```
+
+**Execution order (WRONG):**
+```
+1. js/core.js loads → Creates window.APP = {state, core}
+2. Inline script runs → Creates local APP = {init, nav}
+3. Modules try to merge → But inline APP not in window.APP yet!
+```
+
+**The Solution:**
+```html
+<body>
+  <!-- HTML content -->
+  
+  <!-- Inline scripts FIRST -->
+  <script>
+    const APP = {
+      init: function() { },
+      nav: { }
+    };
+  </script>
+  
+  <!-- Module scripts AFTER -->
+  <script src="js/core.js"></script>
+  <script src="js/validation.js"></script>
+  <!-- ... other modules ... -->
+</body>
+```
+
+**Execution order (CORRECT):**
+```
+1. Inline script runs → Creates window.APP = {init, nav}  
+2. Modules load → Merge their namespaces to existing window.APP
+3. All namespaces present in window.APP ✅
+```
+
+**Impact if Violated:**
+- `APP.init is not a function`
+- `APP.nav is undefined`
+- Namespaces overwritten or missing
+
+---
+
+### **GOTCHA #5: Defensive Error Handling Required** ⚠️
+
+**Status:** ⚠️ **BEST PRACTICE** in V27  
+**Severity:** **MEDIUM** (errors can cascade)
+
+**The Problem:**
+```javascript
+// In error handler:
+catch (e) {
+  APP.debug.showFatalError("Error", e);  // ❌ Crashes if APP.debug undefined!
+}
+```
+
+**Why It Fails:**
+- If error occurs before debug.js loads
+- Or if debug.js fails to load
+- The error handler itself crashes
+- Original error is masked
+
+**The Solution:**
+```javascript
+catch (e) {
+  // ✅ ALWAYS log raw error first
+  console.error("[ERROR]", e);
+  
+  // ✅ Then try to use error UI (with fallback)
+  if (window.APP && window.APP.debug && window.APP.debug.showFatalError) {
+    window.APP.debug.showFatalError("Error", e);
+  } else {
+    alert("Error: " + (e.message || e));
+  }
+}
+```
+
+**Pattern:**
+1. Log error to console (always works)
+2. Check if error handler exists (defensive)
+3. Use error handler if available
+4. Fall back to basic alert
+
+**Impact if Violated:**
+- Error handler crashes
+- Original error hidden
+- Debugging becomes extremely difficult
+
+---
+
+## 🔧 WORKAROUNDS & SOLUTIONS
+
+### **How to Debug "X is not a function" in V27**
+
+**Step 1: Verify module loaded**
+```javascript
+console.log(window.APP);  // Check which namespaces exist
+console.log(window.APP.moduleName);  // Check specific module
+```
+
+**Step 2: Check console for module load confirmations**
+```
+[CORE] ✅ Core module loaded
+[VALIDATION] ✅ Validation module loaded
+...
+```
+
+**Step 3: Verify script order in index.html**
+- Check if dependent module loaded AFTER dependency
+- Refer to ARCHITECTURE.md for correct order
+
+**Step 4: Check if using window.APP**
+```javascript
+// Search your code for:
+APP.otherModule.method()  // ❌ Might be closure issue
+
+// Replace with:
+window.APP.otherModule.method()  // ✅ Always works
+```
+
+---
+
+### **How to Add New Module Safely**
+
+**Checklist:**
+- [ ] Create file in `js/` folder
+- [ ] Use IIFE wrapper: `(function() { ... })()`
+- [ ] Add namespace guard: `if (!window.APP) window.APP = {};`
+- [ ] Define module: `APP.moduleName = { ... }`
+- [ ] Use `window.APP.*` for cross-module calls
+- [ ] Add load confirmation: `console.log("[MODULE] ✅ Loaded")`
+- [ ] Add script tag to index.html in CORRECT position
+- [ ] Update ARCHITECTURE.md with dependencies
+- [ ] Test load order (check console for errors)
+
+---
+
+## 📝 BUG REPORTING TEMPLATE
+
+When reporting bugs, include:
+
+**Environment:**
+- Browser: [Chrome/Safari/Firefox] + version
+- Device: [Desktop/Mobile/Tablet]
+- OS: [Windows/Mac/Linux/iOS/Android]
+
+**Reproduction Steps:**
+1. Open app
+2. Navigate to...
+3. Click...
+4. Observe error
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happens]
+
+**Console Errors:**
+```
+[Copy/paste console errors here]
+```
+
+**LocalStorage Export (if relevant):**
+```json
 {
-  sets: 3,
-  rest: 90,
-  note: "Chest",
-  options: []  // ❌ Empty!
+  "cscs_program_v10": { ... }
 }
 ```
 
-**Impact:**
-- App crashes when trying to render exercise
-- `exercise.options[0].n` → Cannot read property 'n' of undefined
-
-**Current Protection:**
-```javascript
-// Validation exists in:
-APP.validation.validateExerciseIntegrity()
-
-// But not enforced everywhere
-```
-
-**Mitigation:**
-```javascript
-// Always check before access:
-if (!exercise.options || exercise.options.length === 0) {
-  console.error("Exercise has no options");
-  return;
-}
-```
-
-**Fix Needed:** Add validation to all exercise rendering functions
+**Screenshots:**
+[If applicable]
 
 ---
 
-### **EDGE CASE #2: Corrupted JSON in LocalStorage**
-
-**Scenario:**
-User edits localStorage manually or browser corruption:
-```javascript
-// Stored value is invalid JSON
-localStorage.setItem("cscs_program_v10", "{invalid json]");
-```
-
-**Impact:**
-- `JSON.parse()` throws error
-- App fails to load
-
-**Current Protection:**
-```javascript
-// LS_SAFE.getJSON() auto-handles:
-try {
-  const parsed = JSON.parse(v);
-  return parsed;
-} catch (e) {
-  console.error("LS Parse Error:", k, e);
-  localStorage.removeItem(k); // Auto-fix: delete corrupt data
-  return def; // Return default value
-}
-```
-
-**Result:**
-- ✅ App loads with empty/default data
-- ⚠️ User's data lost (but was already corrupt)
-
-**Prevention:** Always use `LS_SAFE` wrapper (never direct access)
-
----
-
-### **EDGE CASE #3: Exercise Name with Special Characters**
-
-**Scenario:**
-```javascript
-// Exercise name contains problematic characters
-"Bench Press (45° Angle) - Smith Machine"
-```
-
-**Impact:**
-- Search/filtering may not work correctly
-- HTML attribute injection risk
-- Fuzzy matching may fail
-
-**Current Handling:**
-```javascript
-// fuzzyMatchExercise() strips all non-alphanumeric:
-const strip = (str) => str.replace(/[^a-z0-9]/g, "");
-
-// "Bench Press (45° Angle)" → "benchpress45angle"
-```
-
-**Result:**
-- ✅ Matching works
-- ✅ Storage safe
-- ⚠️ Original formatting preserved in display
-
-**Best Practice:** Use library exercises (already sanitized)
-
----
-
-### **EDGE CASE #4: Extremely Large Workout Session (50+ Exercises)**
-
-**Scenario:**
-User creates mega-session with 50 exercises × 5 sets = 250 sets
-
-**Impact:**
-- Slow rendering (DOM manipulation)
-- Large localStorage write (performance hit)
-- Potential quota issues
-
-**Current Behavior:**
-- No limit enforced
-- App will slow down but function
-
-**Workaround:**
-```javascript
-// Split into multiple sessions
-// Session 1: 20 exercises
-// Session 2: 20 exercises
-// Session 3: 10 exercises
-```
-
-**Potential Fix:**
-```javascript
-// Add soft limit warning:
-if (session.exercises.length > 30) {
-  console.warn("Large session detected, consider splitting");
-  APP.ui.showToast("⚠️ Large session - may impact performance", "warning");
-}
-```
-
----
-
-### **EDGE CASE #5: Workout Log with No Sets Logged**
-
-**Scenario:**
-User opens workout, doesn't log any sets, clicks "Complete"
-
-**Impact:**
-- Empty log created in gym_hist
-- Volume = 0
-- Analytics include zero-volume session
-
-**Current Behavior:**
-```javascript
-// Log is created even if volume = 0
-// This is intentional (user did open session)
-```
-
-**Debate:**
-- Should we save zero-volume logs? (attendance tracking)
-- Or skip empty logs? (analytics cleaner)
-
-**Current Decision:** Save all logs (even zero-volume) for attendance tracking
-
----
-
-## 🔧 HISTORICAL BUGS (FIXED)
-
-### **BUG #1: `\n` Causing "Invalid token" Crash (FIXED in V26.5)**
-
-**Status:** ✅ RESOLVED  
-**Fixed In:** V26.5  
-**Date Fixed:** December 2025
-
-**Original Issue:**
-```javascript
-// Used \n for line breaks in exercise notes
-note: "Line 1\nLine 2\nLine 3"
-
-// Rendered to HTML attribute:
-<div note="Line 1
-Line 2
-Line 3">
-
-// Browser error: "Uncaught SyntaxError: Invalid or unexpected token"
-```
-
-**Fix:**
-```javascript
-// Replace all \n with <br>
-note: "Line 1<br>Line 2<br>Line 3"
-
-// Renders safely:
-<div note="Line 1<br>Line 2<br>Line 3">
-```
-
-**Lesson Learned:** Never use `\n` in data that may be rendered to HTML attributes
-
----
-
-### **BUG #2: Exercise Name Fragmentation (FIXED in V26.6)**
-
-**Status:** ✅ RESOLVED  
-**Fixed In:** V26.6  
-**Date Fixed:** December 31, 2025
-
-**Original Issue:**
-```javascript
-// User types: "machine pendulum squat"
-// Saved as: "machine pendulum squat"
-
-// User types: "pendulum squat"
-// Saved as: "pendulum squat"
-
-// Library canonical: "[Machine] Pendulum Squat"
-
-// Result: THREE different IDs in analytics → fragmented volume data
-```
-
-**Fix (V26.6):**
-```javascript
-// fuzzyMatchExercise() now returns canonical string
-const canonicalName = APP.validation.fuzzyMatchExercise(userInput);
-if (canonicalName) {
-  exercise.name = canonicalName; // Enforce canonical
-}
-
-// + Auto-migration on init:
-APP.data.normalizeExerciseNames(); // Unifies historical data
-```
-
-**Result:**
-- ✅ All exercise names → canonical
-- ✅ Unified analytics
-- ✅ Backward compatible (auto-migration)
-
----
-
-### **BUG #3: Variant Index Out of Bounds (FIXED in V25)**
-
-**Status:** ✅ RESOLVED  
-**Fixed In:** V25  
-**Date Fixed:** November 2025
-
-**Original Issue:**
-```javascript
-// Exercise had 3 variants (indices 0, 1, 2)
-// User deleted variant #2
-// Saved preference was still "2"
-// App crashed: exercise.options[2] → undefined
-```
-
-**Fix:**
-```javascript
-// Added safety check:
-let savedVar = parseInt(LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0);
-
-if (savedVar >= exercise.options.length) {
-  console.warn(`Invalid variant ${savedVar}, reset to 0`);
-  savedVar = 0;
-  LS_SAFE.set(`pref_${sessionId}_${exerciseIdx}`, 0);
-}
-```
-
-**Lesson Learned:** Always validate array indices from storage
-
----
-
-## 📋 WORKAROUND LIBRARY
-
-### **Workaround #1: Clear Corrupt LocalStorage**
-
-**When to Use:** App won't load, console shows parse errors
-
-**Steps:**
-```javascript
-// In browser console:
-localStorage.clear();
-location.reload();
-
-// ⚠️ WARNING: This deletes ALL data!
-// Better: Clear specific key:
-localStorage.removeItem("cscs_program_v10");
-```
-
----
-
-### **Workaround #2: Force Backup Restore**
-
-**When to Use:** App is working but data seems wrong
-
-**Steps:**
-```javascript
-// In browser console:
-const backups = APP.safety.listBackups();
-console.table(backups); // See available backups
-
-// Restore specific backup:
-APP.safety.restore("backup_1234567890_operation");
-```
-
----
-
-### **Workaround #3: Manually Fix Exercise Name**
-
-**When to Use:** Exercise not matching, analytics fragmented
-
-**Steps:**
-```javascript
-// 1. Load data
-const logs = LS_SAFE.getJSON("gym_hist", []);
-
-// 2. Find problematic exercise
-const badLogs = logs.filter(log => log.ex === "wrong name");
-
-// 3. Fix name
-badLogs.forEach(log => {
-  log.ex = "[Machine] Correct Name";
-});
-
-// 4. Save
-LS_SAFE.setJSON("gym_hist", logs);
-
-// 5. Reload
-location.reload();
-```
-
----
-
-### **Workaround #4: Export Data Before Experimenting**
-
-**When to Use:** Before trying new features or debugging
-
-**Steps:**
-```javascript
-// Export to JSON file:
-const allData = {};
-for (let i = 0; i < localStorage.length; i++) {
-  const key = localStorage.key(i);
-  allData[key] = localStorage.getItem(key);
-}
-
-const blob = new Blob([JSON.stringify(allData, null, 2)], {type: 'application/json'});
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = `backup_manual_${Date.now()}.json`;
-a.click();
-```
-
----
-
-## 🎯 TESTING SCENARIOS (For Future Features)
-
-### **Scenario #1: Test with Empty Database**
-
-```javascript
-// Clear all data
-localStorage.clear();
-
-// Test app initialization:
-// - Should show starter pack
-// - Should not crash
-// - Should allow creating new session
-```
-
-### **Scenario #2: Test with Large Dataset**
-
-```javascript
-// Generate 1000 workout logs
-const logs = [];
-for (let i = 0; i < 1000; i++) {
-  logs.push({
-    date: `2025-01-${(i % 30) + 1}`,
-    ex: "Bench Press",
-    vol: 1200,
-    top: 60,
-    d: [{k: 60, r: 5, rpe: 8}]
-  });
-}
-LS_SAFE.setJSON("gym_hist", logs);
-
-// Test:
-// - Chart rendering performance
-// - Analytics calculation speed
-// - LocalStorage size warning
-```
-
-### **Scenario #3: Test with Invalid Data**
-
-```javascript
-// Corrupt session data
-const program = LS_SAFE.getJSON("cscs_program_v10");
-program.s1.exercises[0].options = []; // Empty options
-
-LS_SAFE.setJSON("cscs_program_v10", program);
-
-// Test:
-// - Should validation catch this?
-// - Does app crash or degrade gracefully?
-```
-
----
-
-## 📞 REPORTING NEW ISSUES
-
-When reporting a bug, please include:
-
-1. **Version:** (e.g., V26.6)
-2. **Browser:** (e.g., Chrome 120, Safari 17)
-3. **Steps to Reproduce:**
-   ```
-   1. Open app
-   2. Click X
-   3. Error appears
-   ```
-4. **Expected Behavior:** "Should do X"
-5. **Actual Behavior:** "Does Y instead"
-6. **Console Errors:** (screenshot or copy/paste)
-7. **LocalStorage Data:** (if relevant, export and attach)
-
-**Where to Report:**
-- GitHub Issues (if repository has issues enabled)
-- Or: Document in this file with `[REPORTED: date]` tag
-
----
-
-## 🔮 POTENTIAL FUTURE ISSUES
-
-### **Concern #1: Browser LocalStorage Deprecation**
-
-**Risk:** Browsers may deprecate/change localStorage API  
-**Probability:** LOW (but possible in 5+ years)  
-**Mitigation:** Service Worker can intercept and migrate if needed
-
-### **Concern #2: Chart.js Breaking Changes**
-
-**Risk:** CDN version updates, breaking API changes  
-**Probability:** MEDIUM  
-**Mitigation:** Pin to specific version in CDN URL
-
-### **Concern #3: Tailwind CSS Changes**
-
-**Risk:** Utility class names change in major versions  
-**Probability:** MEDIUM  
-**Mitigation:** Pin to v3.x in CDN URL, test before upgrading
+## 📚 RELATED DOCUMENTATION
+
+- **ARCHITECTURE.md** - V27 module structure
+- **CODING_GUIDELINES.md** - V27 development rules
+- **DEBUGGING_PLAYBOOK.md** - Step-by-step troubleshooting
+- **HANDOVER_V27.md** - Complete V27 story
 
 ---
 

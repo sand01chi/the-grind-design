@@ -1096,7 +1096,8 @@
       } menit\n\nRincian Gerakan:\n`;
 
       sessionLogs.forEach((l, exerciseIdx) => {
-        promptText += `\n${exerciseIdx + 1}. ${l.ex}:\n`;
+        const exerciseSpontTag = l.src === "spontaneous" ? " [SPONTANEOUS]" : "";
+        promptText += `\n${exerciseIdx + 1}. ${l.ex}${exerciseSpontTag}:\n`;
 
         if (l.type === "cardio") {
           promptText += `   Type: LISS Cardio\n`;
@@ -1190,16 +1191,18 @@
         dayLogs.forEach((l) => {
           if (l.type === "cardio") {
             const noteStr = l.note ? ` [💭 ${l.note}]` : "";
-            rep += `- 🏃 ${l.machine} LISS: ${l.duration}min @ ${l.avgHR}bpm (Zone 2)${noteStr}\n`;
+            const cardioSpontTag = l.src === "spontaneous" ? " [SPONTANEOUS]" : "";
+            rep += `- 🏃 ${l.machine} LISS: ${l.duration}min @ ${l.avgHR}bpm (Zone 2)${noteStr}${cardioSpontTag}\n`;
             return;
           }
 
           const noteStr = l.note ? ` [📝 ${l.note}]` : "";
+          const exerciseSpontTag = l.src === "spontaneous" ? " [SPONTANEOUS]" : "";
           if (l.d && Array.isArray(l.d)) {
             const sStr = l.d
               .map((s) => `${s.k}x${s.r}${s.rpe ? "@" + s.rpe : ""}`)
               .join(", ");
-            rep += `- ${l.ex}${noteStr}: ${sStr}\n`;
+            rep += `- ${l.ex}${noteStr}: ${sStr}${exerciseSpontTag}\n`;
           }
         });
       });

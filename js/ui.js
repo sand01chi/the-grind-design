@@ -665,12 +665,20 @@
             l.avgHR >= l.zoneTarget[0] && l.avgHR <= l.zoneTarget[1];
           const zoneIcon = inZone ? "✅" : "⚠️";
 
+          // Add spontaneous indicator for cardio
+          const cardioSpontaneousTag = l.src === "spontaneous"
+            ? '<span class="text-[9px] bg-purple-600 text-white px-1 py-0.5 rounded uppercase ml-1 font-bold">SPONT</span>'
+            : '';
+
           html += `
             <div class="flex justify-between items-center bg-blue-900/20 p-1.5 rounded border border-blue-700/50 mb-1">
               <div class="flex items-center min-w-0 gap-2">
                 <span class="text-[10px]">🏃</span>
                 <div>
-                  <span class="text-[10px] text-blue-200 font-medium">${l.machine} LISS</span>
+                  <div class="flex items-center gap-1">
+                    <span class="text-[10px] text-blue-200 font-medium">${l.machine} LISS</span>
+                    ${cardioSpontaneousTag}
+                  </div>
                   <div class="text-[9px] text-slate-400">${l.duration}min • ${l.avgHR}bpm ${zoneIcon}</div>
                 </div>
               </div>
@@ -707,11 +715,18 @@
         } else {
           badge = `<span class="text-[9px] bg-blue-900/40 text-blue-300 px-1 rounded ml-1">New ✨</span>`;
         }
+
+        // Add spontaneous indicator for individual exercises
+        const exerciseSpontaneousTag = l.src === "spontaneous"
+          ? '<span class="text-[9px] bg-purple-600 text-white px-1 py-0.5 rounded uppercase ml-1 font-bold">SPONT</span>'
+          : '';
+
         html += `
                   <div class="flex justify-between items-center bg-slate-800/80 p-1.5 rounded border border-slate-700">
                       <div class="flex items-center min-w-0">
                           <span class="text-[10px] text-slate-200 truncate font-medium">${l.ex}</span>
                           ${badge}
+                          ${exerciseSpontaneousTag}
                       </div>
                       <span class="text-[10px] font-mono text-emerald-500 font-bold whitespace-nowrap">${l.top}kg</span>
                   </div>`;

@@ -1,7 +1,7 @@
 # 💻 CODING GUIDELINES - THE GRIND DESIGN
 
-**Version:** V26.6  
-**Last Updated:** December 31, 2025  
+**Version:** V27.0  
+**Last Updated:** January 1, 2026  
 **Purpose:** Code style, conventions, and best practices for consistency
 
 ---
@@ -63,6 +63,34 @@
    session.exercises.push(newExercise);
    ```
 
+6. **NEVER use `window.APP = APP` to merge namespaces (V27+)**
+   ```javascript
+   // ❌ WRONG - Overwrites existing namespaces
+   window.APP = APP;  // Destroys APP.ui, APP.data, etc.
+   
+   // ✅ CORRECT - Merge pattern
+   if (window.APP) {
+     Object.assign(window.APP, APP);  // Add to existing
+   } else {
+     window.APP = APP;
+   }
+   ```
+
+7. **NEVER use local APP reference in cross-module calls (V27+)**
+   ```javascript
+   // ❌ WRONG - Captures local APP in closure
+   const APP = {myModule: {}};
+   APP.myModule = {
+     method: () => APP.otherModule.doSomething()  // undefined!
+   };
+   
+   // ✅ CORRECT - Use window.APP
+   const APP = {myModule: {}};
+   APP.myModule = {
+     method: () => window.APP.otherModule.doSomething()  // ✅
+   };
+   ```
+
 ---
 
 ## ✅ **ALWAYS DO:**
@@ -106,6 +134,249 @@
    }
    ```
 
+6. **ALWAYS use window.APP for cross-module access (V27+)**
+   ```javascript
+   // In any module file:
+   APP.myModule = {
+     method: function() {
+       // ✅ ALWAYS use window.APP
+       window.APP.otherModule.doSomething();
+       window.APP.ui.showToast("Success", "success");
+     }
+   };
+   ```
+
+7. **ALWAYS add namespace guards in modules (V27+)**
+   ```javascript
+   (function() {
+     'use strict';
+     
+     // ✅ ALWAYS guard namespace
+     if (!window.APP) window.APP = {};
+     
+     APP.myModule = {
+       // module code
+     };
+   })();
+   ```
+
+---
+
+## 📁 V27 MODULE DEVELOPMENT RULES
+
+### **Module File Structure**
+
+**Standard Template:**
+```javascript
+(function() {
+  'use strict';
+  
+  // 1. Namespace guard
+  if (!window.APP) window.APP = {};
+  
+  // 2. Define module
+  APP.moduleName = {
+    property: value,
+    
+    method: function() {
+      // Use window.APP for all cross-module access!
+      window.APP.otherModule.method();
+    }
+  };
+  
+  // 3. Load confirmation (production-ready logging)
+  console.log("[MODULE-NAME] ✅ Module loaded");
+})();
+```
+
+---
+
+### **Cross-Module Communication**
+
+**❌ WRONG - Closure Scoping Bug:**
+```javascript
+// In core.js
+const APP = {
+  state: {},
+  core: {}
+};
+
+APP.core = {
+  finishSession: () => {
+    // ❌ This looks at LOCAL APP (no nav property!)
+    APP.nav.switchView("dashboard");  // Error!
+  }
+};
+
+window.APP = APP;  // Local APP merged to global
+```
+
+**✅ CORRECT - Always Use window.APP:**
+```javascript
+// In core.js
+const APP = {
+  state: {},
+  core: {}
+};
+
+APP.core = {
+  finishSession: () => {
+    // ✅ This looks at GLOBAL window.APP (has nav!)
+    window.APP.nav.switchView("dashboard");  // Success!
+  }
+};
+
+// Merge pattern
+if (window.APP) {
+  Object.assign(window.APP, APP);
+} else {
+  window.APP = APP;
+}
+```
+
+---
+
+### **Module Merge Pattern**
+
+**Every module MUST use this pattern:**
+```javascript
+(function() {
+  'use strict';
+  
+  if (!window.APP) window.APP = {};
+  
+  // Create local APP object
+  const localModule = {
+    method1: function() {
+      window.APP.otherModule.method();
+    },
+    method2: function() {
+      window.APP.validation.validate();
+    }
+  };
+  
+  // Merge to global (don't overwrite!)
+  APP.moduleName = localModule;
+  
+  // Or directly:
+  // APP.moduleName = { ... };
+  
+  console.log("[MODULE] ✅ Loaded");
+})();
+```
+
+---
+
+### **Defensive Error Handling in Modules**
+
+```javascript
+APP.core = {
+  finishSession: function() {
+    try {
+      // Main logic
+      const result = processWorkout();
+      
+      // Cross-module call with defensive check
+      if (window.APP && window.APP.nav && window.APP.nav.switchView) {
+        window.APP.nav.switchView("dashboard");
+      } else {
+        console.error("Navigation not available");
+      }
+    } catch (e) {
+      // Log real error first
+      console.error("[FINISH SESSION ERROR]", e);
+      
+      // Then try to show error UI (with fallback)
+      if (window.APP?.debug?.showFatalError) {
+        window.APP.debug.showFatalError("Finish Session", e);
+      } else {
+        alert("Error: " + (e.message || e));
+      }
+    }
+  }
+};
+```
+
+---
+
+### **Module Load Order Guidelines**
+
+**Dependencies Must Load First:**
+```html
+<!-- ❌ WRONG ORDER - ui.js needs validation, data, etc. -->
+<script src="js/ui.js"></script>
+<script src="js/validation.js"></script>
+<script src="js/data.js"></script>
+
+<!-- ✅ CORRECT ORDER -->
+<script src="exercises-library.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/core.js"></script>
+<script src="js/validation.js"></script>  <!-- ui.js depends on this -->
+<script src="js/data.js"></script>        <!-- ui.js depends on this -->
+<!-- ... other modules ... -->
+<script src="js/ui.js"></script>          <!-- Load after dependencies -->
+```
+
+**Complete Load Order:**
+```
+1. exercises-library.js     (data)
+2. js/constants.js          (PRESETS, STARTER_PACK)
+3. js/core.js              (foundation)
+4. js/validation.js        (business logic)
+5. js/data.js
+6. js/safety.js
+7. js/stats.js
+8. js/session.js
+9. js/cardio.js
+10. js/ui.js               (uses all above)
+11. js/debug.js            (before nav!)
+12. js/nav.js              (uses ALL modules)
+13. js/cloud.js            (standalone)
+```
+
+---
+
+### **Adding a New Module**
+
+**Step 1: Create File (`js/new-module.js`)**
+```javascript
+(function() {
+  'use strict';
+  
+  if (!window.APP) window.APP = {};
+  
+  APP.newModule = {
+    init: function() {
+      console.log("[NEW-MODULE] Initializing...");
+    },
+    
+    processData: function(data) {
+      // Use window.APP for cross-module
+      const validated = window.APP.validation.validate(data);
+      window.APP.ui.showToast("Processed", "success");
+      return validated;
+    }
+  };
+  
+  console.log("[NEW-MODULE] ✅ Loaded");
+})();
+```
+
+**Step 2: Add to index.html Load Order**
+```html
+<!-- Add in correct position based on dependencies -->
+<script src="js/validation.js"></script>
+<script src="js/data.js"></script>
+<script src="js/new-module.js"></script>  <!-- After dependencies -->
+<script src="js/ui.js"></script>
+```
+
+**Step 3: Update ARCHITECTURE.md**
+- Add module to file structure diagram
+- Document module responsibility
+- List dependencies
+
 ---
 
 ## 📝 NAMING CONVENTIONS
@@ -122,128 +393,54 @@ createBackup(operation)
 workout()          // What does this do?
 validate()         // Validate what?
 render()           // Render what?
-backup(op)         // Not descriptive
+process()          // Process what?
 ```
 
 ### **Variables**
 ```javascript
-// ✅ Descriptive, camelCase
+// ✅ camelCase, descriptive
 const sessionId = "s1";
 const exerciseIdx = 0;
 const workoutLogs = LS_SAFE.getJSON("gym_hist", []);
-const canonicalName = APP.validation.fuzzyMatchExercise(input);
 
 // ❌ Avoid
-const s = "s1";           // Too short
-const i = 0;              // Ambiguous
-const logs = [];          // What kind of logs?
-const name = "";          // What name?
+const id = "s1";           // ID of what?
+const idx = 0;             // Index of what?
+const wl = [];             // What's "wl"?
 ```
 
 ### **Constants**
 ```javascript
-// ✅ SCREAMING_SNAKE_CASE for true constants
-const EXERCISE_TARGETS = { ... };
-const LS_SAFE = { ... };
-const MAX_BACKUPS = 5;
-
-// ✅ camelCase for configuration
-const defaultSession = { ... };
-const userPreferences = { ... };
-```
-
-### **LocalStorage Keys**
-```javascript
-// ✅ Descriptive, versioned where applicable
-"cscs_program_v10"         // Versioned main data
-"gym_hist"                 // Clear purpose
-"backup_1234567890_merge"  // Timestamp + operation
-"last_s1"                  // Prefixed for grouping
-"pref_s1_ex2"              // Hierarchical structure
+// ✅ SCREAMING_SNAKE_CASE
+const LS_SAFE = {...};
+const EXERCISE_TARGETS = {...};
+const MAX_BACKUP_COUNT = 5;
 
 // ❌ Avoid
-"data"                     // Too generic
-"program"                  // No version
-"backup"                   // No timestamp/context
-"s1"                       // Ambiguous prefix
+const lsSafe = {...};      // Should be SCREAMING_SNAKE_CASE
+const exerciseTargets = {...};
+```
+
+### **Module Files (V27+)**
+```javascript
+// ✅ kebab-case, matches namespace
+data.js        → APP.data
+session.js     → APP.session
+nav.js         → APP.nav
+
+// ❌ Avoid
+Data.js        // Not camelCase
+session_mgmt.js // Not kebab-case
 ```
 
 ---
 
-## 🏗️ CODE STRUCTURE
+## 🏗️ CODE ORGANIZATION
 
-### **Function Organization (inside APP namespace)**
-
+### **Function Length**
 ```javascript
-const APP = {
-  // 1. STATE (data that changes)
-  state: {
-    currentSessionId: "",
-    workoutData: {}
-  },
-
-  // 2. VALIDATION (input checking)
-  validation: {
-    validateSession: function() { ... },
-    fuzzyMatchExercise: function() { ... }
-  },
-
-  // 3. DATA (CRUD operations)
-  data: {
-    mergeProgram: function() { ... },
-    normalizeExerciseNames: function() { ... }
-  },
-
-  // 4. SAFETY (backup/restore)
-  safety: {
-    createBackup: function() { ... },
-    restore: function() { ... }
-  },
-
-  // 5. SESSION (session management)
-  session: {
-    openEditor: function() { ... },
-    confirmDelete: function() { ... }
-  },
-
-  // 6. STATS (analytics)
-  stats: {
-    renderVolumeChart: function() { ... },
-    calculateTopGainers: function() { ... }
-  },
-
-  // 7. UI (rendering)
-  ui: {
-    openModal: function() { ... },
-    showToast: function() { ... }
-  },
-
-  // 8. NAV (navigation)
-  nav: {
-    switchView: function() { ... },
-    loadWorkout: function() { ... }
-  },
-
-  // 9. CORE (utilities)
-  core: {
-    saveProgram: function() { ... },
-    init: function() { ... }
-  }
-};
-```
-
-### **Function Length Guidelines**
-
-```javascript
-// ✅ GOOD - Single responsibility, focused
-function calculateVolume(sets) {
-  return sets.reduce((sum, set) => {
-    return sum + (parseFloat(set.k) || 0) * (parseFloat(set.r) || 0);
-  }, 0);
-}
-
-// ⚠️ ACCEPTABLE - Multiple steps but logical grouping
-function saveWorkoutLog(sessionId) {
+// ✅ GOOD - Single responsibility, <50 lines
+function validateAndSaveWorkout(sessionId) {
   // 1. Validate
   const session = APP.validation.validateSession(sessionId);
   if (!session) return false;
@@ -302,7 +499,7 @@ function parseUserJSON(jsonString) {
     return data;
   } catch (e) {
     console.error("JSON parse error:", e);
-    APP.ui.showToast("Invalid JSON format", "error");
+    window.APP.ui.showToast("Invalid JSON format", "error");
     return null;
   }
 }
@@ -341,238 +538,147 @@ function renderChart(data) {
 
 ---
 
-## 📊 DATA HANDLING BEST PRACTICES
+## 📊 CONSOLE LOGGING STANDARDS
 
-### **Working with LocalStorage**
-
+### **Production Logging (V27+)**
 ```javascript
-// ✅ GOOD - Always use LS_SAFE wrapper
-const program = LS_SAFE.getJSON("cscs_program_v10", {});
-const success = LS_SAFE.setJSON("cscs_program_v10", updatedProgram);
-
-if (!success) {
-  console.error("Failed to save program");
-  APP.ui.showToast("Save failed - storage may be full", "error");
-}
-
-// ❌ BAD - Direct access, no error handling
-const program = JSON.parse(localStorage.getItem("cscs_program_v10"));
-localStorage.setItem("cscs_program_v10", JSON.stringify(program));
-```
-
-### **Immutability for Safety**
-
-```javascript
-// ✅ GOOD - Create new object, don't mutate parameter
-function updateSessionTitle(session, newTitle) {
-  return {
-    ...session,
-    title: newTitle
-  };
-}
-
-// ✅ GOOD - Deep clone before mutation
-const sessionCopy = JSON.parse(JSON.stringify(originalSession));
-sessionCopy.exercises.push(newExercise);
-
-// ❌ BAD - Direct mutation of shared state
-function updateSessionTitle(session, newTitle) {
-  session.title = newTitle; // Mutates original object
-  return session;
-}
-```
-
-### **Array Operations**
-
-```javascript
-// ✅ GOOD - Safe array access with validation
-const logs = LS_SAFE.getJSON("gym_hist", []);
-if (Array.isArray(logs) && logs.length > 0) {
-  const lastLog = logs[logs.length - 1];
-  // ... process lastLog
-}
-
-// ❌ BAD - Assume array exists and has items
-const logs = LS_SAFE.getJSON("gym_hist");
-const lastLog = logs[logs.length - 1]; // Could crash
-```
-
----
-
-## 🎨 UI DEVELOPMENT PATTERNS
-
-### **DOM Manipulation Safety**
-
-```javascript
-// ✅ GOOD - Check existence before manipulation
-function updateElement(id, content) {
-  const element = document.getElementById(id);
-  
-  if (!element) {
-    console.warn(`Element not found: ${id}`);
-    return false;
-  }
-  
-  element.textContent = content; // Use textContent to prevent XSS
-  return true;
-}
-
-// ❌ BAD - Assume element exists
-function updateElement(id, content) {
-  document.getElementById(id).textContent = content; // Could crash
-}
-```
-
-### **Event Handling**
-
-```javascript
-// ✅ GOOD - Inline onclick for simple actions (this app's pattern)
-<button onclick="APP.ui.openModal('library')">Open</button>
-
-// ✅ GOOD - Programmatic for complex logic
-element.addEventListener('click', function(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  // Complex logic here...
-});
-
-// ❌ AVOID - Mixing patterns inconsistently
-```
-
-### **Modal Management**
-
-```javascript
-// ✅ GOOD - Centralized modal control
-APP.ui.openModal('exercise-picker');
-APP.ui.closeModal('exercise-picker');
-
-// ❌ BAD - Direct DOM manipulation scattered everywhere
-document.getElementById('exercise-picker').classList.remove('hidden');
-```
-
----
-
-## 🧪 CONSOLE LOGGING BEST PRACTICES
-
-### **Logging Levels**
-
-```javascript
-// ✅ Development info - use console.log
+// ✅ KEEP - Production-ready logs
+console.log("[MODULE] ✅ Module loaded");
 console.log("[INIT] Starting application...");
-console.log("[MERGE] Auto-mapped:", count, "exercises");
+console.error("[ERROR] Critical failure:", error);
+console.warn("[WARNING] Large data detected");
 
-// ✅ Warnings - use console.warn
-console.warn("[FUZZY] No canonical match for:", exerciseName);
-console.warn("[SAFETY] Backup created with empty workoutData");
-
-// ✅ Errors - use console.error
-console.error("[LS] Parse error:", key, error);
-console.error("[SESSION] Reorder error:", error);
-
-// ✅ Grouped logs for clarity
-console.groupCollapsed("[INIT] 🔄 Normalizing exercise names...");
-// ... many logs here
-console.groupEnd();
+// ❌ REMOVE - Debug-only logs
+console.log("[DEBUG] Variable value:", variable);
+console.log("checking if X exists...");
+console.log("value:", someValue);
 ```
 
-### **Informative Logging**
-
+### **Module Load Confirmation**
 ```javascript
-// ✅ GOOD - Context-rich logs
-console.log(`[FUZZY] ✅ Canonical Match: "${userInput}" → "${canonicalName}"`);
-console.log(`[SAFETY] Backup created: ${backupId}`);
-console.log(`[MERGE] ✅ Successfully merged ${count} session(s)`);
-
-// ❌ BAD - Cryptic logs
-console.log("Match found");
-console.log("Backup done");
-console.log("Merged");
+// Every module should log when loaded
+(function() {
+  'use strict';
+  
+  if (!window.APP) window.APP = {};
+  
+  APP.moduleName = { /* ... */ };
+  
+  // ✅ Standard format
+  console.log("[MODULE-NAME] ✅ Module loaded");
+})();
 ```
 
 ---
 
-## 🔄 ASYNC OPERATIONS (Minimal in this app)
+## 🧪 TESTING APPROACH
 
-### **LocalStorage is Synchronous (Our Pattern)**
+### **Manual Testing Checklist**
+After code changes, verify:
+- [ ] App loads without console errors
+- [ ] Target functionality works as expected
+- [ ] No regressions in other features
+- [ ] LocalStorage data integrity maintained
+- [ ] Works offline (if PWA feature)
+- [ ] Mobile responsive (if UI change)
 
+### **Edge Case Testing**
 ```javascript
-// ✅ This app uses synchronous localStorage (LS_SAFE)
-const data = LS_SAFE.getJSON("key", default);
-LS_SAFE.setJSON("key", data);
-// No async/await needed for core operations
-```
-
-### **Async for External APIs Only**
-
-```javascript
-// ✅ GOOD - Async for Google Drive API
-async function syncToCloud() {
-  try {
-    const response = await fetch(uploadUrl, options);
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Cloud sync failed:", error);
-    return null;
-  }
-}
-
-// ✅ GOOD - Async for Chart.js (if needed for large datasets)
-async function renderHeavyChart(data) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Render chart with large dataset
-      resolve();
-    }, 0); // Allow UI thread to breathe
-  });
-}
+// Test with:
+- Empty data (fresh install)
+- Large data (3+ years of logs)
+- Invalid input (null, undefined, malformed)
+- Missing DOM elements
+- LocalStorage quota exceeded
+- Offline mode
 ```
 
 ---
 
-## 📦 ADDING NEW FEATURES
+## 📝 COMMENT STYLE
 
-### **Checklist for New Features**
+### **When to Comment**
 
-1. **Plan Architecture**
-   - Which APP namespace? (validation, data, ui, etc.)
-   - New localStorage keys needed?
-   - Breaking changes to schema?
+```javascript
+// ✅ GOOD - Explain WHY, not WHAT
+// V26.6: Changed to return string instead of boolean
+// to support canonical name enforcement
+return canonicalName;
 
-2. **Implement with Safety**
-   ```javascript
-   // Add to appropriate namespace
-   APP.newNamespace = {
-     newFeature: function() {
-       // Implementation
-     }
-   };
-   ```
+// ✅ GOOD - Explain complex logic
+// Calculate half-set contribution for SECONDARY muscles
+// to prevent noise from stabilizers
+const contribution = role === "PRIMARY" ? 1.0 : 0.5;
 
-3. **Add Validation**
-   ```javascript
-   // If dealing with user input or data
-   APP.validation.validateNewFeature = function() { ... };
-   ```
+// ❌ BAD - Obvious comments
+// Get session by ID
+const session = APP.state.workoutData[sessionId];
 
-4. **Document in Code**
-   ```javascript
-   // Clear comments explaining WHY
-   // Example:
-   // V27.0 - Added newFeature to solve X problem
-   // Rationale: Y was causing Z issue
-   ```
+// ❌ BAD - Commented-out code (delete or explain)
+// const oldImplementation = () => { ... };
+```
 
-5. **Test Edge Cases**
-   - Empty data
-   - Invalid input
-   - Large datasets
-   - Offline mode
-   - localStorage quota exceeded
+### **When to Use TODOs**
+```javascript
+// ✅ GOOD - Actionable TODO with context
+// TODO: Add input validation for negative weights
+// TODO: Refactor this to data.js (currently in ui.js)
+// TODO: [V28] Implement auto-deload suggestion
 
-6. **Update Documentation**
-   - Add to CHANGELOG_DETAILED.md
-   - Update ARCHITECTURE.md if needed
+// ❌ BAD - Vague TODO
+// TODO: Fix this
+// TODO: Improve
+```
+
+---
+
+## 🚀 DEPLOYMENT CHECKLIST
+
+### **Before Committing**
+
+**Code Quality:**
+- [ ] No direct `localStorage` usage (use `LS_SAFE`)
+- [ ] No `\n` in text fields (use `<br>`)
+- [ ] Backup created before destructive operations
+- [ ] Input validation for user data
+- [ ] DOM element null checks
+- [ ] Try-catch for JSON parsing
+- [ ] Descriptive variable/function names
+- [ ] Console logs are production-ready (no debug logs)
+- [ ] No commented-out code (remove or document why kept)
+- [ ] Functions follow single responsibility principle
+
+**V27 Module Specific:**
+- [ ] Uses `window.APP` for all cross-module calls
+- [ ] Namespace guard: `if (!window.APP) window.APP = {};`
+- [ ] Module merge pattern (Object.assign or direct assignment)
+- [ ] Load order documented (if adding new module)
+- [ ] Module load confirmation log added
+
+**Documentation:**
+- [ ] Update CHANGELOG_DETAILED.md
+- [ ] Update ARCHITECTURE.md (if structure changed)
+- [ ] Update this file (if new pattern introduced)
+
+---
+
+## 🎓 LEARNING PATH
+
+**For new developers/AI:**
+1. Read `ARCHITECTURE.md` → System design
+2. Read this file → Code patterns
+3. Read `HANDOVER_V27.md` → V27 refactoring context
+4. Study module files in order:
+   - `js/core.js` → Foundation patterns
+   - `js/validation.js` → Validation patterns
+   - `js/ui.js` → UI rendering patterns
+5. Read `DEBUGGING_PLAYBOOK.md` → Troubleshooting
+
+**Critical sections to understand:**
+- `js/core.js` lines 1-50: LS_SAFE wrapper
+- `js/validation.js` lines 100-200: fuzzyMatchExercise
+- `js/data.js` lines 500-700: Smart Merge Engine
+- `js/nav.js` lines 1-300: APP.init() flow
 
 ---
 
@@ -625,169 +731,30 @@ console.timeEnd("Operation"); // Logs: "Operation: 123ms"
 
 ---
 
-## 🎯 CODE REVIEW CHECKLIST
-
-Before committing code, verify:
-
-- [ ] No direct `localStorage` usage (use `LS_SAFE`)
-- [ ] No `\n` in text fields (use `<br>`)
-- [ ] Backup created before destructive operations
-- [ ] Input validation for user data
-- [ ] DOM element null checks
-- [ ] Try-catch for JSON parsing
-- [ ] Descriptive variable/function names
-- [ ] Console logs are informative
-- [ ] No commented-out code (remove or document why it's kept)
-- [ ] Functions follow single responsibility principle
-- [ ] Error messages are user-friendly
-- [ ] Changes are backwards compatible (or migration added)
-
----
-
-## 📚 COMMENT STYLE
-
-### **When to Comment**
-
-```javascript
-// ✅ GOOD - Explain WHY, not WHAT
-// V26.6 HOTFIX - Using <br> instead of \n to prevent "Invalid token" crash
-// when rendering exercise notes in HTML attributes
-note: "Line 1<br>Line 2"
-
-// V26.5 - Changed from boolean to string return to enforce canonical names
-// This prevents data fragmentation in analytics (see issue #26)
-return canonicalName || null;
-
-// ❌ BAD - Obvious comments
-// Set the title
-session.title = newTitle;
-
-// Loop through exercises
-exercises.forEach(ex => { ... });
-```
-
-### **Section Headers**
-
-```javascript
-// ========================================
-// V26.5 EXPANSION - MACHINE VARIATIONS
-// ========================================
-
-// LEGS - SQUAT MACHINES
-"[Machine] Pendulum Squat": [...],
-"[Machine] V-Squat": [...],
-
-// LEGS - LEG PRESS VARIATIONS
-"[Machine] Leg Press (Quad Bias)": [...],
-```
-
-### **TODO Comments**
-
-```javascript
-// TODO: Optimize volume calculation for large datasets (>1000 logs)
-// TODO: Add exercise video validation (check URL accessibility)
-// FIXME: Console warning flood needs grouping (see KNOWN_ISSUES.md)
-```
-
----
-
-## 🚀 PERFORMANCE TIPS
-
-### **LocalStorage Access**
-
-```javascript
-// ✅ GOOD - Load once, work in memory
-const logs = LS_SAFE.getJSON("gym_hist", []);
-logs.forEach(log => {
-  // Process logs in memory
-});
-LS_SAFE.setJSON("gym_hist", logs); // Save once
-
-// ❌ BAD - Multiple reads/writes
-for (let i = 0; i < count; i++) {
-  const logs = LS_SAFE.getJSON("gym_hist", []); // Read every iteration
-  logs.push(newLog);
-  LS_SAFE.setJSON("gym_hist", logs); // Write every iteration
-}
-```
-
-### **DOM Updates**
-
-```javascript
-// ✅ GOOD - Batch DOM updates
-const html = exercises.map(ex => `<div>${ex.name}</div>`).join('');
-container.innerHTML = html; // Single reflow
-
-// ❌ BAD - Multiple reflows
-exercises.forEach(ex => {
-  const div = document.createElement('div');
-  div.textContent = ex.name;
-  container.appendChild(div); // Reflow on each append
-});
-```
-
-### **Chart.js**
-
-```javascript
-// ✅ GOOD - Destroy previous instance
-if (APP.stats.chart) {
-  APP.stats.chart.destroy();
-}
-APP.stats.chart = new Chart(ctx, config);
-
-// ❌ BAD - Memory leak
-APP.stats.chart = new Chart(ctx, config); // Old instance not destroyed
-```
-
----
-
-## 🔐 SECURITY BEST PRACTICES
+## 🔐 SECURITY CONSIDERATIONS
 
 ### **Input Sanitization**
-
 ```javascript
-// ✅ GOOD - Use textContent (auto-escapes HTML)
-element.textContent = userInput;
+// ✅ Always sanitize numbers
+const weight = APP.validation.sanitizeNumber(input, 0, 999, 0);
 
-// ⚠️ CAUTION - innerHTML only for trusted content
-element.innerHTML = sanitizedHTML;
+// ✅ Always sanitize strings
+const sessionName = input.trim().substring(0, 100);
 
-// ❌ DANGEROUS - Direct user input to innerHTML
-element.innerHTML = userInput; // XSS vulnerability
-```
-
-### **JSON Parsing**
-
-```javascript
-// ✅ GOOD - Always try-catch user JSON
-try {
-  const data = JSON.parse(userInput);
-  // ... validate structure
-} catch (e) {
-  console.error("Invalid JSON:", e);
-  return null;
-}
-
-// ❌ BAD - Assume valid JSON
-const data = JSON.parse(userInput); // Could crash
+// ✅ Never use innerHTML for user input
+element.textContent = userInput;  // ✅ Safe
+element.innerHTML = userInput;     // ❌ XSS risk
 ```
 
 ---
 
-## 📖 ADDITIONAL RESOURCES
+## 📚 ADDITIONAL RESOURCES
 
-**Key Files to Study:**
-1. `index.html` (lines 150-300) - LS_SAFE wrapper
-2. `index.html` (lines 2800-3100) - Fuzzy matching logic
-3. `exercises-library.js` - Data schema examples
-4. `ARCHITECTURE.md` - System design
-5. `HANDOVER_PACKAGE_V26.6.md` - Historical context
-
-**Before Making Changes:**
-1. Read relevant sections in ARCHITECTURE.md
-2. Check KNOWN_ISSUES.md for gotchas
-3. Search codebase for similar patterns
-4. Test with edge cases (empty, invalid, large data)
+**Related Documentation:**
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
+- [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) - Active bugs & gotchas
+- [DEBUGGING_PLAYBOOK.md](./DEBUGGING_PLAYBOOK.md) - Troubleshooting steps
+- [HANDOVER_V27.md](./HANDOVER_V27.md) - V27 refactoring complete story
 
 ---
 
