@@ -324,7 +324,13 @@
   // ========================================
   window.LS_SAFE = LS_SAFE;
   window.DT = DT;
-  window.APP = APP;
+
+  // Merge with existing APP if it exists (from inline scripts)
+  if (window.APP) {
+    Object.assign(window.APP, APP);
+  } else {
+    window.APP = APP;
+  }
 
   console.log("[CORE] ✅ Core module loaded (LS_SAFE, DT, APP.state, APP.core)");
 })();
