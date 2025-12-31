@@ -3534,6 +3534,11 @@
         },
       };
 
+      console.log("[DEBUG INLINE] After APP.debug assignment:");
+      console.log("[DEBUG INLINE] APP.nav exists?", !!APP.nav);
+      console.log("[DEBUG INLINE] APP.nav value:", APP.nav);
+      console.log("[DEBUG INLINE] APP keys:", Object.keys(APP));
+
       // NOTE: No need to assign window.APP here - modules handle this
       // The module scripts (core.js, etc.) create/merge APP namespace
 
