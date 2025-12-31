@@ -3534,11 +3534,8 @@
         },
       };
 
-      try {
-        window.APP = APP;
-      } catch (e) {
-        console.warn("Could not assign window.APP", e);
-      }
+      // NOTE: No need to assign window.APP here - modules handle this
+      // The module scripts (core.js, etc.) create/merge APP namespace
 
       if (!APP.ui) APP.ui = {};
       if (typeof APP.ui.openExercisePicker !== "function") {
