@@ -197,11 +197,6 @@
 
       finishSession: () => {
         try {
-          console.log("[DEBUG] finishSession called");
-          console.log("[DEBUG] APP keys:", Object.keys(window.APP || {}));
-          console.log("[DEBUG] APP.nav exists?", !!APP.nav);
-          console.log("[DEBUG] APP.nav value:", APP.nav);
-
           const now = new Date();
           const durationMins = 45;
           let totalVol = 0,
