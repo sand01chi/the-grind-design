@@ -313,7 +313,12 @@
           }
           APP.nav.switchView("dashboard");
         } catch (e) {
-          APP.debug.showFatalError("Finish Session", e);
+          console.error("[FINISH SESSION ERROR]", e);
+          if (APP.debug && APP.debug.showFatalError) {
+            APP.debug.showFatalError("Finish Session", e);
+          } else {
+            alert("Error finishing session: " + (e.message || e));
+          }
         }
       },
     },
