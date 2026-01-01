@@ -1135,6 +1135,8 @@
         this.renderLibraryMode(contentArea);
       } else if (mode === "backup") {
         this.renderBackupMode(contentArea);
+      } else if (mode === "prompt-manager") {
+        this.renderPromptManagerMode(contentArea);
       }
 
       console.log(`[UI] Switched to AI mode: ${mode}`);
@@ -2013,6 +2015,178 @@
     },
 
     /**
+     * Renders Prompt Manager Mode - V28 Feature
+     * Manage built-in and custom AI prompts
+     * @param {HTMLElement} container - Content area container
+     */
+    renderPromptManagerMode: function(container) {
+      if (!window.APP || !window.APP.aiBridge) {
+        container.innerHTML = `<div class="text-center text-slate-400 py-8">AI Bridge module not loaded</div>`;
+        return;
+      }
+
+      const builtInPrompts = window.APP.aiBridge._builtInPrompts || {};
+      const customPrompts = window.APP.aiBridge._customPrompts || {};
+
+      // Group built-in prompts by category
+      const promptsByCategory = {
+        coaching: {},
+        development: {},
+        schema: {}
+      };
+
+      Object.keys(builtInPrompts).forEach(id => {
+        const prompt = builtInPrompts[id];
+        const category = prompt.category || 'schema';
+        promptsByCategory[category][id] = prompt;
+      });
+
+      // Start building HTML
+      let html = `
+        <div class="space-y-4">
+          <!-- Header Section -->
+          <div class="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl p-4 border border-purple-500/30">
+            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Kelola Prompt AI
+            </h4>
+            <p class="text-xs text-slate-400">
+              Kelola prompt template untuk AI consultation, debugging, dan brainstorming.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="window.APP.ui.showAddPromptForm()"
+              class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-plus"></i> Tambah
+            </button>
+            <button onclick="window.APP.ui.exportCustomPrompts()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-file-export"></i> Export
+            </button>
+            <button onclick="window.APP.ui.importCustomPrompts()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-file-import"></i> Import
+            </button>
+          </div>
+
+          <!-- Built-in Prompts Section -->
+          <div>
+            <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-lock"></i> Prompt Bawaan (${Object.keys(builtInPrompts).length})
+            </h5>
+      `;
+
+      // Render each category
+      const categories = [
+        { key: 'coaching', icon: '🏋️', label: 'Coaching' },
+        { key: 'development', icon: '💻', label: 'Development' },
+        { key: 'schema', icon: '📋', label: 'Schema' }
+      ];
+
+      categories.forEach(cat => {
+        const prompts = promptsByCategory[cat.key];
+        const count = Object.keys(prompts).length;
+
+        if (count > 0) {
+          html += `
+            <div class="mb-4">
+              <h6 class="text-xs text-slate-300 font-semibold mb-2">${cat.icon} Kategori: ${cat.label} (${count})</h6>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          `;
+
+          Object.keys(prompts).forEach(id => {
+            const prompt = prompts[id];
+            html += `
+              <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 hover:border-slate-600 transition">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex-1 min-w-0">
+                    <h6 class="text-white font-bold text-sm truncate">${prompt.title}</h6>
+                    <p class="text-xs text-slate-400 mt-1">${prompt.description}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="window.APP.ui.previewPrompt('${id}')"
+                    class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg transition">
+                    <i class="fa-solid fa-eye"></i> Lihat
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+
+          html += `
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += `</div>`;
+
+      // Custom Prompts Section
+      const customCount = Object.keys(customPrompts).length;
+      html += `
+        <div>
+          <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square"></i> Prompt Kustom (${customCount})
+          </h5>
+      `;
+
+      if (customCount === 0) {
+        html += `
+          <div class="text-center py-8 bg-slate-900/50 rounded-lg border border-dashed border-slate-700">
+            <p class="text-slate-400 text-sm mb-2">Belum ada prompt kustom</p>
+            <p class="text-slate-500 text-xs">Klik "Tambah" untuk membuat prompt baru</p>
+          </div>
+        `;
+      } else {
+        html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+
+        Object.keys(customPrompts).forEach(id => {
+          const prompt = customPrompts[id];
+          html += `
+            <div class="bg-slate-900 border border-purple-500/50 rounded-lg p-3 hover:border-purple-400 transition">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1 min-w-0">
+                  <h6 class="text-white font-bold text-sm truncate">${prompt.title}</h6>
+                  <p class="text-xs text-slate-400 mt-1">${prompt.description}</p>
+                  <p class="text-xs text-purple-400 mt-1">
+                    <i class="fa-solid fa-tag"></i> ${prompt.category || 'custom'}
+                  </p>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-1 mt-2">
+                <button onclick="window.APP.ui.previewPrompt('${id}')"
+                  class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button onclick="window.APP.ui.showEditPromptForm('${id}')"
+                  class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="window.APP.ui.deleteCustomPrompt('${id}')"
+                  class="bg-red-600/80 hover:bg-red-500 text-white text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered Prompt Manager: ${Object.keys(builtInPrompts).length} built-in, ${customCount} custom`);
+    },
+
+    /**
      * Shows backup legend/explanation modal
      */
     showBackupLegend: function() {
@@ -2304,6 +2478,722 @@
 
       this.showToast("✅ Nama resep diperbarui", "success");
       console.log(`[UI] Recipe ${index} renamed to: ${newName}`);
+    },
+
+    // ========================================
+    // V28: PROMPT MANAGER CRUD FUNCTIONS
+    // ========================================
+
+    /**
+     * Shows Add Custom Prompt Form Modal
+     */
+    showAddPromptForm: function() {
+      const modalHTML = `
+        <div id="add-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-purple-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-700 to-indigo-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Tambah Prompt Kustom
+              </h3>
+              <button onclick="document.getElementById('add-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <form id="custom-prompt-form" class="p-6 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  ID Prompt (unik, tanpa spasi)
+                </label>
+                <input type="text" id="prompt-id"
+                  pattern="[a-zA-Z0-9_]+"
+                  required
+                  placeholder="contoh: myCustomPrompt"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+                <p class="text-xs text-slate-500 mt-1">Hanya huruf, angka, dan underscore</p>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Judul
+                </label>
+                <input type="text" id="prompt-title"
+                  required
+                  placeholder="Judul prompt yang akan ditampilkan"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Deskripsi
+                </label>
+                <textarea id="prompt-description"
+                  rows="2"
+                  required
+                  placeholder="Deskripsi singkat fungsi prompt ini"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition resize-none"></textarea>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Kategori
+                </label>
+                <select id="prompt-category"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+                  <option value="coaching">🏋️ Coaching</option>
+                  <option value="development">💻 Development</option>
+                  <option value="schema">📋 Schema</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template Prompt
+                </label>
+                <textarea id="prompt-template"
+                  rows="8"
+                  required
+                  placeholder="Tulis prompt AI di sini. Gunakan placeholder: {{CONTEXT}}, {{VERSION}}, {{USER_DESCRIPTION}}, {{ARCHITECTURE}}, {{STACK}}"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition resize-none font-mono"></textarea>
+                <p class="text-xs text-slate-500 mt-1">Placeholder yang tersedia: {{CONTEXT}}, {{VERSION}}, {{USER_DESCRIPTION}}, {{ARCHITECTURE}}, {{STACK}}, {{FILES}}</p>
+              </div>
+
+              <div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="prompt-include-context"
+                    class="w-4 h-4 text-purple-600 bg-slate-900 border-slate-700 rounded focus:ring-purple-500">
+                  <span class="text-sm text-slate-300">Sertakan data konteks workout (profil, log, program)</span>
+                </label>
+              </div>
+
+              <div class="flex gap-2 pt-4 border-t border-slate-700">
+                <button type="button"
+                  onclick="document.getElementById('add-prompt-modal').remove()"
+                  class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                  Batal
+                </button>
+                <button type="submit"
+                  class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition">
+                  <i class="fa-solid fa-save"></i> Simpan Prompt
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add submit handler
+      document.getElementById('custom-prompt-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById('prompt-id').value.trim();
+        const title = document.getElementById('prompt-title').value.trim();
+        const description = document.getElementById('prompt-description').value.trim();
+        const category = document.getElementById('prompt-category').value;
+        const template = document.getElementById('prompt-template').value.trim();
+        const includeContext = document.getElementById('prompt-include-context').checked;
+
+        // Call library.add
+        const success = window.APP.aiBridge.library.add(id, {
+          title,
+          description,
+          category,
+          includeContext,
+          template
+        });
+
+        if (success) {
+          window.APP.ui.showToast("✅ Prompt berhasil ditambahkan", "success");
+          document.getElementById('add-prompt-modal').remove();
+
+          // Refresh UI if still in prompt manager mode
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            window.APP.ui.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          window.APP.ui.showToast("❌ Gagal menambahkan prompt. Cek console untuk detail.", "error");
+        }
+      });
+    },
+
+    /**
+     * Shows Edit Custom Prompt Form Modal
+     * @param {string} promptId - ID of prompt to edit
+     */
+    showEditPromptForm: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge || !window.APP.aiBridge._customPrompts[promptId]) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge._customPrompts[promptId];
+
+      const modalHTML = `
+        <div id="edit-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-indigo-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-700 to-purple-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-pen"></i> Edit Prompt: ${prompt.title}
+              </h3>
+              <button onclick="document.getElementById('edit-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <form id="edit-prompt-form" class="p-6 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  ID Prompt (tidak bisa diubah)
+                </label>
+                <input type="text"
+                  value="${promptId}"
+                  disabled
+                  class="w-full bg-slate-900/50 border border-slate-700 text-slate-500 text-sm p-3 rounded-lg cursor-not-allowed">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Judul
+                </label>
+                <input type="text" id="edit-prompt-title"
+                  required
+                  value="${prompt.title}"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Deskripsi
+                </label>
+                <textarea id="edit-prompt-description"
+                  rows="2"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition resize-none">${prompt.description}</textarea>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Kategori
+                </label>
+                <select id="edit-prompt-category"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition">
+                  <option value="coaching" ${prompt.category === 'coaching' ? 'selected' : ''}>🏋️ Coaching</option>
+                  <option value="development" ${prompt.category === 'development' ? 'selected' : ''}>💻 Development</option>
+                  <option value="schema" ${prompt.category === 'schema' ? 'selected' : ''}>📋 Schema</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template Prompt
+                </label>
+                <textarea id="edit-prompt-template"
+                  rows="8"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition resize-none font-mono">${prompt.template}</textarea>
+              </div>
+
+              <div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="edit-prompt-include-context"
+                    ${prompt.includeContext ? 'checked' : ''}
+                    class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500">
+                  <span class="text-sm text-slate-300">Sertakan data konteks workout</span>
+                </label>
+              </div>
+
+              <div class="flex gap-2 pt-4 border-t border-slate-700">
+                <button type="button"
+                  onclick="document.getElementById('edit-prompt-modal').remove()"
+                  class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                  Batal
+                </button>
+                <button type="submit"
+                  class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition">
+                  <i class="fa-solid fa-save"></i> Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add submit handler
+      document.getElementById('edit-prompt-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const updates = {
+          title: document.getElementById('edit-prompt-title').value.trim(),
+          description: document.getElementById('edit-prompt-description').value.trim(),
+          category: document.getElementById('edit-prompt-category').value,
+          template: document.getElementById('edit-prompt-template').value.trim(),
+          includeContext: document.getElementById('edit-prompt-include-context').checked
+        };
+
+        // Call library.edit
+        const success = window.APP.aiBridge.library.edit(promptId, updates);
+
+        if (success) {
+          window.APP.ui.showToast("✅ Prompt berhasil diperbarui", "success");
+          document.getElementById('edit-prompt-modal').remove();
+
+          // Refresh UI
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            window.APP.ui.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          window.APP.ui.showToast("❌ Gagal memperbarui prompt", "error");
+        }
+      });
+    },
+
+    /**
+     * Deletes a custom prompt with confirmation
+     * @param {string} promptId - ID of prompt to delete
+     */
+    deleteCustomPrompt: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge || !window.APP.aiBridge._customPrompts[promptId]) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge._customPrompts[promptId];
+
+      if (confirm(`Hapus prompt "${prompt.title}"?\n\nTindakan ini tidak bisa dibatalkan.`)) {
+        const success = window.APP.aiBridge.library.delete(promptId);
+
+        if (success) {
+          this.showToast("✅ Prompt berhasil dihapus", "success");
+
+          // Refresh UI
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            this.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          this.showToast("❌ Gagal menghapus prompt", "error");
+        }
+      }
+    },
+
+    /**
+     * Exports all custom prompts to JSON file
+     */
+    exportCustomPrompts: function() {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const json = window.APP.aiBridge.library.export();
+
+      if (!json) {
+        this.showToast("❌ Gagal mengekspor prompts", "error");
+        return;
+      }
+
+      // Create blob and download
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `grind-custom-prompts-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      const customCount = Object.keys(window.APP.aiBridge._customPrompts || {}).length;
+      this.showToast(`✅ ${customCount} prompt berhasil dieksport`, "success");
+    },
+
+    /**
+     * Imports custom prompts from JSON file
+     */
+    importCustomPrompts: function() {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      // Create file input
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const result = window.APP.aiBridge.library.import(event.target.result);
+
+            if (result.success) {
+              window.APP.ui.showToast(
+                `✅ Import berhasil: ${result.imported} ditambahkan, ${result.skipped} dilewati`,
+                "success"
+              );
+            } else {
+              window.APP.ui.showToast(
+                `⚠️ Import gagal: ${result.errors.join(', ')}`,
+                "error"
+              );
+            }
+
+            // Refresh UI
+            const contentArea = document.getElementById("ai-content-area");
+            if (contentArea) {
+              window.APP.ui.renderPromptManagerMode(contentArea);
+            }
+          } catch (err) {
+            window.APP.ui.showToast("❌ File JSON tidak valid", "error");
+            console.error("[UI] Import error:", err);
+          }
+        };
+
+        reader.readAsText(file);
+      };
+
+      input.click();
+    },
+
+    /**
+     * Shows preview modal for a prompt
+     * @param {string} promptId - ID of prompt to preview
+     */
+    previewPrompt: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const allPrompts = window.APP.aiBridge.prompts;
+      const prompt = allPrompts[promptId];
+
+      if (!prompt) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const isBuiltIn = window.APP.aiBridge._builtInPrompts[promptId] !== undefined;
+      const badge = isBuiltIn ?
+        '<span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">🔒 Built-in</span>' :
+        '<span class="text-xs bg-purple-600 text-white px-2 py-1 rounded">✏️ Custom</span>';
+
+      const modalHTML = `
+        <div id="preview-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
+                  <i class="fa-solid fa-eye"></i> ${prompt.title}
+                </h3>
+                <p class="text-sm text-slate-300">${prompt.description}</p>
+              </div>
+              <button onclick="document.getElementById('preview-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+              <!-- Metadata -->
+              <div class="flex items-center gap-2 text-sm">
+                ${badge}
+                <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                  <i class="fa-solid fa-tag"></i> ${prompt.category || 'custom'}
+                </span>
+                <span class="text-xs ${prompt.includeContext ? 'bg-green-600' : 'bg-slate-700'} text-white px-2 py-1 rounded">
+                  ${prompt.includeContext ? '✅ Includes Context' : '❌ No Context'}
+                </span>
+              </div>
+
+              <!-- Template -->
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template:
+                </label>
+                <textarea readonly id="prompt-template-preview"
+                  class="w-full bg-slate-900 border border-slate-700 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  rows="15">${prompt.template}</textarea>
+              </div>
+
+              <!-- Placeholders Info -->
+              <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
+                <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">Available Placeholders:</h5>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div><code class="text-purple-400">{{CONTEXT}}</code> - Workout data & history</div>
+                  <div><code class="text-purple-400">{{VERSION}}</code> - App version</div>
+                  <div><code class="text-purple-400">{{ARCHITECTURE}}</code> - Architecture pattern</div>
+                  <div><code class="text-purple-400">{{STACK}}</code> - Tech stack</div>
+                  <div><code class="text-purple-400">{{FILES}}</code> - Module files</div>
+                  <div><code class="text-purple-400">{{USER_DESCRIPTION}}</code> - User input</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-4 sm:px-6 pb-4 sm:pb-6 flex flex-col sm:flex-row gap-2">
+              <button id="generate-prompt-btn"
+                class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Prompt
+              </button>
+              <button id="copy-template-btn"
+                class="w-full sm:flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                <i class="fa-solid fa-copy"></i> Copy Template
+              </button>
+              <button onclick="document.getElementById('preview-prompt-modal').remove()"
+                class="w-full sm:flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add generate button event listener
+      const generateBtn = document.getElementById('generate-prompt-btn');
+      if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+          window.APP.ui.showGeneratePromptModal(promptId);
+        });
+      }
+
+      // Add copy button event listener (avoid inline template literal escaping)
+      const copyBtn = document.getElementById('copy-template-btn');
+      const templateTextarea = document.getElementById('prompt-template-preview');
+
+      if (copyBtn && templateTextarea) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(templateTextarea.value)
+            .then(() => {
+              window.APP.ui.showToast('✅ Template disalin', 'success');
+            })
+            .catch(() => {
+              window.APP.ui.showToast('❌ Gagal menyalin', 'error');
+            });
+        });
+      }
+    },
+
+    /**
+     * Shows modal for generating a prompt with user inputs
+     * @param {string} promptId - ID of the prompt to generate
+     */
+    showGeneratePromptModal: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge.prompts[promptId];
+      if (!prompt) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      // Detect which placeholders are used in the template
+      const usedPlaceholders = [];
+      const commonPlaceholders = [
+        { key: 'USER_DESCRIPTION', label: 'Description / Issue', placeholder: 'Describe your issue or request...', multiline: true },
+        { key: 'TOPIC', label: 'Topic', placeholder: 'Enter topic...', multiline: false },
+        { key: 'PROPOSAL', label: 'Proposal', placeholder: 'Enter your proposal...', multiline: true },
+        { key: 'DECISIONS', label: 'Decisions Made', placeholder: 'Enter decisions...', multiline: true },
+        { key: 'FEEDBACK', label: 'Feedback', placeholder: 'Enter feedback...', multiline: true },
+        { key: 'NEXT_STEP', label: 'Next Step', placeholder: 'Enter next step...', multiline: false },
+        { key: 'FEATURE_REQUEST', label: 'Feature Request', placeholder: 'Describe the feature...', multiline: true },
+        { key: 'DESIGN_PROGRESS', label: 'Design Progress', placeholder: 'Current progress...', multiline: true },
+        { key: 'AUDIT_FEEDBACK', label: 'Audit Feedback', placeholder: 'Audit notes...', multiline: true },
+        { key: 'NEXT_DELIVERABLE', label: 'Next Deliverable', placeholder: 'What needs to be delivered...', multiline: false }
+      ];
+
+      commonPlaceholders.forEach(ph => {
+        const regex = new RegExp(`\\{\\{${ph.key}\\}\\}`, 'g');
+        if (regex.test(prompt.template)) {
+          usedPlaceholders.push(ph);
+        }
+      });
+
+      // Build input fields HTML
+      let inputFieldsHTML = '';
+      if (usedPlaceholders.length > 0) {
+        inputFieldsHTML = `
+          <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 space-y-3">
+            <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">
+              <i class="fa-solid fa-edit"></i> User Inputs:
+            </h5>
+            ${usedPlaceholders.map(ph => {
+              if (ph.multiline) {
+                return `
+                  <div>
+                    <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
+                    <textarea id="input-${ph.key.toLowerCase()}"
+                      placeholder="${ph.placeholder}"
+                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition resize-none"
+                      rows="3"></textarea>
+                  </div>
+                `;
+              } else {
+                return `
+                  <div>
+                    <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
+                    <input type="text" id="input-${ph.key.toLowerCase()}"
+                      placeholder="${ph.placeholder}"
+                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition">
+                  </div>
+                `;
+              }
+            }).join('')}
+          </div>
+        `;
+      } else {
+        inputFieldsHTML = `
+          <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
+            <p class="text-xs text-slate-400 italic">
+              ℹ️ No user input required for this prompt.
+            </p>
+          </div>
+        `;
+      }
+
+      const modalHTML = `
+        <div id="generate-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Prompt: ${prompt.title}
+                </h3>
+                <p class="text-sm text-emerald-100">${prompt.description}</p>
+              </div>
+              <button onclick="document.getElementById('generate-prompt-modal').remove()"
+                class="text-white hover:text-emerald-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+              ${inputFieldsHTML}
+
+              <!-- Generated Output (hidden initially) -->
+              <div id="generated-output-container" class="hidden space-y-2">
+                <label class="text-xs text-slate-400 font-bold uppercase block">
+                  <i class="fa-solid fa-check-circle text-emerald-500"></i> Generated Prompt (Placeholders Replaced):
+                </label>
+                <textarea readonly id="generated-prompt-output"
+                  class="w-full bg-slate-900 border border-emerald-500 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  rows="15"></textarea>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6 flex gap-2">
+              <button id="generate-action-btn"
+                class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition">
+                <i class="fa-solid fa-magic"></i> Generate
+              </button>
+              <button id="copy-generated-btn" class="hidden flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition">
+                <i class="fa-solid fa-copy"></i> Copy Generated
+              </button>
+              <button onclick="document.getElementById('generate-prompt-modal').remove()"
+                class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add generate button handler
+      const generateActionBtn = document.getElementById('generate-action-btn');
+      const generatedOutputContainer = document.getElementById('generated-output-container');
+      const generatedOutput = document.getElementById('generated-prompt-output');
+      const copyGeneratedBtn = document.getElementById('copy-generated-btn');
+
+      if (generateActionBtn) {
+        generateActionBtn.addEventListener('click', () => {
+          // Collect user inputs
+          const userInputs = {};
+          usedPlaceholders.forEach(ph => {
+            const inputEl = document.getElementById(`input-${ph.key.toLowerCase()}`);
+            if (inputEl) {
+              userInputs[ph.key.toLowerCase()] = inputEl.value.trim();
+            }
+          });
+
+          // Call getPrompt with user inputs
+          const generatedPrompt = window.APP.aiBridge.getPrompt(promptId, userInputs);
+
+          if (!generatedPrompt) {
+            window.APP.ui.showToast("❌ Gagal generate prompt", "error");
+            return;
+          }
+
+          // Check if any placeholders remain
+          const hasPlaceholders = /\{\{[A-Z_]+\}\}/.test(generatedPrompt.content);
+
+          if (hasPlaceholders) {
+            window.APP.ui.showToast("⚠️ Warning: Some placeholders not replaced", "warning");
+          } else {
+            window.APP.ui.showToast("✅ Prompt generated successfully!", "success");
+          }
+
+          // Display generated output
+          generatedOutput.value = generatedPrompt.content;
+          generatedOutputContainer.classList.remove('hidden');
+          copyGeneratedBtn.classList.remove('hidden');
+
+          // Scroll to output
+          generatedOutput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+      }
+
+      // Add copy generated button handler
+      if (copyGeneratedBtn) {
+        copyGeneratedBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(generatedOutput.value)
+            .then(() => {
+              window.APP.ui.showToast('✅ Generated prompt copied!', 'success');
+            })
+            .catch(() => {
+              window.APP.ui.showToast('❌ Failed to copy', 'error');
+            });
+        });
+      }
     },
   };
 

@@ -1,7 +1,7 @@
 # 🏗️ ARCHITECTURE DOCUMENTATION - THE GRIND DESIGN
 
-**Version:** V27.0  
-**Last Updated:** January 1, 2026  
+**Version:** V28.0
+**Last Updated:** January 2, 2026
 **Purpose:** System design decisions, patterns, and architectural principles
 
 ---
@@ -161,16 +161,16 @@ APP.validation.fuzzyMatchExercise(userInput)
 
 ---
 
-## 📦 V27 MODULAR FILE STRUCTURE
+## 📦 V28 MODULAR FILE STRUCTURE
 
-**Complete Module Breakdown (12 files, 9,656 lines total):**
+**Complete Module Breakdown (13 files, ~12,000 lines total):**
 
 ```
 project-root/
-├── index.html              (2,203 lines) - HTML skeleton + minimal init
+├── index.html              (2,206 lines) - HTML skeleton + minimal init
 ├── exercises-library.js    (1,817 lines) - Exercise database
 ├── js/
-│   ├── constants.js        (430 lines)   - PRESETS, STARTER_PACK
+│   ├── constants.js        (455 lines)   - PRESETS, STARTER_PACK, version metadata
 │   ├── core.js            (344 lines)   - LS_SAFE, DT, APP.state, APP.core
 │   ├── validation.js      (491 lines)   - APP.validation, fuzzy matching
 │   ├── data.js            (1,218 lines)  - APP.data, CRUD operations
@@ -178,7 +178,8 @@ project-root/
 │   ├── stats.js           (1,665 lines)  - APP.stats, charts, analytics
 │   ├── session.js         (750 lines)   - APP.session, session management
 │   ├── cardio.js          (111 lines)   - APP.cardio, APP.timer, storage stats
-│   ├── ui.js              (1,051 lines)  - APP.ui, rendering, modals, toasts
+│   ├── ai-bridge.js       (1,060 lines)  - APP.aiBridge, prompt library (V28+)
+│   ├── ui.js              (1,901 lines)  - APP.ui, rendering, modals, toasts
 │   ├── debug.js           (46 lines)    - APP.debug, window.onerror
 │   ├── nav.js             (827 lines)   - APP.nav, APP.init
 │   └── cloud.js           (195 lines)   - Google Drive integration
@@ -186,7 +187,9 @@ project-root/
 └── manifest.json           - PWA manifest
 ```
 
-**Reduction:** 9,000+ lines (monolithic) → 2,203 lines (index.html) + 7,453 lines (modules)
+**Evolution:**
+- V27: 9,000+ lines (monolithic) → 2,203 lines (index.html) + 7,453 lines (12 modules)
+- V28: Added ai-bridge.js (1,060 lines) + enhanced ui.js (+850 lines) = ~12,000 lines total (13 modules)
 
 ---
 
@@ -210,22 +213,27 @@ project-root/
 <script src="js/session.js"></script>
 <script src="js/cardio.js"></script>
 
-<!-- 4. UI layer (depends on all above) -->
+<!-- 4. AI integration (depends on core, validation, constants) -->
+<script src="js/ai-bridge.js"></script>
+
+<!-- 5. UI layer (depends on all above) -->
 <script src="js/ui.js"></script>
 
-<!-- 5. Error handling (must load before nav) -->
+<!-- 6. Error handling (must load before nav) -->
 <script src="js/debug.js"></script>
 
-<!-- 6. Initialization (depends on ALL modules) -->
+<!-- 7. Initialization (depends on ALL modules) -->
 <script src="js/nav.js"></script>
 
-<!-- 7. Cloud (standalone) -->
+<!-- 8. Cloud (standalone) -->
 <script src="js/cloud.js"></script>
 ```
 
 **Why this order matters:**
-- `constants.js` must load before modules that use PRESETS/STARTER_PACK
+- `constants.js` must load before modules that use PRESETS/STARTER_PACK and version metadata
 - `core.js` initializes APP namespace (merge pattern, not overwrite)
+- `ai-bridge.js` must load after validation, constants (uses APP.version, fuzzyMatchExercise)
+- `ui.js` must load after ai-bridge (uses APP.aiBridge for prompt manager UI)
 - `debug.js` must load before `nav.js` (APP.init uses APP.debug)
 - `nav.js` loads last because APP.init() references ALL other modules
 - `cloud.js` is standalone and can load anytime after core
@@ -347,18 +355,36 @@ if (window.APP) {
 
 ---
 
-### **ui.js (1,051 lines) - LARGEST UI MODULE**
+### **ai-bridge.js (1,060 lines) - AI INTEGRATION MODULE**
+**Exports:**
+- `APP.aiBridge._builtInPrompts` - 12 immutable AI prompt templates
+- `APP.aiBridge._customPrompts` - User-created prompts (from LocalStorage)
+- `APP.aiBridge.prompts` (getter) - Merged built-in + custom
+- `APP.aiBridge.library.*` - CRUD API for custom prompt management
+  - `add()`, `edit()`, `delete()`, `export()`, `import()`, `list()`
+- `APP.aiBridge.getPrompt()` - Smart placeholder replacement engine
+- `APP.aiBridge.getPromptContext()` - Workout data context generator
+
+**Dependencies:** core.js, constants.js, validation.js, exercises-library.js
+**Used by:** ui.js (prompt manager UI)
+
+**Critical Note:** Must load AFTER constants.js (uses APP.version) and validation.js (uses fuzzyMatchExercise).
+
+---
+
+### **ui.js (1,901 lines) - LARGEST UI MODULE**
 **Exports:**
 - Modal system: `openModal()`, `closeModal()`
 - Exercise picker: `openExercisePicker()`, `renderExerciseList()`, `confirmExercisePicker()`
 - Rendering: `renderProgram()`, `renderHistory()`, `renderCalendar()`
+- Prompt Manager: `renderPromptManagerMode()`, `showGeneratePromptModal()` (V28+)
 - Toasts: `showToast()`
 - All UI rendering logic
 
-**Dependencies:** ALL previous modules (uses everything)
+**Dependencies:** ALL previous modules (uses everything, including ai-bridge)
 **Used by:** ALL modules (UI entry points)
 
-**Critical Note:** Must load AFTER all business logic modules.
+**Critical Note:** Must load AFTER all business logic modules including ai-bridge.
 
 ---
 
@@ -413,6 +439,391 @@ APP.core.finishSession = () => {
 
 ---
 
+## AI Bridge System (V28+)
+
+### Overview
+The AI Bridge system provides seamless AI consultation integration with smart context generation and prompt management capabilities.
+
+### Module: js/ai-bridge.js
+
+**Purpose:** AI integration, prompt management, and context generation
+
+**Exports:**
+- `APP.aiBridge._builtInPrompts` - Immutable prompt library (12 templates)
+- `APP.aiBridge._customPrompts` - User-created prompts (from LocalStorage)
+- `APP.aiBridge.prompts` (getter) - Computed merge of built-in + custom
+- `APP.aiBridge.library.*` - CRUD API for custom prompt management
+- `APP.aiBridge.getPrompt()` - Smart placeholder replacement engine
+- `APP.aiBridge.getPromptContext()` - Workout data context generator
+
+**Dependencies:**
+- `js/core.js` - LS_SAFE wrapper for storage operations
+- `js/constants.js` - APP.version and APP.architecture metadata
+- `js/validation.js` - fuzzyMatchExercise() for exercise name validation
+- `exercises-library.js` - EXERCISE_TARGETS for exercise validation
+
+**Used By:**
+- `js/ui.js` - Prompt Manager UI (renderPromptManagerMode, showGeneratePromptModal)
+
+**Load Order Position:** 11 of 13
+```
+Must load after: exercises-library.js, constants.js, core.js, validation.js, data.js
+Must load before: debug.js, nav.js, cloud.js
+```
+
+---
+
+### Architecture
+
+#### Data Structure
+```javascript
+APP.aiBridge = {
+  // Immutable built-in prompts (12 total)
+  _builtInPrompts: {
+    coach: { title, description, category, includeContext, template },
+    deloadProtocol: { ... },
+    // ... 10 more
+  },
+
+  // User-created prompts (loaded from LocalStorage)
+  _customPrompts: {
+    // Dynamic - populated from LS key "ai_custom_prompts"
+  },
+
+  // Computed getter - merges built-in + custom
+  get prompts() {
+    return { ...this._builtInPrompts, ...this._customPrompts };
+  },
+
+  // CRUD API
+  library: {
+    add: function(id, promptData) { },
+    edit: function(id, updates) { },
+    delete: function(id) { },
+    export: function() { },
+    import: function(jsonString) { },
+    list: function() { },
+    _loadFromStorage: function() { },
+    _saveToStorage: function() { }
+  },
+
+  // Core functions
+  getPrompt: function(scenario, userInputs) { },
+  getPromptContext: function(scenario) { }
+}
+```
+
+#### Prompt Schema
+```javascript
+{
+  title: string,           // Display title
+  description: string,     // Short description (1 sentence)
+  category: "coaching" | "development" | "schema",
+  includeContext: boolean, // Auto-inject workout data?
+  template: string         // Multi-line prompt text with placeholders
+}
+```
+
+#### Categories
+- **Coaching (6):** Fitness programming, periodization, recovery
+- **Development (4):** Code debugging, feature ideation, team handovers
+- **Schema (2):** JSON import format specifications
+
+---
+
+### Placeholder System
+
+#### Auto-Replaced (System)
+- `{{VERSION}}` → `APP.version.number` + `APP.version.name`
+- `{{ARCHITECTURE}}` → `APP.architecture.pattern`
+- `{{STACK}}` → `APP.architecture.stack.join(", ")`
+- `{{FILES}}` → `APP.architecture.files.join(", ")`
+- `{{CONTEXT}}` → Full workout context (if includeContext: true)
+
+#### User-Provided (Dynamic)
+- `{{USER_DESCRIPTION}}` - Generic input
+- `{{TOPIC}}` - Conversation topic
+- `{{PROPOSAL}}` - Design proposal
+- `{{DECISIONS}}` - Key decisions
+- `{{FEEDBACK}}` - Audit feedback
+- `{{NEXT_STEP}}` - Next action
+- And 4 more handover-specific placeholders
+
+**Replacement Logic:**
+```javascript
+getPrompt(scenario, userInputs = {}) {
+  // 1. Get template
+  // 2. Replace {{CONTEXT}} if includeContext: true
+  // 3. Replace system placeholders (VERSION, ARCHITECTURE, etc.)
+  // 4. Replace user-provided placeholders (USER_DESCRIPTION, etc.)
+  // 5. Return { title, description, content }
+}
+```
+
+---
+
+### LocalStorage Integration
+
+**Key:** `"ai_custom_prompts"`
+
+**Format:**
+```javascript
+{
+  "myCustomPrompt": {
+    title: "My Custom Prompt",
+    description: "Description",
+    category: "coaching",
+    includeContext: false,
+    template: "Template text with {{VERSION}}",
+    isCustom: true,
+    createdAt: "2026-01-01T12:00:00.000Z",
+    updatedAt: "2026-01-01T12:30:00.000Z"
+  }
+}
+```
+
+**Protection Rules:**
+1. Built-in IDs are reserved (cannot be overridden)
+2. Custom prompts cannot use built-in IDs
+3. Only custom prompts can be edited/deleted
+4. Export includes version metadata for compatibility checking
+
+---
+
+### CRUD Operations
+
+#### Add Custom Prompt
+```javascript
+APP.aiBridge.library.add("myPrompt", {
+  title: "My Custom Prompt",
+  description: "Description",
+  category: "coaching",
+  includeContext: false,
+  template: "Template {{VERSION}}"
+});
+// Returns: true/false (success)
+// Side effect: Saves to LocalStorage
+```
+
+#### Edit Custom Prompt
+```javascript
+APP.aiBridge.library.edit("myPrompt", {
+  title: "Updated Title"
+});
+// Only works for custom prompts
+// Returns: true/false
+```
+
+#### Delete Custom Prompt
+```javascript
+APP.aiBridge.library.delete("myPrompt");
+// Only works for custom prompts
+// Returns: true/false
+```
+
+#### Export Custom Prompts
+```javascript
+const json = APP.aiBridge.library.export();
+// Returns: JSON string with metadata
+// Format: { version, exportedAt, customPrompts }
+```
+
+#### Import Custom Prompts
+```javascript
+const result = APP.aiBridge.library.import(jsonString);
+// Returns: { success, imported, skipped, errors }
+// Skips IDs that conflict with built-in prompts
+```
+
+#### List Prompts
+```javascript
+const { builtIn, custom } = APP.aiBridge.library.list();
+// Returns: { builtIn: ["coach", ...], custom: ["myPrompt", ...] }
+```
+
+---
+
+### Context Generation
+
+**Function:** `getPromptContext(scenario)`
+
+**Output Format:**
+```
+**App Version:**
+- Version: 28.0
+- Architecture: IIFE Modular
+- Modules: 13
+
+**User Profile:**
+- Height: [X] cm
+- Weight: [X] kg
+- TDEE: [X] kcal
+
+**5 Latihan Terakhir:**
+
+1. [Date] - [Session Title]
+   - [Exercise]: [Sets]×[Reps] @ [Weight]kg (RPE [X])
+   - Total Volume: [X] kg
+
+[... 4 more workouts]
+
+**Program Structure:**
+- Total Sessions: X
+- Session IDs: s1, s2, s3, ...
+```
+
+**Data Sources:**
+- `LS_SAFE.getJSON("profile")` - User profile
+- `LS_SAFE.getJSON("gym_hist")` - Workout history
+- `LS_SAFE.getJSON("cscs_program_v10")` - Current program
+
+---
+
+### UI Integration
+
+#### Prompt Manager Mode
+**File:** `js/ui.js` → `renderPromptManagerMode()`
+
+**Features:**
+- Categorized display (Coaching/Development/Schema)
+- Color-coded cards (gray=built-in, purple=custom)
+- Preview, Add, Edit, Delete, Export, Import buttons
+- Responsive grid (2-col desktop, 1-col mobile)
+
+#### Generate Prompt Modal
+**File:** `js/ui.js` → `showGeneratePromptModal()`
+
+**Features:**
+- Smart placeholder detection
+- Dynamic form generation
+- Validation warnings
+- Copy functionality
+
+**Flow:**
+```
+User clicks "Generate Prompt"
+  ↓
+Detect used placeholders in template
+  ↓
+Generate input fields for user-provided placeholders
+  ↓
+User fills inputs and clicks "Generate"
+  ↓
+Call APP.aiBridge.getPrompt(scenario, userInputs)
+  ↓
+Validate output (check for unreplaced {{...}})
+  ↓
+Display generated prompt with copy button
+```
+
+---
+
+### Error Handling
+
+**Defensive Checks:**
+```javascript
+// Module availability
+if (!window.APP?.aiBridge?.getPrompt) {
+  showToast("AI Bridge not available", "error");
+  return;
+}
+
+// Invalid scenario
+if (!this.prompts[scenario]) {
+  console.error(`[AI-BRIDGE] Unknown scenario: ${scenario}`);
+  return null;
+}
+
+// Built-in protection
+if (this._builtInPrompts[id]) {
+  console.error(`Cannot override built-in prompt: ${id}`);
+  return false;
+}
+```
+
+**Validation:**
+```javascript
+// Incomplete replacement warning
+if (generated.content.includes('{{')) {
+  showToast("⚠️ Some placeholders not replaced", "warning");
+}
+```
+
+---
+
+### Performance Considerations
+
+**Optimization Strategies:**
+1. **Lazy Loading:** Custom prompts loaded once on module init
+2. **Computed Getter:** Prompts merged on-access (no duplication)
+3. **Efficient Regex:** Placeholder detection uses compiled regex
+4. **Minimal DOM:** Generate modal creates elements only when opened
+
+**Memory Management:**
+- No global event listeners (cleaned up on modal close)
+- Templates stored as strings (no DOM parsing until render)
+- LocalStorage quota checked via LS_SAFE wrapper
+
+---
+
+### Testing
+
+**Unit Tests (Console):**
+```javascript
+// Test 1: Version placeholder
+const p = APP.aiBridge.getPrompt("codePartner");
+console.assert(!p.content.includes("{{VERSION}}"));
+
+// Test 2: Custom prompt CRUD
+APP.aiBridge.library.add("test", {...});
+APP.aiBridge.library.edit("test", {...});
+APP.aiBridge.library.delete("test");
+
+// Test 3: Export/Import
+const json = APP.aiBridge.library.export();
+APP.aiBridge.library.import(json);
+```
+
+**Integration Tests (UI):**
+1. Preview prompt → Generate → Verify placeholders replaced
+2. Add custom prompt → Refresh page → Verify persistence
+3. Export → Import → Verify prompts restored
+
+---
+
+### Future Enhancements
+
+**V28.1+ Roadmap:**
+- Prompt versioning (track template changes over time)
+- Collaborative prompt sharing (community marketplace)
+- Multi-language support (English, Indonesian, Spanish)
+- AI model selection (ChatGPT, Claude, Gemini)
+- Prompt analytics (usage tracking, effectiveness metrics)
+
+---
+
+### Troubleshooting
+
+**Issue:** Placeholders not replaced
+**Solution:** Check that prompt includes `{{PLACEHOLDER}}` exactly (case-sensitive)
+
+**Issue:** Custom prompt not saving
+**Solution:** Verify ID doesn't conflict with built-in prompts, check localStorage quota
+
+**Issue:** Import fails
+**Solution:** Validate JSON format, ensure exported from same or compatible version
+
+**Issue:** Context generation empty
+**Solution:** Verify LocalStorage keys exist (profile, gym_hist, cscs_program_v10)
+
+---
+
+### API Reference
+
+**Full API Documentation:** See [AI_COMMAND_CENTER_GUIDE.md](./AI_COMMAND_CENTER_GUIDE.md) *(to be created)*
+
+---
+
 ## 📊 DATA SCHEMA
 
 ### **Primary Keys (LocalStorage)**
@@ -424,6 +835,7 @@ APP.core.finishSession = () => {
 | `profile` | Object | User profile | `{name, h, a, g, act}` |
 | `weights` | Array | Bodyweight tracking | `[{d, v}]` |
 | `blueprints` | Array | Saved program templates | `[{name, data}]` |
+| `ai_custom_prompts` | Object | Custom AI prompts (V28+) | `{promptId: {title, category, template, ...}}` |
 | `backup_*` | Object | Safety backups | `{workoutData, gym_hist, timestamp}` |
 | `last_{sessionId}` | Timestamp | Last performed date | `1735689600000` |
 | `pref_{sessionId}_{exIdx}` | Number | Variant preference | `0` |
