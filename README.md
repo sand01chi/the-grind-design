@@ -27,7 +27,7 @@ A clinical-grade Progressive Web App for evidence-based strength training manage
 - 🤖 **AI Command Center** - Integrated AI consultation with prompt library
   - 12 built-in prompt templates (coaching, development, schema)
   - Custom prompt creation with CRUD operations
-  - Smart placeholder replacement ({{VERSION}}, {{CONTEXT}}, etc.)
+  - Smart placeholder replacement {% raw %}({{VERSION}}, {{CONTEXT}}, etc.){% endraw %}
   - Export/Import prompt collections
   - Dynamic context generation for AI conversations
 - 🤖 **Smart Merge Engine** - AI (Gemini/GPT) can update programs via JSON
@@ -347,11 +347,6 @@ See [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) for complete rules.
 - 12 modules created
 - 11 critical bugs solved
 - Duration: 3 days
-
-### **Special Thanks**
-
-- **Renaissance Periodization** (Dr. Mike Israetel) - Volume landmark methodology
-- **CSCS Community** - Evidence-based training principles  
 
 ---
 

@@ -163,6 +163,7 @@
 
 ### 🔧 Placeholder System
 
+{% raw %}
 **Auto-Replaced Placeholders:**
 - `{{VERSION}}` → "28.0 (AI Command Center)"
 - `{{ARCHITECTURE}}` → "IIFE Modular"
@@ -181,6 +182,7 @@
 - `{{DESIGN_PROGRESS}}` - Current progress (architect workflow)
 - `{{AUDIT_FEEDBACK}}` - Auditor feedback (architect workflow)
 - `{{NEXT_DELIVERABLE}}` - Upcoming deliverable
+{% endraw %}
 
 ---
 
