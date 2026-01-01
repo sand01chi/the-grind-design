@@ -308,7 +308,6 @@ const EXERCISE_TARGETS = {
   "Dumbbell Incline DB Curl": [{ muscle: "arms", role: "PRIMARY" }],
   "Dumbbell Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
   "Cable Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
-
   "Machine Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   "Machine Seated Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   "Cable Pull Through": [
