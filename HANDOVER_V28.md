@@ -713,7 +713,7 @@ During V28 deployment, discovered that GitHub Pages uses Jekyll static site gene
 ### **Solution Applied**
 
 **Strategy:**
-1. **Standard documentation files** → Wrap with `{% raw %}...{% endraw %}` tags
+1. **Standard documentation files** → Wrap with `{&#37; raw &#37;}...{&#37; endraw &#37;}` tags
 2. **Meta-documentation** (handover files) → Use HTML entities to avoid self-referencing issues
 
 **Reference Commits:**
@@ -729,11 +729,11 @@ All documentation files verified safe for GitHub Pages deployment:
 
 | File | Status | Protection Method | Impact | Notes |
 |------|--------|------------------|--------|-------|
-| **ARCHITECTURE.md** | ✅ SAFE | 8 `{% raw %}` pairs | HIGH | AI Bridge section heavily uses `{{` |
-| **CHANGELOG_DETAILED.md** | ✅ SAFE | 1 `{% raw %}` pair | MEDIUM | Placeholder system docs |
-| **README.md** | ✅ SAFE | 1 `{% raw %}` pair | LOW | AI integration description |
+| **ARCHITECTURE.md** | ✅ SAFE | 8 raw tag pairs | HIGH | AI Bridge section heavily uses placeholders |
+| **CHANGELOG_DETAILED.md** | ✅ SAFE | 1 raw tag pair | MEDIUM | Placeholder system docs |
+| **README.md** | ✅ SAFE | 1 raw tag pair | LOW | AI integration description |
 | **HANDOVER_V28.md** | ✅ SAFE | 0 raw tags | MEDIUM | This file (checked after fix) |
-| **PHASE_8_HANDOVER.md** | ✅ SAFE | HTML entities only | LOW | Uses `&#37;`, `&#123;`, `&#125;` |
+| **PHASE_8_HANDOVER.md** | ✅ SAFE | HTML entities only | LOW | Meta-documentation safe |
 | **HANDOVER_V27.md** | ✅ SAFE | No action needed | NONE | No Liquid-like syntax |
 
 ### **Files Fixed in Detail**
