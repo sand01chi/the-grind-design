@@ -1061,6 +1061,1250 @@
         alert("Error: " + e.message);
       }
     },
+
+    // ============================================================
+    // AI COMMAND CENTER (V28 Phase 3)
+    // ============================================================
+
+    /**
+     * Opens AI Command Center modal
+     * Default mode: context export
+     */
+    openAICommandCenter: function(initialMode = "context") {
+      const modal = document.getElementById("ai-command-center-modal");
+      if (!modal) {
+        console.error("[UI] AI Command Center modal not found");
+        return;
+      }
+
+      // Set initial mode
+      const selector = document.getElementById("ai-mode-selector");
+      if (selector) {
+        selector.value = initialMode;
+      }
+
+      // Load mode content
+      this.switchAIMode(initialMode);
+
+      // Show modal
+      modal.classList.remove("hidden");
+
+      console.log(`[UI] AI Command Center opened with mode: ${initialMode}`);
+    },
+
+    /**
+     * Closes AI Command Center modal and cleans up state
+     */
+    closeAICommandCenter: function() {
+      const modal = document.getElementById("ai-command-center-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      // Clear content area
+      const contentArea = document.getElementById("ai-content-area");
+      if (contentArea) {
+        contentArea.innerHTML = "";
+      }
+
+      // Clear preview state
+      window.aiCommandCenterPreview = null;
+
+      console.log("[UI] AI Command Center closed, state cleared");
+    },
+
+    /**
+     * Switches between AI modes (context export / import / backup)
+     * @param {string} mode - "context", "import", or "backup"
+     */
+    switchAIMode: function(mode) {
+      const contentArea = document.getElementById("ai-content-area");
+      if (!contentArea) {
+        console.error("[UI] Content area not found");
+        return;
+      }
+
+      // Clear preview state
+      window.aiCommandCenterPreview = null;
+
+      if (mode === "context") {
+        this.renderContextMode(contentArea);
+      } else if (mode === "import") {
+        this.renderImportMode(contentArea);
+      } else if (mode === "library") {
+        this.renderLibraryMode(contentArea);
+      } else if (mode === "backup") {
+        this.renderBackupMode(contentArea);
+      }
+
+      console.log(`[UI] Switched to AI mode: ${mode}`);
+    },
+
+    /**
+     * Renders Context Export Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderContextMode: function(container) {
+      // Generate context using AI Bridge
+      let contextText = "";
+      if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
+        contextText = window.APP.aiBridge.getPromptContext("coach");
+      } else {
+        contextText = "[ERROR] AI Bridge module not loaded";
+        console.error("[UI] AI Bridge not available");
+      }
+
+      const html = `
+        <div class="space-y-3">
+          <p class="text-xs text-slate-400">
+            Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif.
+            Salin teks ini untuk konsultasi AI.
+          </p>
+
+          <textarea
+            id="ai-context-textarea"
+            readonly
+            class="w-full bg-slate-900 text-slate-100 font-mono text-xs p-3 rounded-lg border border-slate-700 resize-none"
+            rows="12"
+            style="min-height: 300px;"
+          >${contextText}</textarea>
+
+          <button
+            onclick="APP.ui.copyContextToClipboard()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <i class="fa-solid fa-copy"></i> SALIN KONTEKS
+          </button>
+
+          <p class="text-[10px] text-slate-500 italic text-center">
+            Setelah disalin, paste ke AI seperti Gemini atau ChatGPT untuk konsultasi.
+          </p>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Renders Import Recipe Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderImportMode: function(container) {
+      const html = `
+        <div class="space-y-3">
+          <p class="text-xs text-slate-400">
+            Paste JSON resep latihan dari AI di bawah, lalu klik Analyze untuk validasi.
+          </p>
+
+          <!-- Template Buttons -->
+          <div class="flex gap-2 mb-2">
+            <button
+              onclick="APP.ui.showProgramTemplateOptions()"
+              class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-1"
+              title="Load template atau copy program aktif"
+            >
+              <i class="fa-solid fa-file-code"></i> Template Program
+            </button>
+            <button
+              onclick="APP.ui.loadRecipeTemplate('spontaneous')"
+              class="flex-1 bg-purple-700 hover:bg-purple-600 text-white text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-1"
+              title="Load template untuk sesi spontan"
+            >
+              <i class="fa-solid fa-bolt"></i> Template Spontan
+            </button>
+          </div>
+
+          <!-- Exercise Library Info Button -->
+          <button
+            onclick="APP.ui.showExerciseLibraryInfo()"
+            class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-2 border border-slate-600"
+            title="Lihat daftar exercise yang tersedia di library"
+          >
+            <i class="fa-solid fa-dumbbell"></i> Exercise Library Reference
+          </button>
+
+          <textarea
+            id="ai-import-textarea"
+            placeholder="Paste JSON resep dari AI di sini..."
+            class="w-full bg-slate-900 text-emerald-400 font-mono text-xs p-3 rounded-lg border border-slate-700 resize-none focus:border-purple-500 transition"
+            rows="8"
+            style="min-height: 200px;"
+          ></textarea>
+
+          <button
+            onclick="APP.ui.analyzeAIRecipe()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ANALYZE JSON
+          </button>
+
+          <!-- Preview Card (hidden initially) -->
+          <div id="ai-preview-card" class="hidden"></div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Copies context to clipboard
+     */
+    copyContextToClipboard: async function() {
+      const textarea = document.getElementById("ai-context-textarea");
+      if (!textarea) {
+        console.error("[UI] Context textarea not found");
+        return;
+      }
+
+      const text = textarea.value;
+
+      try {
+        // Try modern Clipboard API
+        await navigator.clipboard.writeText(text);
+        this.showToast("✅ Konteks berhasil dicopy!", "success");
+        console.log("[UI] Context copied to clipboard");
+      } catch (e) {
+        // Fallback: select text for manual copy
+        console.warn("[UI] Clipboard API failed, using fallback:", e);
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+
+        try {
+          document.execCommand('copy');
+          this.showToast("✅ Teks terpilih - tekan Ctrl+C", "success");
+        } catch (err) {
+          console.error("[UI] Copy failed:", err);
+          this.showToast("❌ Gagal copy - pilih manual", "error");
+        }
+      }
+    },
+
+    /**
+     * Analyzes AI recipe JSON and shows preview
+     */
+    analyzeAIRecipe: function() {
+      const textarea = document.getElementById("ai-import-textarea");
+      const previewCard = document.getElementById("ai-preview-card");
+
+      if (!textarea || !previewCard) {
+        console.error("[UI] Import elements not found");
+        return;
+      }
+
+      const jsonString = textarea.value.trim();
+
+      // Validate input
+      if (!jsonString) {
+        this.showToast("❌ JSON kosong", "error");
+        return;
+      }
+
+      // Parse using AI Bridge
+      let result;
+      if (window.APP.aiBridge && window.APP.aiBridge.parseRecipe) {
+        result = window.APP.aiBridge.parseRecipe(jsonString);
+      } else {
+        console.error("[UI] AI Bridge not available");
+        this.showToast("❌ AI Bridge module tidak tersedia", "error");
+        return;
+      }
+
+      console.log("[UI] Parse result:", result);
+
+      // Store preview data globally for confirm action
+      window.aiCommandCenterPreview = result;
+
+      // Render preview card
+      this.renderPreviewCard(previewCard, result);
+
+      // Show preview card
+      previewCard.classList.remove("hidden");
+    },
+
+    /**
+     * Renders preview card based on parse result
+     * @param {HTMLElement} container - Preview card container
+     * @param {Object} result - Parse result from AI Bridge
+     */
+    renderPreviewCard: function(container, result) {
+      const isSuccess = result.success;
+      const borderColor = isSuccess ? "border-emerald-500" : "border-red-500";
+      const bgColor = isSuccess ? "bg-emerald-900/20" : "bg-red-900/20";
+
+      let html = `
+        <div class="preview-card p-4 rounded-lg border-2 ${borderColor} ${bgColor}">
+          <!-- Status Badge -->
+          <div class="mb-3 flex items-center gap-2">
+            ${isSuccess
+              ? '<span class="text-emerald-400 text-sm font-bold">✅ Valid Recipe</span>'
+              : '<span class="text-red-400 text-sm font-bold">❌ Invalid Recipe</span>'
+            }
+          </div>
+      `;
+
+      // Summary (if success)
+      if (isSuccess && result.data) {
+        const sessionCount = Object.keys(result.data).length;
+        let exerciseCount = 0;
+
+        Object.values(result.data).forEach(session => {
+          if (session.exercises) {
+            exerciseCount += session.exercises.length;
+          }
+        });
+
+        html += `
+          <div class="summary mb-3 text-xs text-slate-300">
+            <h4 class="font-bold text-white mb-2">Ringkasan:</h4>
+            <p>• Schema: <span class="font-mono text-purple-400">${result.schemaType}</span></p>
+            <p>• Sesi: <span class="font-bold text-emerald-400">${sessionCount}</span> sesi</p>
+            <p>• Total Latihan: <span class="font-bold text-emerald-400">${exerciseCount}</span> exercises</p>
+          </div>
+        `;
+      }
+
+      // Errors (if any)
+      if (result.errors && result.errors.length > 0) {
+        html += `
+          <div class="errors mb-3">
+            <h4 class="text-xs font-bold text-red-400 mb-2">❌ Errors:</h4>
+            <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+              ${result.errors.map(err => `<li>${err}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Warnings (if any)
+      if (result.warnings && result.warnings.length > 0) {
+        html += `
+          <div class="warnings mb-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">⚠️ Warnings:</h4>
+            <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+              ${result.warnings.map(warn => `<li>${warn}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Confirm Button (ONLY if success)
+      if (isSuccess) {
+        html += `
+          <button
+            onclick="APP.ui.confirmAIImport()"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 mt-4"
+          >
+            <i class="fa-solid fa-check-circle"></i> CONFIRM IMPORT
+          </button>
+
+          <p class="text-[10px] text-slate-500 italic text-center mt-2">
+            ⚠️ Backup otomatis akan dibuat sebelum import
+          </p>
+        `;
+      }
+
+      html += `</div>`;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Confirms and executes AI recipe import (SAFETY CRITICAL)
+     */
+    confirmAIImport: function() {
+      // Get preview data
+      const preview = window.aiCommandCenterPreview;
+
+      if (!preview || !preview.success || !preview.data) {
+        console.error("[UI] Invalid preview state");
+        this.showToast("❌ Error: Preview data tidak valid", "error");
+        return;
+      }
+
+      console.log("[UI] Confirming AI import:", preview);
+
+      try {
+        // STEP 1: Create backup (MANDATORY)
+        if (window.APP.safety && window.APP.safety.createBackup) {
+          window.APP.safety.createBackup("pre_ai_import");
+          console.log("[UI] Backup created before import");
+        } else {
+          console.warn("[UI] Safety module not available, skipping backup");
+        }
+
+        // STEP 2: Save based on schema type
+        if (preview.schemaType === "program_import") {
+          // PARTIAL MERGE: Only overwrite sessions that exist in the recipe
+          // Other sessions remain untouched (safe!)
+          Object.keys(preview.data).forEach(sessionId => {
+            if (sessionId !== "spontaneous") {
+              window.APP.state.workoutData[sessionId] = preview.data[sessionId];
+              console.log(`[UI] Imported/Updated session: ${sessionId}`);
+            }
+          });
+
+          // Persist to localStorage
+          if (window.APP.core && window.APP.core.saveProgram) {
+            window.APP.core.saveProgram();
+            console.log("[UI] Program saved to localStorage");
+          }
+
+          // Refresh UI to dashboard
+          if (window.APP.nav && window.APP.nav.switchView) {
+            window.APP.nav.switchView('dashboard');
+          }
+
+          this.closeAICommandCenter();
+          this.showToast("✅ Program berhasil diimport!", "success");
+
+        } else if (preview.schemaType === "spontaneous_import") {
+          // SAVE TO PRESETS (don't overwrite active spontaneous session)
+          const spontaneousData = preview.data.spontaneous;
+          const presetName = spontaneousData.title || "AI Import";
+
+          // Get existing presets
+          const presets = window.LS_SAFE.getJSON("cscs_spon_presets", []);
+
+          // Add new preset
+          presets.push({
+            name: `${presetName} (AI)`,
+            data: spontaneousData
+          });
+
+          // Save to localStorage
+          window.LS_SAFE.setJSON("cscs_spon_presets", presets);
+          console.log("[UI] Saved spontaneous recipe to presets");
+
+          this.closeAICommandCenter();
+          this.showToast("✅ Resep spontan tersimpan di Presets!", "success");
+        }
+
+        console.log("[UI] AI import completed successfully");
+
+      } catch (e) {
+        console.error("[UI] AI import failed:", e);
+        this.showToast("❌ Import gagal: " + e.message, "error");
+
+        // Try to restore from backup
+        if (window.APP.safety && window.APP.safety.restore) {
+          const backups = window.APP.safety.listBackups();
+          const latestBackup = backups.find(b => b.id.includes("pre_ai_import"));
+
+          if (latestBackup) {
+            console.log("[UI] Attempting to restore from backup");
+            window.APP.safety.restore(latestBackup.id);
+            this.showToast("⚠️ Restored from backup", "warning");
+          }
+        }
+      }
+    },
+
+    /**
+     * Loads example recipe template into import textarea
+     * @param {string} type - "program" or "spontaneous"
+     */
+    loadRecipeTemplate: function(type) {
+      const textarea = document.getElementById("ai-import-textarea");
+      if (!textarea) {
+        console.error("[UI] Import textarea not found");
+        return;
+      }
+
+      // Get templates from AI Bridge
+      if (!window.APP.aiBridge || !window.APP.aiBridge.getRecipeTemplates) {
+        console.error("[UI] AI Bridge getRecipeTemplates() not available");
+        this.showToast("❌ Template tidak tersedia", "error");
+        return;
+      }
+
+      const templates = window.APP.aiBridge.getRecipeTemplates();
+      let template;
+
+      if (type === "program") {
+        template = templates.programTemplate;
+      } else if (type === "spontaneous") {
+        template = templates.spontaneousTemplate;
+      } else {
+        console.error("[UI] Unknown template type:", type);
+        return;
+      }
+
+      // Format JSON with 2-space indentation
+      const formattedJSON = JSON.stringify(template, null, 2);
+      textarea.value = formattedJSON;
+
+      // Auto-scroll to top
+      textarea.scrollTop = 0;
+
+      // Show toast
+      const templateName = type === "program" ? "Program" : "Spontaneous";
+      this.showToast(`📋 Template ${templateName} loaded`, "success");
+
+      console.log(`[UI] Loaded ${type} template into textarea`);
+    },
+
+    /**
+     * Shows modal with program template options (example template or copy current program)
+     */
+    showProgramTemplateOptions: function() {
+      const modalHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-file-code"></i> Template Program
+              </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+              <p class="text-slate-300 text-sm mb-4">
+                Pilih sumber template untuk resep program:
+              </p>
+
+              <!-- Option 1: Example Template -->
+              <button
+                onclick="APP.ui.loadRecipeTemplate('program'); APP.ui.closeProgramTemplateModal();"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-4 px-4 rounded-xl transition active:scale-95 flex items-center gap-3 border-2 border-slate-600 hover:border-slate-500"
+              >
+                <div class="bg-slate-600 p-3 rounded-lg">
+                  <i class="fa-solid fa-file-code text-xl"></i>
+                </div>
+                <div class="text-left flex-1">
+                  <div class="font-bold">📄 Template Contoh</div>
+                  <div class="text-xs text-slate-400">Load template contoh dari AI Bridge</div>
+                </div>
+              </button>
+
+              <!-- Option 2: Copy Current Program -->
+              <button
+                onclick="APP.ui.copyCurrentProgram(); APP.ui.closeProgramTemplateModal();"
+                class="w-full bg-purple-700 hover:bg-purple-600 text-white text-sm font-bold py-4 px-4 rounded-xl transition active:scale-95 flex items-center gap-3 border-2 border-purple-600 hover:border-purple-500"
+              >
+                <div class="bg-purple-600 p-3 rounded-lg">
+                  <i class="fa-solid fa-copy text-xl"></i>
+                </div>
+                <div class="text-left flex-1">
+                  <div class="font-bold">📋 Copy Program Aktif</div>
+                  <div class="text-xs text-slate-300">Copy program saat ini (tanpa spontaneous)</div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6">
+              <button
+                onclick="APP.ui.closeProgramTemplateModal()"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm py-2 rounded-lg transition"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'program-template-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+    },
+
+    /**
+     * Closes the program template options modal
+     */
+    closeProgramTemplateModal: function() {
+      const modal = document.getElementById('program-template-modal');
+      if (modal) {
+        modal.remove();
+      }
+    },
+
+    /**
+     * Copies current active program to import textarea (excludes spontaneous session)
+     */
+    copyCurrentProgram: function() {
+      const textarea = document.getElementById("ai-import-textarea");
+      if (!textarea) {
+        console.error("[UI] Import textarea not found");
+        return;
+      }
+
+      // Get current program data
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        this.showToast("❌ Data program tidak tersedia", "error");
+        return;
+      }
+
+      const workoutData = window.APP.state.workoutData;
+
+      // Filter out spontaneous session and ensure proper structure
+      const programOnly = {};
+      Object.keys(workoutData).forEach(sessionId => {
+        if (sessionId !== 'spontaneous') {
+          const session = workoutData[sessionId];
+
+          // Ensure session has all required fields
+          const sessionCopy = {
+            label: session.label || sessionId.toUpperCase(),
+            title: session.title || "Untitled Session"
+          };
+
+          // Add dynamic if it exists
+          if (session.dynamic) {
+            sessionCopy.dynamic = session.dynamic;
+          }
+
+          // Map exercises
+          sessionCopy.exercises = Array.isArray(session.exercises) ? session.exercises.map(ex => {
+            const exerciseCopy = {
+              sets: ex.sets || 3,
+              rest: ex.rest || 90
+            };
+
+            // Add note if exists
+            if (ex.note) {
+              exerciseCopy.note = ex.note;
+            }
+
+            // Map options
+            exerciseCopy.options = Array.isArray(ex.options) ? ex.options.map(opt => {
+              const optionCopy = {
+                n: opt.n || "",
+                t_r: opt.t_r || "8-12",
+                t_k: opt.t_k || 0
+              };
+
+              // Add optional fields if they exist
+              if (opt.bio) optionCopy.bio = opt.bio;
+              if (opt.note) optionCopy.note = opt.note;
+              if (opt.vid) optionCopy.vid = opt.vid;
+
+              return optionCopy;
+            }) : [];
+
+            return exerciseCopy;
+          }) : [];
+
+          programOnly[sessionId] = sessionCopy;
+        }
+      });
+
+      // Check if there's any program data
+      if (Object.keys(programOnly).length === 0) {
+        this.showToast("❌ Tidak ada program aktif untuk di-copy", "error");
+        return;
+      }
+
+      // Format JSON with 2-space indentation
+      const formattedJSON = JSON.stringify(programOnly, null, 2);
+      textarea.value = formattedJSON;
+
+      // Auto-scroll to top
+      textarea.scrollTop = 0;
+
+      // Show toast
+      const sessionCount = Object.keys(programOnly).length;
+      this.showToast(`✅ Program aktif copied (${sessionCount} session)`, "success");
+
+      console.log(`[UI] Copied current program (${sessionCount} sessions) to textarea`);
+    },
+
+    /**
+     * Shows modal with exercise library reference for AI
+     */
+    showExerciseLibraryInfo: function() {
+      // Check if EXERCISE_TARGETS is available
+      if (!window.EXERCISE_TARGETS) {
+        this.showToast("❌ Exercise library tidak tersedia", "error");
+        return;
+      }
+
+      // Generate compact exercise list grouped by muscle
+      const exercisesByMuscle = {};
+
+      Object.keys(window.EXERCISE_TARGETS).forEach(exerciseName => {
+        const targets = window.EXERCISE_TARGETS[exerciseName];
+
+        // Group by primary muscle
+        if (targets.length > 0) {
+          const primaryMuscle = targets.find(t => t.role === "PRIMARY")?.muscle || "other";
+
+          if (!exercisesByMuscle[primaryMuscle]) {
+            exercisesByMuscle[primaryMuscle] = [];
+          }
+
+          exercisesByMuscle[primaryMuscle].push(exerciseName);
+        }
+      });
+
+      // Sort exercises within each muscle group
+      Object.keys(exercisesByMuscle).forEach(muscle => {
+        exercisesByMuscle[muscle].sort();
+      });
+
+      // Build compact text format for AI
+      let libraryText = `# THE GRIND DESIGN - Exercise Library Reference\n\n`;
+      libraryText += `**Total Exercises:** ${Object.keys(window.EXERCISE_TARGETS).length}\n\n`;
+      libraryText += `**IMPORTANT:** All exercise names in recipes MUST exactly match names from this list.\n\n`;
+      libraryText += `---\n\n`;
+
+      // Muscle groups in order
+      const muscleOrder = ['chest', 'back', 'shoulders', 'arms', 'legs'];
+
+      muscleOrder.forEach(muscle => {
+        if (exercisesByMuscle[muscle]) {
+          libraryText += `## ${muscle.toUpperCase()} (${exercisesByMuscle[muscle].length} exercises)\n`;
+          exercisesByMuscle[muscle].forEach(ex => {
+            libraryText += `- ${ex}\n`;
+          });
+          libraryText += `\n`;
+        }
+      });
+
+      // Add "other" category if exists
+      if (exercisesByMuscle.other) {
+        libraryText += `## OTHER (${exercisesByMuscle.other.length} exercises)\n`;
+        exercisesByMuscle.other.forEach(ex => {
+          libraryText += `- ${ex}\n`;
+        });
+      }
+
+      // Create modal
+      const modalHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-700 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-dumbbell"></i> Exercise Library Reference
+              </h3>
+              <button
+                onclick="APP.ui.closeExerciseLibraryModal()"
+                class="text-slate-300 hover:text-white transition"
+              >
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body with scrollable content -->
+            <div class="p-6 overflow-y-auto flex-1">
+              <div class="bg-slate-900 rounded-lg p-4 mb-4">
+                <p class="text-slate-300 text-sm mb-2">
+                  <i class="fa-solid fa-info-circle text-blue-400"></i>
+                  <strong class="text-white">Copy text di bawah dan paste ke AI</strong> untuk memastikan AI menggunakan exercise names yang valid.
+                </p>
+                <p class="text-xs text-slate-400">
+                  Library ini otomatis update saat exercise baru ditambahkan.
+                </p>
+              </div>
+
+              <div class="relative">
+                <textarea
+                  id="exercise-library-text"
+                  readonly
+                  class="w-full bg-slate-900 text-slate-300 font-mono text-xs p-4 rounded-lg border border-slate-700 resize-none"
+                  style="min-height: 400px;"
+                >${libraryText}</textarea>
+
+                <button
+                  onclick="APP.ui.copyExerciseLibraryToClipboard()"
+                  class="absolute top-2 right-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-copy"></i> COPY
+                </button>
+              </div>
+
+              <!-- Stats -->
+              <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                  <div class="text-slate-400">Total Exercises</div>
+                  <div class="text-white font-bold text-lg">${Object.keys(window.EXERCISE_TARGETS).length}</div>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                  <div class="text-slate-400">Muscle Groups</div>
+                  <div class="text-white font-bold text-lg">${Object.keys(exercisesByMuscle).length}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6">
+              <button
+                onclick="APP.ui.closeExerciseLibraryModal()"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm py-2 rounded-lg transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'exercise-library-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+
+      console.log(`[UI] Showed exercise library with ${Object.keys(window.EXERCISE_TARGETS).length} exercises`);
+    },
+
+    /**
+     * Closes the exercise library modal
+     */
+    closeExerciseLibraryModal: function() {
+      const modal = document.getElementById('exercise-library-modal');
+      if (modal) {
+        modal.remove();
+      }
+    },
+
+    /**
+     * Copies exercise library text to clipboard
+     */
+    copyExerciseLibraryToClipboard: async function() {
+      const textarea = document.getElementById('exercise-library-text');
+      if (!textarea) {
+        console.error("[UI] Exercise library textarea not found");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        this.showToast("✅ Exercise library copied to clipboard!", "success");
+        console.log("[UI] Exercise library copied to clipboard");
+      } catch (err) {
+        console.error("[UI] Failed to copy to clipboard:", err);
+
+        // Fallback: select text
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+
+        try {
+          document.execCommand('copy');
+          this.showToast("✅ Exercise library copied!", "success");
+        } catch (fallbackErr) {
+          this.showToast("❌ Failed to copy to clipboard", "error");
+        }
+      }
+    },
+
+    /**
+     * Renders Backup & Restore Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderBackupMode: function(container) {
+      // Check if safety module is available
+      if (!window.APP.safety || !window.APP.safety.listBackups) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+            <p>Safety module tidak tersedia</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Get backups list
+      const backups = window.APP.safety.listBackups();
+
+      if (backups.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-database text-4xl mb-3"></i>
+            <p class="text-sm">Tidak ada backup tersedia</p>
+            <p class="text-xs mt-2">Backup otomatis dibuat saat operasi penting</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Build backup list HTML
+      let html = `
+        <div class="space-y-3">
+          <!-- Header with Info Button -->
+          <div class="flex items-start justify-between gap-2 mb-4">
+            <p class="text-xs text-slate-400 flex-1">
+              Daftar backup otomatis. Klik <strong>RESTORE</strong> untuk mengembalikan data ke backup tersebut.
+            </p>
+            <button
+              onclick="APP.ui.showBackupLegend()"
+              class="text-slate-400 hover:text-purple-400 transition shrink-0"
+              title="Lihat penjelasan simbol"
+            >
+              <i class="fa-solid fa-circle-info text-lg"></i>
+            </button>
+          </div>
+      `;
+
+      backups.forEach(backup => {
+        // Format timestamp
+        const date = new Date(backup.timestamp);
+        const dateStr = date.toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const timeStr = date.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // Operation icon and label mapping
+        let opIcon = "💾";
+        let opLabel = backup.operation.replace(/_/g, ' ').toUpperCase();
+
+        // Map legacy/specific operation names to generic labels
+        if (backup.operation.includes("v26") || backup.operation.includes("integrity")) {
+          opIcon = "🔧";
+          opLabel = "DATA INTEGRITY FIX";
+        } else if (backup.operation.includes("delete")) {
+          opIcon = "🗑️";
+        } else if (backup.operation.includes("edit")) {
+          opIcon = "✏️";
+        } else if (backup.operation.includes("create")) {
+          opIcon = "➕";
+        } else if (backup.operation.includes("restore")) {
+          opIcon = "🔄";
+        } else if (backup.operation.includes("init")) {
+          opIcon = "🚀";
+        } else if (backup.operation.includes("ai_import")) {
+          opIcon = "🤖";
+        } else if (backup.operation.includes("emergency")) {
+          opIcon = "🚨";
+          opLabel = "EMERGENCY BACKUP";
+        }
+
+        // Session count (already calculated by listBackups())
+        const sessionCount = backup.sessionCount || 0;
+        const spontaneousTag = backup.hasSpontaneous ? ' + <span class="text-purple-400">spontaneous</span>' : '';
+
+        html += `
+          <div class="bg-slate-900 border border-slate-700 rounded-lg p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">${opIcon}</span>
+                  <span class="text-white text-sm font-semibold truncate">${opLabel}</span>
+                </div>
+                <div class="text-xs text-slate-400 space-y-0.5">
+                  <div>📅 ${dateStr} • ${timeStr}</div>
+                  <div>📊 ${sessionCount} session(s)${spontaneousTag}</div>
+                </div>
+              </div>
+              <button
+                onclick="APP.safety.confirmRestore('${backup.id}')"
+                class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition active:scale-95 shrink-0"
+              >
+                RESTORE
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered ${backups.length} backups in Backup Mode`);
+    },
+
+    /**
+     * Shows backup legend/explanation modal
+     */
+    showBackupLegend: function() {
+      const legendHTML = `
+        <div class="space-y-3">
+          <h4 class="text-white font-bold text-sm mb-3">📖 Penjelasan Simbol Backup</h4>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🤖</span>
+              <div>
+                <strong class="text-white">PRE AI IMPORT</strong>
+                <p class="text-slate-400">Backup otomatis sebelum import resep AI. Safety net jika import bermasalah.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🚀</span>
+              <div>
+                <strong class="text-white">APP INIT</strong>
+                <p class="text-slate-400">Snapshot saat aplikasi dibuka. Baseline untuk recovery.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">➕</span>
+              <div>
+                <strong class="text-white">CREATE SESSION</strong>
+                <p class="text-slate-400">Backup setelah membuat session baru. Bisa rollback jika ingin undo.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">✏️</span>
+              <div>
+                <strong class="text-white">EDIT SESSION</strong>
+                <p class="text-slate-400">Backup setelah edit session. Kembalikan ke versi sebelum edit.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🗑️</span>
+              <div>
+                <strong class="text-white">DELETE SESSION</strong>
+                <p class="text-slate-400">Backup sebelum hapus session. Bisa restore jika salah hapus.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🔄</span>
+              <div>
+                <strong class="text-white">PRE RESTORE</strong>
+                <p class="text-slate-400">Safety net otomatis saat restore. Bisa rollback jika restore bermasalah.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🔧</span>
+              <div>
+                <strong class="text-white">DATA INTEGRITY FIX</strong>
+                <p class="text-slate-400">Backup otomatis saat perbaikan data (normalisasi nama latihan, dll).</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🚨</span>
+              <div>
+                <strong class="text-white">EMERGENCY BACKUP</strong>
+                <p class="text-slate-400">Backup darurat saat terjadi error atau recovery.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">💾</span>
+              <div>
+                <strong class="text-white">MANUAL BACKUP</strong>
+                <p class="text-slate-400">Backup manual atau operasi lainnya.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-700">
+            <p class="text-xs text-slate-400">
+              💡 <strong>Tips:</strong> Maksimal 5 backup disimpan. Backup terlama otomatis dihapus.
+            </p>
+          </div>
+
+          <button
+            onclick="APP.ui.closeBackupLegend()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition active:scale-95 mt-3"
+          >
+            OK, Mengerti
+          </button>
+        </div>
+      `;
+
+      // Create temporary modal
+      const modalHTML = `
+        <div
+          id="backup-legend-modal"
+          class="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
+          onclick="if(event.target === this) APP.ui.closeBackupLegend()"
+        >
+          <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-purple-500/50 p-5 fade-in max-h-[90vh] overflow-y-auto">
+            ${legendHTML}
+          </div>
+        </div>
+      `;
+
+      // Append to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      console.log("[UI] Backup legend modal opened");
+    },
+
+    /**
+     * Closes backup legend modal
+     */
+    closeBackupLegend: function() {
+      const modal = document.getElementById('backup-legend-modal');
+      if (modal) {
+        modal.remove();
+        console.log("[UI] Backup legend modal closed");
+      }
+    },
+
+    /**
+     * Renders Library Mode (Saved Recipes)
+     * @param {HTMLElement} container - Content area container
+     */
+    renderLibraryMode: function(container) {
+      // Check if data module is available
+      if (!window.APP.data) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+            <p>Data module tidak tersedia</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Get saved recipes from localStorage
+      const savedRecipes = window.LS_SAFE.getJSON("cscs_library", []);
+
+      let html = `
+        <div class="space-y-4">
+          <!-- Header Section -->
+          <div class="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-xl p-4 border border-indigo-500/30">
+            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-book-bookmark text-indigo-400"></i> Resep Tersimpan
+            </h4>
+            <p class="text-xs text-slate-400">
+              Simpan dan kelola resep program untuk digunakan kembali atau dibagikan ke AI.
+            </p>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              onclick="APP.data.saveToLibrary()"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
+            >
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Resep Aktif
+            </button>
+            <button
+              onclick="APP.data.copyProgramToClipboard()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
+            >
+              <i class="fa-regular fa-copy"></i> Copy JSON
+            </button>
+          </div>
+
+          <!-- Saved Recipes List -->
+          <div>
+            <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3">
+              📚 Daftar Resep (${savedRecipes.length})
+            </h5>
+      `;
+
+      if (savedRecipes.length === 0) {
+        html += `
+            <div class="text-center py-8">
+              <i class="fa-solid fa-inbox text-slate-600 text-4xl mb-3"></i>
+              <p class="text-xs text-slate-500 italic">Belum ada resep tersimpan</p>
+              <p class="text-xs text-slate-600 mt-2">Klik "Simpan Resep Aktif" untuk menyimpan program</p>
+            </div>
+        `;
+      } else {
+        html += `<div class="space-y-2">`;
+
+        savedRecipes.forEach((recipe, index) => {
+          const sessionCount = Object.keys(recipe.data || {}).filter(k => k !== 'spontaneous').length;
+          const hasSpontaneous = recipe.data && recipe.data.spontaneous;
+
+          html += `
+            <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 hover:border-indigo-500/50 transition">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h6 class="text-white font-bold text-sm truncate">${recipe.name || `Resep ${index + 1}`}</h6>
+                    <button
+                      onclick="APP.ui.editRecipeName(${index})"
+                      class="text-slate-500 hover:text-indigo-400 transition text-xs"
+                      title="Edit nama"
+                    >
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                  </div>
+                  <p class="text-xs text-slate-400">
+                    📊 ${sessionCount} session${hasSpontaneous ? ' + <span class="text-purple-400">spontaneous</span>' : ''}
+                  </p>
+                  <p class="text-xs text-slate-500 mt-1">
+                    💾 ${new Date(recipe.timestamp || Date.now()).toLocaleDateString('id-ID')}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  onclick="APP.data.loadFromLibrary(${index})"
+                  class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-download"></i> Load
+                </button>
+                <button
+                  onclick="APP.data.deleteFromLibrary(${index})"
+                  class="bg-red-600/80 hover:bg-red-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered library mode with ${savedRecipes.length} recipes`);
+    },
+
+    /**
+     * Edits the name of a saved recipe
+     * @param {number} index - Index of recipe in library
+     */
+    editRecipeName: function(index) {
+      const savedRecipes = window.LS_SAFE.getJSON("cscs_library", []);
+
+      if (index < 0 || index >= savedRecipes.length) {
+        this.showToast("❌ Resep tidak ditemukan", "error");
+        return;
+      }
+
+      const recipe = savedRecipes[index];
+      const currentName = recipe.name || `Resep ${index + 1}`;
+
+      // Prompt for new name
+      const newName = prompt("Edit Nama Resep:", currentName);
+
+      if (newName === null) {
+        // User cancelled
+        return;
+      }
+
+      if (!newName.trim()) {
+        this.showToast("❌ Nama tidak boleh kosong", "error");
+        return;
+      }
+
+      // Update recipe name
+      recipe.name = newName.trim();
+      savedRecipes[index] = recipe;
+
+      // Save back to localStorage
+      window.LS_SAFE.setJSON("cscs_library", savedRecipes);
+
+      // Refresh library view
+      const contentArea = document.getElementById("ai-content-area");
+      if (contentArea) {
+        this.renderLibraryMode(contentArea);
+      }
+
+      this.showToast("✅ Nama resep diperbarui", "success");
+      console.log(`[UI] Recipe ${index} renamed to: ${newName}`);
+    },
   };
 
 })();
