@@ -1,8 +1,8 @@
 # 🏋️ THE GRIND DESIGN
 
-**Version:** V27.0 (Modular Architecture)  
-**Status:** Production Ready  
-**Last Updated:** January 1, 2026
+**Version:** V28.0 (AI Command Center)
+**Status:** Production Ready
+**Last Updated:** January 2, 2026
 
 A clinical-grade Progressive Web App for evidence-based strength training management. Built with vanilla JavaScript, designed for both personal training and professional analytics.
 
@@ -24,6 +24,12 @@ A clinical-grade Progressive Web App for evidence-based strength training manage
 - 🔬 **Half-Set Rule** - PRIMARY (1.0x) vs SECONDARY (0.5x) muscle contribution
 
 ### **AI Integration**
+- 🤖 **AI Command Center** - Integrated AI consultation with prompt library
+  - 12 built-in prompt templates (coaching, development, schema)
+  - Custom prompt creation with CRUD operations
+  - Smart placeholder replacement ({{VERSION}}, {{CONTEXT}}, etc.)
+  - Export/Import prompt collections
+  - Dynamic context generation for AI conversations
 - 🤖 **Smart Merge Engine** - AI (Gemini/GPT) can update programs via JSON
 - 🔍 **Fuzzy Exercise Matching** - Auto-maps exercise name variations
 - 📋 **Conflict Detection** - User control over AI-suggested changes
@@ -45,16 +51,16 @@ A clinical-grade Progressive Web App for evidence-based strength training manage
 
 ---
 
-## 🏗️ Architecture (V27.0)
+## 🏗️ Architecture (V28.0)
 
-**Modular Structure (12 files, 9,656 lines total):**
+**Modular Structure (13 files, ~12,000 lines total):**
 
 ```
 project-root/
-├── index.html              (2,203 lines) - HTML skeleton
+├── index.html              (2,206 lines) - HTML skeleton
 ├── exercises-library.js    (1,817 lines) - Exercise database
 ├── js/
-│   ├── constants.js        (430 lines)   - PRESETS, STARTER_PACK
+│   ├── constants.js        (455 lines)   - PRESETS, STARTER_PACK, version metadata
 │   ├── core.js            (344 lines)   - LS_SAFE, APP.state, APP.core
 │   ├── validation.js      (491 lines)   - APP.validation
 │   ├── data.js            (1,218 lines)  - APP.data, CRUD operations
@@ -62,15 +68,17 @@ project-root/
 │   ├── stats.js           (1,665 lines)  - APP.stats, charts, analytics
 │   ├── session.js         (750 lines)   - APP.session management
 │   ├── cardio.js          (111 lines)   - APP.cardio, APP.timer
-│   ├── ui.js              (1,051 lines)  - APP.ui, rendering, modals
+│   ├── ui.js              (1,901 lines)  - APP.ui, rendering, modals
+│   ├── ai-bridge.js       (1,060 lines)  - APP.aiBridge, prompt library
 │   ├── debug.js           (46 lines)    - APP.debug, error handling
 │   ├── nav.js             (827 lines)   - APP.nav, APP.init
 │   └── cloud.js           (195 lines)   - Google Drive integration
 └── sw.js, manifest.json    - PWA configuration
 ```
 
-**Key Improvement (V27):**
-- ✅ 58% reduction in index.html size (9,000 → 2,203 lines)
+**Key Improvements:**
+- ✅ V27: 58% reduction in index.html size (9,000 → 2,203 lines)
+- ✅ V28: AI Command Center with 12 built-in prompts + custom prompt management
 - ✅ Clear separation of concerns (module per namespace)
 - ✅ Easier maintenance and AI context efficiency
 - ✅ Git-friendly (cleaner diffs, parallel development)
@@ -179,6 +187,7 @@ Comprehensive documentation suite for developers and contributors:
 
 | Version | Date | Major Changes |
 |---------|------|---------------|
+| **V28.0** | Jan 2026 | AI Command Center - 12 built-in prompts, custom prompt CRUD, smart placeholders |
 | **V27.0** | Jan 2026 | Modular architecture - 12 modules, 8-phase refactoring, 11 bugs fixed |
 | **V26.6** | Dec 2025 | Data integrity hotfix - canonical exercise naming enforcement |
 | **V26.5** | Dec 2025 | Library expansion - 40+ machine variations with clinical notes |
@@ -281,13 +290,13 @@ See [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) for complete rules.
 ## 🎓 Learning Resources
 
 **For New Developers:**
-1. Read [HANDOVER_V27.md](./HANDOVER_V27.md) - V27 complete story
+1. Read [HANDOVER_V28.md](./HANDOVER_V28.md) - V28 complete story
 2. Read [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
 3. Read [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) - Code patterns
 4. Study modules in order (core → validation → data → ui → nav)
 
 **Critical Concepts:**
-- IIFE module pattern (V27)
+- IIFE module pattern (V27+)
 - Closure scoping (window.APP vs local APP)
 - Object.assign merge pattern
 - Module load order dependencies
@@ -303,9 +312,46 @@ See [CODING_GUIDELINES.md](./CODING_GUIDELINES.md) for complete rules.
 
 ## 👥 Credits
 
-**Lead Developer:** sand01chi  
-**Architecture & Refactoring:** Collaborative (sand01chi + Claude AI)  
-**V27 Refactoring:** 8 phases, 3 days, 11 critical bugs solved  
+### **Development Team**
+
+**Lead Project Manager:** sand01chi
+- Vision & direction
+- Requirements definition
+- Product roadmap
+
+**Design Architect:** Claude.ai
+- Technical specifications
+- Architecture design
+- Feature planning
+
+**Design Auditor:** Gemini
+- Architecture validation
+- Risk assessment
+- Design review
+
+**Lead Coder:** Claude Code
+- Implementation in VS Code
+- Code quality
+- Production deployment
+
+### **Version Highlights**
+
+**V28.0 (AI Command Center):**
+- 12 built-in AI prompts
+- Custom prompt CRUD operations
+- Smart placeholder system
+- Duration: ~8.5 hours
+
+**V27.0 (Modular Architecture):**
+- 8-phase refactoring
+- 12 modules created
+- 11 critical bugs solved
+- Duration: 3 days
+
+### **Special Thanks**
+
+- **Renaissance Periodization** (Dr. Mike Israetel) - Volume landmark methodology
+- **CSCS Community** - Evidence-based training principles  
 
 ---
 

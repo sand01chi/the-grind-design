@@ -105,7 +105,7 @@
 
     normalizeExerciseNames: function () {
       console.log("Creating safety backup before normalization...");
-      APP.safety.createBackup("v26_6_integrity_fix");
+      APP.safety.createBackup("data_integrity_fix");
 
       const report = {
         normalized: 0,

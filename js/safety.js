@@ -37,7 +37,7 @@
           weights: LS_SAFE.getJSON("weights", []),
           blueprints: LS_SAFE.getJSON("blueprints", []),
 
-          version: "V26.6 Stable",
+          version: "The Grind Design PWA",
           userAgent: navigator.userAgent,
         };
 
@@ -144,14 +144,19 @@
             const backup = LS_SAFE.getJSON(key);
 
             if (backup && backup.timestamp) {
+              // Count sessions, excluding 'spontaneous' key from program count
+              const allKeys = Object.keys(backup.workoutData || {});
+              const hasSpontaneous = allKeys.includes('spontaneous');
+              const programSessionCount = hasSpontaneous ? allKeys.length - 1 : allKeys.length;
+
               backups.push({
                 id: key,
                 operation: backup.operation,
                 timestamp: backup.timestamp,
                 date:
                   backup.date || new Date(backup.timestamp).toISOString(),
-                sessionCount: Object.keys(backup.workoutData || {})
-                  .length,
+                sessionCount: programSessionCount,
+                hasSpontaneous: hasSpontaneous,
                 historyCount: (backup.gym_hist || []).length,
               });
             }

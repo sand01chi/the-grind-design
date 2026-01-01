@@ -2,6 +2,38 @@
   'use strict';
 
   // ============================================
+  // VERSION & ARCHITECTURE INFO
+  // ============================================
+
+  if (!window.APP) window.APP = {};
+
+  window.APP.version = {
+    number: "28.0",
+    name: "AI Command Center",
+    date: "January 2026",
+    previous: "27.0"
+  };
+
+  window.APP.architecture = {
+    pattern: "IIFE Modular",
+    modules: 12,
+    stack: ["Vanilla JavaScript", "Tailwind CSS", "Chart.js"],
+    storage: "LocalStorage (LS_SAFE wrapper)",
+    files: [
+      "js/core.js",
+      "js/validation.js",
+      "js/data.js",
+      "js/safety.js",
+      "js/stats.js",
+      "js/session.js",
+      "js/ui.js",
+      "js/ai-bridge.js"
+    ]
+  };
+
+  console.log(`[VERSION] The Grind Design v${window.APP.version.number} - ${window.APP.version.name}`);
+
+  // ============================================
   // PRESETS - Quick Workout Templates
   // ============================================
 

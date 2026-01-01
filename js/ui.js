@@ -1061,6 +1061,2140 @@
         alert("Error: " + e.message);
       }
     },
+
+    // ============================================================
+    // AI COMMAND CENTER (V28 Phase 3)
+    // ============================================================
+
+    /**
+     * Opens AI Command Center modal
+     * Default mode: context export
+     */
+    openAICommandCenter: function(initialMode = "context") {
+      const modal = document.getElementById("ai-command-center-modal");
+      if (!modal) {
+        console.error("[UI] AI Command Center modal not found");
+        return;
+      }
+
+      // Set initial mode
+      const selector = document.getElementById("ai-mode-selector");
+      if (selector) {
+        selector.value = initialMode;
+      }
+
+      // Load mode content
+      this.switchAIMode(initialMode);
+
+      // Show modal
+      modal.classList.remove("hidden");
+
+      console.log(`[UI] AI Command Center opened with mode: ${initialMode}`);
+    },
+
+    /**
+     * Closes AI Command Center modal and cleans up state
+     */
+    closeAICommandCenter: function() {
+      const modal = document.getElementById("ai-command-center-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+
+      // Clear content area
+      const contentArea = document.getElementById("ai-content-area");
+      if (contentArea) {
+        contentArea.innerHTML = "";
+      }
+
+      // Clear preview state
+      window.aiCommandCenterPreview = null;
+
+      console.log("[UI] AI Command Center closed, state cleared");
+    },
+
+    /**
+     * Switches between AI modes (context export / import / backup)
+     * @param {string} mode - "context", "import", or "backup"
+     */
+    switchAIMode: function(mode) {
+      const contentArea = document.getElementById("ai-content-area");
+      if (!contentArea) {
+        console.error("[UI] Content area not found");
+        return;
+      }
+
+      // Clear preview state
+      window.aiCommandCenterPreview = null;
+
+      if (mode === "context") {
+        this.renderContextMode(contentArea);
+      } else if (mode === "import") {
+        this.renderImportMode(contentArea);
+      } else if (mode === "library") {
+        this.renderLibraryMode(contentArea);
+      } else if (mode === "backup") {
+        this.renderBackupMode(contentArea);
+      } else if (mode === "prompt-manager") {
+        this.renderPromptManagerMode(contentArea);
+      }
+
+      console.log(`[UI] Switched to AI mode: ${mode}`);
+    },
+
+    /**
+     * Renders Context Export Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderContextMode: function(container) {
+      // Generate context using AI Bridge
+      let contextText = "";
+      if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
+        contextText = window.APP.aiBridge.getPromptContext("coach");
+      } else {
+        contextText = "[ERROR] AI Bridge module not loaded";
+        console.error("[UI] AI Bridge not available");
+      }
+
+      const html = `
+        <div class="space-y-3">
+          <p class="text-xs text-slate-400">
+            Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif.
+            Salin teks ini untuk konsultasi AI.
+          </p>
+
+          <textarea
+            id="ai-context-textarea"
+            readonly
+            class="w-full bg-slate-900 text-slate-100 font-mono text-xs p-3 rounded-lg border border-slate-700 resize-none"
+            rows="12"
+            style="min-height: 300px;"
+          >${contextText}</textarea>
+
+          <button
+            onclick="APP.ui.copyContextToClipboard()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <i class="fa-solid fa-copy"></i> SALIN KONTEKS
+          </button>
+
+          <p class="text-[10px] text-slate-500 italic text-center">
+            Setelah disalin, paste ke AI seperti Gemini atau ChatGPT untuk konsultasi.
+          </p>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Renders Import Recipe Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderImportMode: function(container) {
+      const html = `
+        <div class="space-y-3">
+          <p class="text-xs text-slate-400">
+            Paste JSON resep latihan dari AI di bawah, lalu klik Analyze untuk validasi.
+          </p>
+
+          <!-- Template Buttons -->
+          <div class="flex gap-2 mb-2">
+            <button
+              onclick="APP.ui.showProgramTemplateOptions()"
+              class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-1"
+              title="Load template atau copy program aktif"
+            >
+              <i class="fa-solid fa-file-code"></i> Template Program
+            </button>
+            <button
+              onclick="APP.ui.loadRecipeTemplate('spontaneous')"
+              class="flex-1 bg-purple-700 hover:bg-purple-600 text-white text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-1"
+              title="Load template untuk sesi spontan"
+            >
+              <i class="fa-solid fa-bolt"></i> Template Spontan
+            </button>
+          </div>
+
+          <!-- Exercise Library Info Button -->
+          <button
+            onclick="APP.ui.showExerciseLibraryInfo()"
+            class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-3 rounded-lg transition flex items-center justify-center gap-2 border border-slate-600"
+            title="Lihat daftar exercise yang tersedia di library"
+          >
+            <i class="fa-solid fa-dumbbell"></i> Exercise Library Reference
+          </button>
+
+          <textarea
+            id="ai-import-textarea"
+            placeholder="Paste JSON resep dari AI di sini..."
+            class="w-full bg-slate-900 text-emerald-400 font-mono text-xs p-3 rounded-lg border border-slate-700 resize-none focus:border-purple-500 transition"
+            rows="8"
+            style="min-height: 200px;"
+          ></textarea>
+
+          <button
+            onclick="APP.ui.analyzeAIRecipe()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ANALYZE JSON
+          </button>
+
+          <!-- Preview Card (hidden initially) -->
+          <div id="ai-preview-card" class="hidden"></div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Copies context to clipboard
+     */
+    copyContextToClipboard: async function() {
+      const textarea = document.getElementById("ai-context-textarea");
+      if (!textarea) {
+        console.error("[UI] Context textarea not found");
+        return;
+      }
+
+      const text = textarea.value;
+
+      try {
+        // Try modern Clipboard API
+        await navigator.clipboard.writeText(text);
+        this.showToast("✅ Konteks berhasil dicopy!", "success");
+        console.log("[UI] Context copied to clipboard");
+      } catch (e) {
+        // Fallback: select text for manual copy
+        console.warn("[UI] Clipboard API failed, using fallback:", e);
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+
+        try {
+          document.execCommand('copy');
+          this.showToast("✅ Teks terpilih - tekan Ctrl+C", "success");
+        } catch (err) {
+          console.error("[UI] Copy failed:", err);
+          this.showToast("❌ Gagal copy - pilih manual", "error");
+        }
+      }
+    },
+
+    /**
+     * Analyzes AI recipe JSON and shows preview
+     */
+    analyzeAIRecipe: function() {
+      const textarea = document.getElementById("ai-import-textarea");
+      const previewCard = document.getElementById("ai-preview-card");
+
+      if (!textarea || !previewCard) {
+        console.error("[UI] Import elements not found");
+        return;
+      }
+
+      const jsonString = textarea.value.trim();
+
+      // Validate input
+      if (!jsonString) {
+        this.showToast("❌ JSON kosong", "error");
+        return;
+      }
+
+      // Parse using AI Bridge
+      let result;
+      if (window.APP.aiBridge && window.APP.aiBridge.parseRecipe) {
+        result = window.APP.aiBridge.parseRecipe(jsonString);
+      } else {
+        console.error("[UI] AI Bridge not available");
+        this.showToast("❌ AI Bridge module tidak tersedia", "error");
+        return;
+      }
+
+      console.log("[UI] Parse result:", result);
+
+      // Store preview data globally for confirm action
+      window.aiCommandCenterPreview = result;
+
+      // Render preview card
+      this.renderPreviewCard(previewCard, result);
+
+      // Show preview card
+      previewCard.classList.remove("hidden");
+    },
+
+    /**
+     * Renders preview card based on parse result
+     * @param {HTMLElement} container - Preview card container
+     * @param {Object} result - Parse result from AI Bridge
+     */
+    renderPreviewCard: function(container, result) {
+      const isSuccess = result.success;
+      const borderColor = isSuccess ? "border-emerald-500" : "border-red-500";
+      const bgColor = isSuccess ? "bg-emerald-900/20" : "bg-red-900/20";
+
+      let html = `
+        <div class="preview-card p-4 rounded-lg border-2 ${borderColor} ${bgColor}">
+          <!-- Status Badge -->
+          <div class="mb-3 flex items-center gap-2">
+            ${isSuccess
+              ? '<span class="text-emerald-400 text-sm font-bold">✅ Valid Recipe</span>'
+              : '<span class="text-red-400 text-sm font-bold">❌ Invalid Recipe</span>'
+            }
+          </div>
+      `;
+
+      // Summary (if success)
+      if (isSuccess && result.data) {
+        const sessionCount = Object.keys(result.data).length;
+        let exerciseCount = 0;
+
+        Object.values(result.data).forEach(session => {
+          if (session.exercises) {
+            exerciseCount += session.exercises.length;
+          }
+        });
+
+        html += `
+          <div class="summary mb-3 text-xs text-slate-300">
+            <h4 class="font-bold text-white mb-2">Ringkasan:</h4>
+            <p>• Schema: <span class="font-mono text-purple-400">${result.schemaType}</span></p>
+            <p>• Sesi: <span class="font-bold text-emerald-400">${sessionCount}</span> sesi</p>
+            <p>• Total Latihan: <span class="font-bold text-emerald-400">${exerciseCount}</span> exercises</p>
+          </div>
+        `;
+      }
+
+      // Errors (if any)
+      if (result.errors && result.errors.length > 0) {
+        html += `
+          <div class="errors mb-3">
+            <h4 class="text-xs font-bold text-red-400 mb-2">❌ Errors:</h4>
+            <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+              ${result.errors.map(err => `<li>${err}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Warnings (if any)
+      if (result.warnings && result.warnings.length > 0) {
+        html += `
+          <div class="warnings mb-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">⚠️ Warnings:</h4>
+            <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+              ${result.warnings.map(warn => `<li>${warn}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Confirm Button (ONLY if success)
+      if (isSuccess) {
+        html += `
+          <button
+            onclick="APP.ui.confirmAIImport()"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 mt-4"
+          >
+            <i class="fa-solid fa-check-circle"></i> CONFIRM IMPORT
+          </button>
+
+          <p class="text-[10px] text-slate-500 italic text-center mt-2">
+            ⚠️ Backup otomatis akan dibuat sebelum import
+          </p>
+        `;
+      }
+
+      html += `</div>`;
+
+      container.innerHTML = html;
+    },
+
+    /**
+     * Confirms and executes AI recipe import (SAFETY CRITICAL)
+     */
+    confirmAIImport: function() {
+      // Get preview data
+      const preview = window.aiCommandCenterPreview;
+
+      if (!preview || !preview.success || !preview.data) {
+        console.error("[UI] Invalid preview state");
+        this.showToast("❌ Error: Preview data tidak valid", "error");
+        return;
+      }
+
+      console.log("[UI] Confirming AI import:", preview);
+
+      try {
+        // STEP 1: Create backup (MANDATORY)
+        if (window.APP.safety && window.APP.safety.createBackup) {
+          window.APP.safety.createBackup("pre_ai_import");
+          console.log("[UI] Backup created before import");
+        } else {
+          console.warn("[UI] Safety module not available, skipping backup");
+        }
+
+        // STEP 2: Save based on schema type
+        if (preview.schemaType === "program_import") {
+          // PARTIAL MERGE: Only overwrite sessions that exist in the recipe
+          // Other sessions remain untouched (safe!)
+          Object.keys(preview.data).forEach(sessionId => {
+            if (sessionId !== "spontaneous") {
+              window.APP.state.workoutData[sessionId] = preview.data[sessionId];
+              console.log(`[UI] Imported/Updated session: ${sessionId}`);
+            }
+          });
+
+          // Persist to localStorage
+          if (window.APP.core && window.APP.core.saveProgram) {
+            window.APP.core.saveProgram();
+            console.log("[UI] Program saved to localStorage");
+          }
+
+          // Refresh UI to dashboard
+          if (window.APP.nav && window.APP.nav.switchView) {
+            window.APP.nav.switchView('dashboard');
+          }
+
+          this.closeAICommandCenter();
+          this.showToast("✅ Program berhasil diimport!", "success");
+
+        } else if (preview.schemaType === "spontaneous_import") {
+          // SAVE TO PRESETS (don't overwrite active spontaneous session)
+          const spontaneousData = preview.data.spontaneous;
+          const presetName = spontaneousData.title || "AI Import";
+
+          // Get existing presets
+          const presets = window.LS_SAFE.getJSON("cscs_spon_presets", []);
+
+          // Add new preset
+          presets.push({
+            name: `${presetName} (AI)`,
+            data: spontaneousData
+          });
+
+          // Save to localStorage
+          window.LS_SAFE.setJSON("cscs_spon_presets", presets);
+          console.log("[UI] Saved spontaneous recipe to presets");
+
+          this.closeAICommandCenter();
+          this.showToast("✅ Resep spontan tersimpan di Presets!", "success");
+        }
+
+        console.log("[UI] AI import completed successfully");
+
+      } catch (e) {
+        console.error("[UI] AI import failed:", e);
+        this.showToast("❌ Import gagal: " + e.message, "error");
+
+        // Try to restore from backup
+        if (window.APP.safety && window.APP.safety.restore) {
+          const backups = window.APP.safety.listBackups();
+          const latestBackup = backups.find(b => b.id.includes("pre_ai_import"));
+
+          if (latestBackup) {
+            console.log("[UI] Attempting to restore from backup");
+            window.APP.safety.restore(latestBackup.id);
+            this.showToast("⚠️ Restored from backup", "warning");
+          }
+        }
+      }
+    },
+
+    /**
+     * Loads example recipe template into import textarea
+     * @param {string} type - "program" or "spontaneous"
+     */
+    loadRecipeTemplate: function(type) {
+      const textarea = document.getElementById("ai-import-textarea");
+      if (!textarea) {
+        console.error("[UI] Import textarea not found");
+        return;
+      }
+
+      // Get templates from AI Bridge
+      if (!window.APP.aiBridge || !window.APP.aiBridge.getRecipeTemplates) {
+        console.error("[UI] AI Bridge getRecipeTemplates() not available");
+        this.showToast("❌ Template tidak tersedia", "error");
+        return;
+      }
+
+      const templates = window.APP.aiBridge.getRecipeTemplates();
+      let template;
+
+      if (type === "program") {
+        template = templates.programTemplate;
+      } else if (type === "spontaneous") {
+        template = templates.spontaneousTemplate;
+      } else {
+        console.error("[UI] Unknown template type:", type);
+        return;
+      }
+
+      // Format JSON with 2-space indentation
+      const formattedJSON = JSON.stringify(template, null, 2);
+      textarea.value = formattedJSON;
+
+      // Auto-scroll to top
+      textarea.scrollTop = 0;
+
+      // Show toast
+      const templateName = type === "program" ? "Program" : "Spontaneous";
+      this.showToast(`📋 Template ${templateName} loaded`, "success");
+
+      console.log(`[UI] Loaded ${type} template into textarea`);
+    },
+
+    /**
+     * Shows modal with program template options (example template or copy current program)
+     */
+    showProgramTemplateOptions: function() {
+      const modalHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-file-code"></i> Template Program
+              </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+              <p class="text-slate-300 text-sm mb-4">
+                Pilih sumber template untuk resep program:
+              </p>
+
+              <!-- Option 1: Example Template -->
+              <button
+                onclick="APP.ui.loadRecipeTemplate('program'); APP.ui.closeProgramTemplateModal();"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold py-4 px-4 rounded-xl transition active:scale-95 flex items-center gap-3 border-2 border-slate-600 hover:border-slate-500"
+              >
+                <div class="bg-slate-600 p-3 rounded-lg">
+                  <i class="fa-solid fa-file-code text-xl"></i>
+                </div>
+                <div class="text-left flex-1">
+                  <div class="font-bold">📄 Template Contoh</div>
+                  <div class="text-xs text-slate-400">Load template contoh dari AI Bridge</div>
+                </div>
+              </button>
+
+              <!-- Option 2: Copy Current Program -->
+              <button
+                onclick="APP.ui.copyCurrentProgram(); APP.ui.closeProgramTemplateModal();"
+                class="w-full bg-purple-700 hover:bg-purple-600 text-white text-sm font-bold py-4 px-4 rounded-xl transition active:scale-95 flex items-center gap-3 border-2 border-purple-600 hover:border-purple-500"
+              >
+                <div class="bg-purple-600 p-3 rounded-lg">
+                  <i class="fa-solid fa-copy text-xl"></i>
+                </div>
+                <div class="text-left flex-1">
+                  <div class="font-bold">📋 Copy Program Aktif</div>
+                  <div class="text-xs text-slate-300">Copy program saat ini (tanpa spontaneous)</div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6">
+              <button
+                onclick="APP.ui.closeProgramTemplateModal()"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm py-2 rounded-lg transition"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'program-template-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+    },
+
+    /**
+     * Closes the program template options modal
+     */
+    closeProgramTemplateModal: function() {
+      const modal = document.getElementById('program-template-modal');
+      if (modal) {
+        modal.remove();
+      }
+    },
+
+    /**
+     * Copies current active program to import textarea (excludes spontaneous session)
+     */
+    copyCurrentProgram: function() {
+      const textarea = document.getElementById("ai-import-textarea");
+      if (!textarea) {
+        console.error("[UI] Import textarea not found");
+        return;
+      }
+
+      // Get current program data
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        this.showToast("❌ Data program tidak tersedia", "error");
+        return;
+      }
+
+      const workoutData = window.APP.state.workoutData;
+
+      // Filter out spontaneous session and ensure proper structure
+      const programOnly = {};
+      Object.keys(workoutData).forEach(sessionId => {
+        if (sessionId !== 'spontaneous') {
+          const session = workoutData[sessionId];
+
+          // Ensure session has all required fields
+          const sessionCopy = {
+            label: session.label || sessionId.toUpperCase(),
+            title: session.title || "Untitled Session"
+          };
+
+          // Add dynamic if it exists
+          if (session.dynamic) {
+            sessionCopy.dynamic = session.dynamic;
+          }
+
+          // Map exercises
+          sessionCopy.exercises = Array.isArray(session.exercises) ? session.exercises.map(ex => {
+            const exerciseCopy = {
+              sets: ex.sets || 3,
+              rest: ex.rest || 90
+            };
+
+            // Add note if exists
+            if (ex.note) {
+              exerciseCopy.note = ex.note;
+            }
+
+            // Map options
+            exerciseCopy.options = Array.isArray(ex.options) ? ex.options.map(opt => {
+              const optionCopy = {
+                n: opt.n || "",
+                t_r: opt.t_r || "8-12",
+                t_k: opt.t_k || 0
+              };
+
+              // Add optional fields if they exist
+              if (opt.bio) optionCopy.bio = opt.bio;
+              if (opt.note) optionCopy.note = opt.note;
+              if (opt.vid) optionCopy.vid = opt.vid;
+
+              return optionCopy;
+            }) : [];
+
+            return exerciseCopy;
+          }) : [];
+
+          programOnly[sessionId] = sessionCopy;
+        }
+      });
+
+      // Check if there's any program data
+      if (Object.keys(programOnly).length === 0) {
+        this.showToast("❌ Tidak ada program aktif untuk di-copy", "error");
+        return;
+      }
+
+      // Format JSON with 2-space indentation
+      const formattedJSON = JSON.stringify(programOnly, null, 2);
+      textarea.value = formattedJSON;
+
+      // Auto-scroll to top
+      textarea.scrollTop = 0;
+
+      // Show toast
+      const sessionCount = Object.keys(programOnly).length;
+      this.showToast(`✅ Program aktif copied (${sessionCount} session)`, "success");
+
+      console.log(`[UI] Copied current program (${sessionCount} sessions) to textarea`);
+    },
+
+    /**
+     * Shows modal with exercise library reference for AI
+     */
+    showExerciseLibraryInfo: function() {
+      // Check if EXERCISE_TARGETS is available
+      if (!window.EXERCISE_TARGETS) {
+        this.showToast("❌ Exercise library tidak tersedia", "error");
+        return;
+      }
+
+      // Generate compact exercise list grouped by muscle
+      const exercisesByMuscle = {};
+
+      Object.keys(window.EXERCISE_TARGETS).forEach(exerciseName => {
+        const targets = window.EXERCISE_TARGETS[exerciseName];
+
+        // Group by primary muscle
+        if (targets.length > 0) {
+          const primaryMuscle = targets.find(t => t.role === "PRIMARY")?.muscle || "other";
+
+          if (!exercisesByMuscle[primaryMuscle]) {
+            exercisesByMuscle[primaryMuscle] = [];
+          }
+
+          exercisesByMuscle[primaryMuscle].push(exerciseName);
+        }
+      });
+
+      // Sort exercises within each muscle group
+      Object.keys(exercisesByMuscle).forEach(muscle => {
+        exercisesByMuscle[muscle].sort();
+      });
+
+      // Build compact text format for AI
+      let libraryText = `# THE GRIND DESIGN - Exercise Library Reference\n\n`;
+      libraryText += `**Total Exercises:** ${Object.keys(window.EXERCISE_TARGETS).length}\n\n`;
+      libraryText += `**IMPORTANT:** All exercise names in recipes MUST exactly match names from this list.\n\n`;
+      libraryText += `---\n\n`;
+
+      // Muscle groups in order
+      const muscleOrder = ['chest', 'back', 'shoulders', 'arms', 'legs'];
+
+      muscleOrder.forEach(muscle => {
+        if (exercisesByMuscle[muscle]) {
+          libraryText += `## ${muscle.toUpperCase()} (${exercisesByMuscle[muscle].length} exercises)\n`;
+          exercisesByMuscle[muscle].forEach(ex => {
+            libraryText += `- ${ex}\n`;
+          });
+          libraryText += `\n`;
+        }
+      });
+
+      // Add "other" category if exists
+      if (exercisesByMuscle.other) {
+        libraryText += `## OTHER (${exercisesByMuscle.other.length} exercises)\n`;
+        exercisesByMuscle.other.forEach(ex => {
+          libraryText += `- ${ex}\n`;
+        });
+      }
+
+      // Create modal
+      const modalHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-700 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-dumbbell"></i> Exercise Library Reference
+              </h3>
+              <button
+                onclick="APP.ui.closeExerciseLibraryModal()"
+                class="text-slate-300 hover:text-white transition"
+              >
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body with scrollable content -->
+            <div class="p-6 overflow-y-auto flex-1">
+              <div class="bg-slate-900 rounded-lg p-4 mb-4">
+                <p class="text-slate-300 text-sm mb-2">
+                  <i class="fa-solid fa-info-circle text-blue-400"></i>
+                  <strong class="text-white">Copy text di bawah dan paste ke AI</strong> untuk memastikan AI menggunakan exercise names yang valid.
+                </p>
+                <p class="text-xs text-slate-400">
+                  Library ini otomatis update saat exercise baru ditambahkan.
+                </p>
+              </div>
+
+              <div class="relative">
+                <textarea
+                  id="exercise-library-text"
+                  readonly
+                  class="w-full bg-slate-900 text-slate-300 font-mono text-xs p-4 rounded-lg border border-slate-700 resize-none"
+                  style="min-height: 400px;"
+                >${libraryText}</textarea>
+
+                <button
+                  onclick="APP.ui.copyExerciseLibraryToClipboard()"
+                  class="absolute top-2 right-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-copy"></i> COPY
+                </button>
+              </div>
+
+              <!-- Stats -->
+              <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                  <div class="text-slate-400">Total Exercises</div>
+                  <div class="text-white font-bold text-lg">${Object.keys(window.EXERCISE_TARGETS).length}</div>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                  <div class="text-slate-400">Muscle Groups</div>
+                  <div class="text-white font-bold text-lg">${Object.keys(exercisesByMuscle).length}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6">
+              <button
+                onclick="APP.ui.closeExerciseLibraryModal()"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm py-2 rounded-lg transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.id = 'exercise-library-modal';
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv);
+
+      console.log(`[UI] Showed exercise library with ${Object.keys(window.EXERCISE_TARGETS).length} exercises`);
+    },
+
+    /**
+     * Closes the exercise library modal
+     */
+    closeExerciseLibraryModal: function() {
+      const modal = document.getElementById('exercise-library-modal');
+      if (modal) {
+        modal.remove();
+      }
+    },
+
+    /**
+     * Copies exercise library text to clipboard
+     */
+    copyExerciseLibraryToClipboard: async function() {
+      const textarea = document.getElementById('exercise-library-text');
+      if (!textarea) {
+        console.error("[UI] Exercise library textarea not found");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        this.showToast("✅ Exercise library copied to clipboard!", "success");
+        console.log("[UI] Exercise library copied to clipboard");
+      } catch (err) {
+        console.error("[UI] Failed to copy to clipboard:", err);
+
+        // Fallback: select text
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+
+        try {
+          document.execCommand('copy');
+          this.showToast("✅ Exercise library copied!", "success");
+        } catch (fallbackErr) {
+          this.showToast("❌ Failed to copy to clipboard", "error");
+        }
+      }
+    },
+
+    /**
+     * Renders Backup & Restore Mode
+     * @param {HTMLElement} container - Content area container
+     */
+    renderBackupMode: function(container) {
+      // Check if safety module is available
+      if (!window.APP.safety || !window.APP.safety.listBackups) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+            <p>Safety module tidak tersedia</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Get backups list
+      const backups = window.APP.safety.listBackups();
+
+      if (backups.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-database text-4xl mb-3"></i>
+            <p class="text-sm">Tidak ada backup tersedia</p>
+            <p class="text-xs mt-2">Backup otomatis dibuat saat operasi penting</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Build backup list HTML
+      let html = `
+        <div class="space-y-3">
+          <!-- Header with Info Button -->
+          <div class="flex items-start justify-between gap-2 mb-4">
+            <p class="text-xs text-slate-400 flex-1">
+              Daftar backup otomatis. Klik <strong>RESTORE</strong> untuk mengembalikan data ke backup tersebut.
+            </p>
+            <button
+              onclick="APP.ui.showBackupLegend()"
+              class="text-slate-400 hover:text-purple-400 transition shrink-0"
+              title="Lihat penjelasan simbol"
+            >
+              <i class="fa-solid fa-circle-info text-lg"></i>
+            </button>
+          </div>
+      `;
+
+      backups.forEach(backup => {
+        // Format timestamp
+        const date = new Date(backup.timestamp);
+        const dateStr = date.toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const timeStr = date.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // Operation icon and label mapping
+        let opIcon = "💾";
+        let opLabel = backup.operation.replace(/_/g, ' ').toUpperCase();
+
+        // Map legacy/specific operation names to generic labels
+        if (backup.operation.includes("v26") || backup.operation.includes("integrity")) {
+          opIcon = "🔧";
+          opLabel = "DATA INTEGRITY FIX";
+        } else if (backup.operation.includes("delete")) {
+          opIcon = "🗑️";
+        } else if (backup.operation.includes("edit")) {
+          opIcon = "✏️";
+        } else if (backup.operation.includes("create")) {
+          opIcon = "➕";
+        } else if (backup.operation.includes("restore")) {
+          opIcon = "🔄";
+        } else if (backup.operation.includes("init")) {
+          opIcon = "🚀";
+        } else if (backup.operation.includes("ai_import")) {
+          opIcon = "🤖";
+        } else if (backup.operation.includes("emergency")) {
+          opIcon = "🚨";
+          opLabel = "EMERGENCY BACKUP";
+        }
+
+        // Session count (already calculated by listBackups())
+        const sessionCount = backup.sessionCount || 0;
+        const spontaneousTag = backup.hasSpontaneous ? ' + <span class="text-purple-400">spontaneous</span>' : '';
+
+        html += `
+          <div class="bg-slate-900 border border-slate-700 rounded-lg p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">${opIcon}</span>
+                  <span class="text-white text-sm font-semibold truncate">${opLabel}</span>
+                </div>
+                <div class="text-xs text-slate-400 space-y-0.5">
+                  <div>📅 ${dateStr} • ${timeStr}</div>
+                  <div>📊 ${sessionCount} session(s)${spontaneousTag}</div>
+                </div>
+              </div>
+              <button
+                onclick="APP.safety.confirmRestore('${backup.id}')"
+                class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition active:scale-95 shrink-0"
+              >
+                RESTORE
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered ${backups.length} backups in Backup Mode`);
+    },
+
+    /**
+     * Renders Prompt Manager Mode - V28 Feature
+     * Manage built-in and custom AI prompts
+     * @param {HTMLElement} container - Content area container
+     */
+    renderPromptManagerMode: function(container) {
+      if (!window.APP || !window.APP.aiBridge) {
+        container.innerHTML = `<div class="text-center text-slate-400 py-8">AI Bridge module not loaded</div>`;
+        return;
+      }
+
+      const builtInPrompts = window.APP.aiBridge._builtInPrompts || {};
+      const customPrompts = window.APP.aiBridge._customPrompts || {};
+
+      // Group built-in prompts by category
+      const promptsByCategory = {
+        coaching: {},
+        development: {},
+        schema: {}
+      };
+
+      Object.keys(builtInPrompts).forEach(id => {
+        const prompt = builtInPrompts[id];
+        const category = prompt.category || 'schema';
+        promptsByCategory[category][id] = prompt;
+      });
+
+      // Start building HTML
+      let html = `
+        <div class="space-y-4">
+          <!-- Header Section -->
+          <div class="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl p-4 border border-purple-500/30">
+            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Kelola Prompt AI
+            </h4>
+            <p class="text-xs text-slate-400">
+              Kelola prompt template untuk AI consultation, debugging, dan brainstorming.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="window.APP.ui.showAddPromptForm()"
+              class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-plus"></i> Tambah
+            </button>
+            <button onclick="window.APP.ui.exportCustomPrompts()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-file-export"></i> Export
+            </button>
+            <button onclick="window.APP.ui.importCustomPrompts()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg transition active:scale-95">
+              <i class="fa-solid fa-file-import"></i> Import
+            </button>
+          </div>
+
+          <!-- Built-in Prompts Section -->
+          <div>
+            <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-lock"></i> Prompt Bawaan (${Object.keys(builtInPrompts).length})
+            </h5>
+      `;
+
+      // Render each category
+      const categories = [
+        { key: 'coaching', icon: '🏋️', label: 'Coaching' },
+        { key: 'development', icon: '💻', label: 'Development' },
+        { key: 'schema', icon: '📋', label: 'Schema' }
+      ];
+
+      categories.forEach(cat => {
+        const prompts = promptsByCategory[cat.key];
+        const count = Object.keys(prompts).length;
+
+        if (count > 0) {
+          html += `
+            <div class="mb-4">
+              <h6 class="text-xs text-slate-300 font-semibold mb-2">${cat.icon} Kategori: ${cat.label} (${count})</h6>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          `;
+
+          Object.keys(prompts).forEach(id => {
+            const prompt = prompts[id];
+            html += `
+              <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 hover:border-slate-600 transition">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex-1 min-w-0">
+                    <h6 class="text-white font-bold text-sm truncate">${prompt.title}</h6>
+                    <p class="text-xs text-slate-400 mt-1">${prompt.description}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="window.APP.ui.previewPrompt('${id}')"
+                    class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg transition">
+                    <i class="fa-solid fa-eye"></i> Lihat
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+
+          html += `
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += `</div>`;
+
+      // Custom Prompts Section
+      const customCount = Object.keys(customPrompts).length;
+      html += `
+        <div>
+          <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square"></i> Prompt Kustom (${customCount})
+          </h5>
+      `;
+
+      if (customCount === 0) {
+        html += `
+          <div class="text-center py-8 bg-slate-900/50 rounded-lg border border-dashed border-slate-700">
+            <p class="text-slate-400 text-sm mb-2">Belum ada prompt kustom</p>
+            <p class="text-slate-500 text-xs">Klik "Tambah" untuk membuat prompt baru</p>
+          </div>
+        `;
+      } else {
+        html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+
+        Object.keys(customPrompts).forEach(id => {
+          const prompt = customPrompts[id];
+          html += `
+            <div class="bg-slate-900 border border-purple-500/50 rounded-lg p-3 hover:border-purple-400 transition">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1 min-w-0">
+                  <h6 class="text-white font-bold text-sm truncate">${prompt.title}</h6>
+                  <p class="text-xs text-slate-400 mt-1">${prompt.description}</p>
+                  <p class="text-xs text-purple-400 mt-1">
+                    <i class="fa-solid fa-tag"></i> ${prompt.category || 'custom'}
+                  </p>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-1 mt-2">
+                <button onclick="window.APP.ui.previewPrompt('${id}')"
+                  class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button onclick="window.APP.ui.showEditPromptForm('${id}')"
+                  class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="window.APP.ui.deleteCustomPrompt('${id}')"
+                  class="bg-red-600/80 hover:bg-red-500 text-white text-xs font-bold py-2 rounded-lg transition">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered Prompt Manager: ${Object.keys(builtInPrompts).length} built-in, ${customCount} custom`);
+    },
+
+    /**
+     * Shows backup legend/explanation modal
+     */
+    showBackupLegend: function() {
+      const legendHTML = `
+        <div class="space-y-3">
+          <h4 class="text-white font-bold text-sm mb-3">📖 Penjelasan Simbol Backup</h4>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🤖</span>
+              <div>
+                <strong class="text-white">PRE AI IMPORT</strong>
+                <p class="text-slate-400">Backup otomatis sebelum import resep AI. Safety net jika import bermasalah.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🚀</span>
+              <div>
+                <strong class="text-white">APP INIT</strong>
+                <p class="text-slate-400">Snapshot saat aplikasi dibuka. Baseline untuk recovery.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">➕</span>
+              <div>
+                <strong class="text-white">CREATE SESSION</strong>
+                <p class="text-slate-400">Backup setelah membuat session baru. Bisa rollback jika ingin undo.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">✏️</span>
+              <div>
+                <strong class="text-white">EDIT SESSION</strong>
+                <p class="text-slate-400">Backup setelah edit session. Kembalikan ke versi sebelum edit.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🗑️</span>
+              <div>
+                <strong class="text-white">DELETE SESSION</strong>
+                <p class="text-slate-400">Backup sebelum hapus session. Bisa restore jika salah hapus.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🔄</span>
+              <div>
+                <strong class="text-white">PRE RESTORE</strong>
+                <p class="text-slate-400">Safety net otomatis saat restore. Bisa rollback jika restore bermasalah.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🔧</span>
+              <div>
+                <strong class="text-white">DATA INTEGRITY FIX</strong>
+                <p class="text-slate-400">Backup otomatis saat perbaikan data (normalisasi nama latihan, dll).</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">🚨</span>
+              <div>
+                <strong class="text-white">EMERGENCY BACKUP</strong>
+                <p class="text-slate-400">Backup darurat saat terjadi error atau recovery.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-lg shrink-0">💾</span>
+              <div>
+                <strong class="text-white">MANUAL BACKUP</strong>
+                <p class="text-slate-400">Backup manual atau operasi lainnya.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-700">
+            <p class="text-xs text-slate-400">
+              💡 <strong>Tips:</strong> Maksimal 5 backup disimpan. Backup terlama otomatis dihapus.
+            </p>
+          </div>
+
+          <button
+            onclick="APP.ui.closeBackupLegend()"
+            class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg transition active:scale-95 mt-3"
+          >
+            OK, Mengerti
+          </button>
+        </div>
+      `;
+
+      // Create temporary modal
+      const modalHTML = `
+        <div
+          id="backup-legend-modal"
+          class="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
+          onclick="if(event.target === this) APP.ui.closeBackupLegend()"
+        >
+          <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-purple-500/50 p-5 fade-in max-h-[90vh] overflow-y-auto">
+            ${legendHTML}
+          </div>
+        </div>
+      `;
+
+      // Append to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      console.log("[UI] Backup legend modal opened");
+    },
+
+    /**
+     * Closes backup legend modal
+     */
+    closeBackupLegend: function() {
+      const modal = document.getElementById('backup-legend-modal');
+      if (modal) {
+        modal.remove();
+        console.log("[UI] Backup legend modal closed");
+      }
+    },
+
+    /**
+     * Renders Library Mode (Saved Recipes)
+     * @param {HTMLElement} container - Content area container
+     */
+    renderLibraryMode: function(container) {
+      // Check if data module is available
+      if (!window.APP.data) {
+        container.innerHTML = `
+          <div class="text-center text-slate-400 py-8">
+            <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+            <p>Data module tidak tersedia</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Get saved recipes from localStorage
+      const savedRecipes = window.LS_SAFE.getJSON("cscs_library", []);
+
+      let html = `
+        <div class="space-y-4">
+          <!-- Header Section -->
+          <div class="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-xl p-4 border border-indigo-500/30">
+            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-book-bookmark text-indigo-400"></i> Resep Tersimpan
+            </h4>
+            <p class="text-xs text-slate-400">
+              Simpan dan kelola resep program untuk digunakan kembali atau dibagikan ke AI.
+            </p>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              onclick="APP.data.saveToLibrary()"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
+            >
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Resep Aktif
+            </button>
+            <button
+              onclick="APP.data.copyProgramToClipboard()"
+              class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition active:scale-95"
+            >
+              <i class="fa-regular fa-copy"></i> Copy JSON
+            </button>
+          </div>
+
+          <!-- Saved Recipes List -->
+          <div>
+            <h5 class="text-xs text-slate-400 font-bold uppercase border-b border-slate-700 pb-2 mb-3">
+              📚 Daftar Resep (${savedRecipes.length})
+            </h5>
+      `;
+
+      if (savedRecipes.length === 0) {
+        html += `
+            <div class="text-center py-8">
+              <i class="fa-solid fa-inbox text-slate-600 text-4xl mb-3"></i>
+              <p class="text-xs text-slate-500 italic">Belum ada resep tersimpan</p>
+              <p class="text-xs text-slate-600 mt-2">Klik "Simpan Resep Aktif" untuk menyimpan program</p>
+            </div>
+        `;
+      } else {
+        html += `<div class="space-y-2">`;
+
+        savedRecipes.forEach((recipe, index) => {
+          const sessionCount = Object.keys(recipe.data || {}).filter(k => k !== 'spontaneous').length;
+          const hasSpontaneous = recipe.data && recipe.data.spontaneous;
+
+          html += `
+            <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 hover:border-indigo-500/50 transition">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h6 class="text-white font-bold text-sm truncate">${recipe.name || `Resep ${index + 1}`}</h6>
+                    <button
+                      onclick="APP.ui.editRecipeName(${index})"
+                      class="text-slate-500 hover:text-indigo-400 transition text-xs"
+                      title="Edit nama"
+                    >
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                  </div>
+                  <p class="text-xs text-slate-400">
+                    📊 ${sessionCount} session${hasSpontaneous ? ' + <span class="text-purple-400">spontaneous</span>' : ''}
+                  </p>
+                  <p class="text-xs text-slate-500 mt-1">
+                    💾 ${new Date(recipe.timestamp || Date.now()).toLocaleDateString('id-ID')}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  onclick="APP.data.loadFromLibrary(${index})"
+                  class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-download"></i> Load
+                </button>
+                <button
+                  onclick="APP.data.deleteFromLibrary(${index})"
+                  class="bg-red-600/80 hover:bg-red-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition active:scale-95"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      console.log(`[UI] Rendered library mode with ${savedRecipes.length} recipes`);
+    },
+
+    /**
+     * Edits the name of a saved recipe
+     * @param {number} index - Index of recipe in library
+     */
+    editRecipeName: function(index) {
+      const savedRecipes = window.LS_SAFE.getJSON("cscs_library", []);
+
+      if (index < 0 || index >= savedRecipes.length) {
+        this.showToast("❌ Resep tidak ditemukan", "error");
+        return;
+      }
+
+      const recipe = savedRecipes[index];
+      const currentName = recipe.name || `Resep ${index + 1}`;
+
+      // Prompt for new name
+      const newName = prompt("Edit Nama Resep:", currentName);
+
+      if (newName === null) {
+        // User cancelled
+        return;
+      }
+
+      if (!newName.trim()) {
+        this.showToast("❌ Nama tidak boleh kosong", "error");
+        return;
+      }
+
+      // Update recipe name
+      recipe.name = newName.trim();
+      savedRecipes[index] = recipe;
+
+      // Save back to localStorage
+      window.LS_SAFE.setJSON("cscs_library", savedRecipes);
+
+      // Refresh library view
+      const contentArea = document.getElementById("ai-content-area");
+      if (contentArea) {
+        this.renderLibraryMode(contentArea);
+      }
+
+      this.showToast("✅ Nama resep diperbarui", "success");
+      console.log(`[UI] Recipe ${index} renamed to: ${newName}`);
+    },
+
+    // ========================================
+    // V28: PROMPT MANAGER CRUD FUNCTIONS
+    // ========================================
+
+    /**
+     * Shows Add Custom Prompt Form Modal
+     */
+    showAddPromptForm: function() {
+      const modalHTML = `
+        <div id="add-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-purple-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-700 to-indigo-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Tambah Prompt Kustom
+              </h3>
+              <button onclick="document.getElementById('add-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <form id="custom-prompt-form" class="p-6 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  ID Prompt (unik, tanpa spasi)
+                </label>
+                <input type="text" id="prompt-id"
+                  pattern="[a-zA-Z0-9_]+"
+                  required
+                  placeholder="contoh: myCustomPrompt"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+                <p class="text-xs text-slate-500 mt-1">Hanya huruf, angka, dan underscore</p>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Judul
+                </label>
+                <input type="text" id="prompt-title"
+                  required
+                  placeholder="Judul prompt yang akan ditampilkan"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Deskripsi
+                </label>
+                <textarea id="prompt-description"
+                  rows="2"
+                  required
+                  placeholder="Deskripsi singkat fungsi prompt ini"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition resize-none"></textarea>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Kategori
+                </label>
+                <select id="prompt-category"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition">
+                  <option value="coaching">🏋️ Coaching</option>
+                  <option value="development">💻 Development</option>
+                  <option value="schema">📋 Schema</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template Prompt
+                </label>
+                <textarea id="prompt-template"
+                  rows="8"
+                  required
+                  placeholder="Tulis prompt AI di sini. Gunakan placeholder: {{CONTEXT}}, {{VERSION}}, {{USER_DESCRIPTION}}, {{ARCHITECTURE}}, {{STACK}}"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition resize-none font-mono"></textarea>
+                <p class="text-xs text-slate-500 mt-1">Placeholder yang tersedia: {{CONTEXT}}, {{VERSION}}, {{USER_DESCRIPTION}}, {{ARCHITECTURE}}, {{STACK}}, {{FILES}}</p>
+              </div>
+
+              <div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="prompt-include-context"
+                    class="w-4 h-4 text-purple-600 bg-slate-900 border-slate-700 rounded focus:ring-purple-500">
+                  <span class="text-sm text-slate-300">Sertakan data konteks workout (profil, log, program)</span>
+                </label>
+              </div>
+
+              <div class="flex gap-2 pt-4 border-t border-slate-700">
+                <button type="button"
+                  onclick="document.getElementById('add-prompt-modal').remove()"
+                  class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                  Batal
+                </button>
+                <button type="submit"
+                  class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition">
+                  <i class="fa-solid fa-save"></i> Simpan Prompt
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add submit handler
+      document.getElementById('custom-prompt-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById('prompt-id').value.trim();
+        const title = document.getElementById('prompt-title').value.trim();
+        const description = document.getElementById('prompt-description').value.trim();
+        const category = document.getElementById('prompt-category').value;
+        const template = document.getElementById('prompt-template').value.trim();
+        const includeContext = document.getElementById('prompt-include-context').checked;
+
+        // Call library.add
+        const success = window.APP.aiBridge.library.add(id, {
+          title,
+          description,
+          category,
+          includeContext,
+          template
+        });
+
+        if (success) {
+          window.APP.ui.showToast("✅ Prompt berhasil ditambahkan", "success");
+          document.getElementById('add-prompt-modal').remove();
+
+          // Refresh UI if still in prompt manager mode
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            window.APP.ui.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          window.APP.ui.showToast("❌ Gagal menambahkan prompt. Cek console untuk detail.", "error");
+        }
+      });
+    },
+
+    /**
+     * Shows Edit Custom Prompt Form Modal
+     * @param {string} promptId - ID of prompt to edit
+     */
+    showEditPromptForm: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge || !window.APP.aiBridge._customPrompts[promptId]) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge._customPrompts[promptId];
+
+      const modalHTML = `
+        <div id="edit-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-indigo-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-700 to-purple-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-pen"></i> Edit Prompt: ${prompt.title}
+              </h3>
+              <button onclick="document.getElementById('edit-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <form id="edit-prompt-form" class="p-6 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  ID Prompt (tidak bisa diubah)
+                </label>
+                <input type="text"
+                  value="${promptId}"
+                  disabled
+                  class="w-full bg-slate-900/50 border border-slate-700 text-slate-500 text-sm p-3 rounded-lg cursor-not-allowed">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Judul
+                </label>
+                <input type="text" id="edit-prompt-title"
+                  required
+                  value="${prompt.title}"
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Deskripsi
+                </label>
+                <textarea id="edit-prompt-description"
+                  rows="2"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition resize-none">${prompt.description}</textarea>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Kategori
+                </label>
+                <select id="edit-prompt-category"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition">
+                  <option value="coaching" ${prompt.category === 'coaching' ? 'selected' : ''}>🏋️ Coaching</option>
+                  <option value="development" ${prompt.category === 'development' ? 'selected' : ''}>💻 Development</option>
+                  <option value="schema" ${prompt.category === 'schema' ? 'selected' : ''}>📋 Schema</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template Prompt
+                </label>
+                <textarea id="edit-prompt-template"
+                  rows="8"
+                  required
+                  class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-3 rounded-lg focus:border-indigo-500 transition resize-none font-mono">${prompt.template}</textarea>
+              </div>
+
+              <div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="edit-prompt-include-context"
+                    ${prompt.includeContext ? 'checked' : ''}
+                    class="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500">
+                  <span class="text-sm text-slate-300">Sertakan data konteks workout</span>
+                </label>
+              </div>
+
+              <div class="flex gap-2 pt-4 border-t border-slate-700">
+                <button type="button"
+                  onclick="document.getElementById('edit-prompt-modal').remove()"
+                  class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                  Batal
+                </button>
+                <button type="submit"
+                  class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition">
+                  <i class="fa-solid fa-save"></i> Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add submit handler
+      document.getElementById('edit-prompt-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const updates = {
+          title: document.getElementById('edit-prompt-title').value.trim(),
+          description: document.getElementById('edit-prompt-description').value.trim(),
+          category: document.getElementById('edit-prompt-category').value,
+          template: document.getElementById('edit-prompt-template').value.trim(),
+          includeContext: document.getElementById('edit-prompt-include-context').checked
+        };
+
+        // Call library.edit
+        const success = window.APP.aiBridge.library.edit(promptId, updates);
+
+        if (success) {
+          window.APP.ui.showToast("✅ Prompt berhasil diperbarui", "success");
+          document.getElementById('edit-prompt-modal').remove();
+
+          // Refresh UI
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            window.APP.ui.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          window.APP.ui.showToast("❌ Gagal memperbarui prompt", "error");
+        }
+      });
+    },
+
+    /**
+     * Deletes a custom prompt with confirmation
+     * @param {string} promptId - ID of prompt to delete
+     */
+    deleteCustomPrompt: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge || !window.APP.aiBridge._customPrompts[promptId]) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge._customPrompts[promptId];
+
+      if (confirm(`Hapus prompt "${prompt.title}"?\n\nTindakan ini tidak bisa dibatalkan.`)) {
+        const success = window.APP.aiBridge.library.delete(promptId);
+
+        if (success) {
+          this.showToast("✅ Prompt berhasil dihapus", "success");
+
+          // Refresh UI
+          const contentArea = document.getElementById("ai-content-area");
+          if (contentArea) {
+            this.renderPromptManagerMode(contentArea);
+          }
+        } else {
+          this.showToast("❌ Gagal menghapus prompt", "error");
+        }
+      }
+    },
+
+    /**
+     * Exports all custom prompts to JSON file
+     */
+    exportCustomPrompts: function() {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const json = window.APP.aiBridge.library.export();
+
+      if (!json) {
+        this.showToast("❌ Gagal mengekspor prompts", "error");
+        return;
+      }
+
+      // Create blob and download
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `grind-custom-prompts-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      const customCount = Object.keys(window.APP.aiBridge._customPrompts || {}).length;
+      this.showToast(`✅ ${customCount} prompt berhasil dieksport`, "success");
+    },
+
+    /**
+     * Imports custom prompts from JSON file
+     */
+    importCustomPrompts: function() {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      // Create file input
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const result = window.APP.aiBridge.library.import(event.target.result);
+
+            if (result.success) {
+              window.APP.ui.showToast(
+                `✅ Import berhasil: ${result.imported} ditambahkan, ${result.skipped} dilewati`,
+                "success"
+              );
+            } else {
+              window.APP.ui.showToast(
+                `⚠️ Import gagal: ${result.errors.join(', ')}`,
+                "error"
+              );
+            }
+
+            // Refresh UI
+            const contentArea = document.getElementById("ai-content-area");
+            if (contentArea) {
+              window.APP.ui.renderPromptManagerMode(contentArea);
+            }
+          } catch (err) {
+            window.APP.ui.showToast("❌ File JSON tidak valid", "error");
+            console.error("[UI] Import error:", err);
+          }
+        };
+
+        reader.readAsText(file);
+      };
+
+      input.click();
+    },
+
+    /**
+     * Shows preview modal for a prompt
+     * @param {string} promptId - ID of prompt to preview
+     */
+    previewPrompt: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const allPrompts = window.APP.aiBridge.prompts;
+      const prompt = allPrompts[promptId];
+
+      if (!prompt) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      const isBuiltIn = window.APP.aiBridge._builtInPrompts[promptId] !== undefined;
+      const badge = isBuiltIn ?
+        '<span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">🔒 Built-in</span>' :
+        '<span class="text-xs bg-purple-600 text-white px-2 py-1 rounded">✏️ Custom</span>';
+
+      const modalHTML = `
+        <div id="preview-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
+                  <i class="fa-solid fa-eye"></i> ${prompt.title}
+                </h3>
+                <p class="text-sm text-slate-300">${prompt.description}</p>
+              </div>
+              <button onclick="document.getElementById('preview-prompt-modal').remove()"
+                class="text-white hover:text-slate-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+              <!-- Metadata -->
+              <div class="flex items-center gap-2 text-sm">
+                ${badge}
+                <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                  <i class="fa-solid fa-tag"></i> ${prompt.category || 'custom'}
+                </span>
+                <span class="text-xs ${prompt.includeContext ? 'bg-green-600' : 'bg-slate-700'} text-white px-2 py-1 rounded">
+                  ${prompt.includeContext ? '✅ Includes Context' : '❌ No Context'}
+                </span>
+              </div>
+
+              <!-- Template -->
+              <div>
+                <label class="text-xs text-slate-400 font-bold uppercase block mb-2">
+                  Template:
+                </label>
+                <textarea readonly id="prompt-template-preview"
+                  class="w-full bg-slate-900 border border-slate-700 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  rows="15">${prompt.template}</textarea>
+              </div>
+
+              <!-- Placeholders Info -->
+              <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
+                <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">Available Placeholders:</h5>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div><code class="text-purple-400">{{CONTEXT}}</code> - Workout data & history</div>
+                  <div><code class="text-purple-400">{{VERSION}}</code> - App version</div>
+                  <div><code class="text-purple-400">{{ARCHITECTURE}}</code> - Architecture pattern</div>
+                  <div><code class="text-purple-400">{{STACK}}</code> - Tech stack</div>
+                  <div><code class="text-purple-400">{{FILES}}</code> - Module files</div>
+                  <div><code class="text-purple-400">{{USER_DESCRIPTION}}</code> - User input</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-4 sm:px-6 pb-4 sm:pb-6 flex flex-col sm:flex-row gap-2">
+              <button id="generate-prompt-btn"
+                class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Prompt
+              </button>
+              <button id="copy-template-btn"
+                class="w-full sm:flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                <i class="fa-solid fa-copy"></i> Copy Template
+              </button>
+              <button onclick="document.getElementById('preview-prompt-modal').remove()"
+                class="w-full sm:flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add generate button event listener
+      const generateBtn = document.getElementById('generate-prompt-btn');
+      if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+          window.APP.ui.showGeneratePromptModal(promptId);
+        });
+      }
+
+      // Add copy button event listener (avoid inline template literal escaping)
+      const copyBtn = document.getElementById('copy-template-btn');
+      const templateTextarea = document.getElementById('prompt-template-preview');
+
+      if (copyBtn && templateTextarea) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(templateTextarea.value)
+            .then(() => {
+              window.APP.ui.showToast('✅ Template disalin', 'success');
+            })
+            .catch(() => {
+              window.APP.ui.showToast('❌ Gagal menyalin', 'error');
+            });
+        });
+      }
+    },
+
+    /**
+     * Shows modal for generating a prompt with user inputs
+     * @param {string} promptId - ID of the prompt to generate
+     */
+    showGeneratePromptModal: function(promptId) {
+      if (!window.APP || !window.APP.aiBridge) {
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      const prompt = window.APP.aiBridge.prompts[promptId];
+      if (!prompt) {
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      // Detect which placeholders are used in the template
+      const usedPlaceholders = [];
+      const commonPlaceholders = [
+        { key: 'USER_DESCRIPTION', label: 'Description / Issue', placeholder: 'Describe your issue or request...', multiline: true },
+        { key: 'TOPIC', label: 'Topic', placeholder: 'Enter topic...', multiline: false },
+        { key: 'PROPOSAL', label: 'Proposal', placeholder: 'Enter your proposal...', multiline: true },
+        { key: 'DECISIONS', label: 'Decisions Made', placeholder: 'Enter decisions...', multiline: true },
+        { key: 'FEEDBACK', label: 'Feedback', placeholder: 'Enter feedback...', multiline: true },
+        { key: 'NEXT_STEP', label: 'Next Step', placeholder: 'Enter next step...', multiline: false },
+        { key: 'FEATURE_REQUEST', label: 'Feature Request', placeholder: 'Describe the feature...', multiline: true },
+        { key: 'DESIGN_PROGRESS', label: 'Design Progress', placeholder: 'Current progress...', multiline: true },
+        { key: 'AUDIT_FEEDBACK', label: 'Audit Feedback', placeholder: 'Audit notes...', multiline: true },
+        { key: 'NEXT_DELIVERABLE', label: 'Next Deliverable', placeholder: 'What needs to be delivered...', multiline: false }
+      ];
+
+      commonPlaceholders.forEach(ph => {
+        const regex = new RegExp(`\\{\\{${ph.key}\\}\\}`, 'g');
+        if (regex.test(prompt.template)) {
+          usedPlaceholders.push(ph);
+        }
+      });
+
+      // Build input fields HTML
+      let inputFieldsHTML = '';
+      if (usedPlaceholders.length > 0) {
+        inputFieldsHTML = `
+          <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 space-y-3">
+            <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">
+              <i class="fa-solid fa-edit"></i> User Inputs:
+            </h5>
+            ${usedPlaceholders.map(ph => {
+              if (ph.multiline) {
+                return `
+                  <div>
+                    <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
+                    <textarea id="input-${ph.key.toLowerCase()}"
+                      placeholder="${ph.placeholder}"
+                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition resize-none"
+                      rows="3"></textarea>
+                  </div>
+                `;
+              } else {
+                return `
+                  <div>
+                    <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
+                    <input type="text" id="input-${ph.key.toLowerCase()}"
+                      placeholder="${ph.placeholder}"
+                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition">
+                  </div>
+                `;
+              }
+            }).join('')}
+          </div>
+        `;
+      } else {
+        inputFieldsHTML = `
+          <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
+            <p class="text-xs text-slate-400 italic">
+              ℹ️ No user input required for this prompt.
+            </p>
+          </div>
+        `;
+      }
+
+      const modalHTML = `
+        <div id="generate-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
+          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Prompt: ${prompt.title}
+                </h3>
+                <p class="text-sm text-emerald-100">${prompt.description}</p>
+              </div>
+              <button onclick="document.getElementById('generate-prompt-modal').remove()"
+                class="text-white hover:text-emerald-200 transition">
+                <i class="fa-solid fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+              ${inputFieldsHTML}
+
+              <!-- Generated Output (hidden initially) -->
+              <div id="generated-output-container" class="hidden space-y-2">
+                <label class="text-xs text-slate-400 font-bold uppercase block">
+                  <i class="fa-solid fa-check-circle text-emerald-500"></i> Generated Prompt (Placeholders Replaced):
+                </label>
+                <textarea readonly id="generated-prompt-output"
+                  class="w-full bg-slate-900 border border-emerald-500 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  rows="15"></textarea>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-6 flex gap-2">
+              <button id="generate-action-btn"
+                class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition">
+                <i class="fa-solid fa-magic"></i> Generate
+              </button>
+              <button id="copy-generated-btn" class="hidden flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition">
+                <i class="fa-solid fa-copy"></i> Copy Generated
+              </button>
+              <button onclick="document.getElementById('generate-prompt-modal').remove()"
+                class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Create and append modal
+      const modalDiv = document.createElement('div');
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+
+      // Add generate button handler
+      const generateActionBtn = document.getElementById('generate-action-btn');
+      const generatedOutputContainer = document.getElementById('generated-output-container');
+      const generatedOutput = document.getElementById('generated-prompt-output');
+      const copyGeneratedBtn = document.getElementById('copy-generated-btn');
+
+      if (generateActionBtn) {
+        generateActionBtn.addEventListener('click', () => {
+          // Collect user inputs
+          const userInputs = {};
+          usedPlaceholders.forEach(ph => {
+            const inputEl = document.getElementById(`input-${ph.key.toLowerCase()}`);
+            if (inputEl) {
+              userInputs[ph.key.toLowerCase()] = inputEl.value.trim();
+            }
+          });
+
+          // Call getPrompt with user inputs
+          const generatedPrompt = window.APP.aiBridge.getPrompt(promptId, userInputs);
+
+          if (!generatedPrompt) {
+            window.APP.ui.showToast("❌ Gagal generate prompt", "error");
+            return;
+          }
+
+          // Check if any placeholders remain
+          const hasPlaceholders = /\{\{[A-Z_]+\}\}/.test(generatedPrompt.content);
+
+          if (hasPlaceholders) {
+            window.APP.ui.showToast("⚠️ Warning: Some placeholders not replaced", "warning");
+          } else {
+            window.APP.ui.showToast("✅ Prompt generated successfully!", "success");
+          }
+
+          // Display generated output
+          generatedOutput.value = generatedPrompt.content;
+          generatedOutputContainer.classList.remove('hidden');
+          copyGeneratedBtn.classList.remove('hidden');
+
+          // Scroll to output
+          generatedOutput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+      }
+
+      // Add copy generated button handler
+      if (copyGeneratedBtn) {
+        copyGeneratedBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(generatedOutput.value)
+            .then(() => {
+              window.APP.ui.showToast('✅ Generated prompt copied!', 'success');
+            })
+            .catch(() => {
+              window.APP.ui.showToast('❌ Failed to copy', 'error');
+            });
+        });
+      }
+    },
   };
 
 })();

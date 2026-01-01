@@ -10,7 +10,17 @@
       "Bash(grep:*)",
       "Bash(wc:*)",
       "Bash(done)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(cmd /c \"start chrome.exe --new-window index.html\")",
+      "Bash(start test-placeholders.html)",
+      "Bash(start quick-test.html)",
+      "Bash(start final-test.html)",
+      "Bash(start index.html)",
+      "Bash(start test-context-detail.html)",
+      "Bash(if [ -d \"c:/Users/ASUS/Documents/GitHub/the-grind-design/docs/handovers\" ])",
+      "Bash(then echo \"Directory exists\")",
+      "Bash(else echo \"Directory does not exist\")",
+      "Bash(fi)"
     ]
   }
 }

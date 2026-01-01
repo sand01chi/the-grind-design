@@ -705,13 +705,56 @@
       presets.splice(idx, 1);
       LS_SAFE.setJSON("cscs_spon_presets", presets);
       APP.session.spontaneous.renderPresets();
+      if (window.APP.ui && window.APP.ui.showToast) {
+        window.APP.ui.showToast("✅ Preset dihapus", "success");
+      }
+    },
+    editPresetName: (idx) => {
+      const presets = LS_SAFE.getJSON("cscs_spon_presets", []);
+
+      if (idx < 0 || idx >= presets.length) {
+        if (window.APP.ui && window.APP.ui.showToast) {
+          window.APP.ui.showToast("❌ Preset tidak ditemukan", "error");
+        }
+        return;
+      }
+
+      const currentName = presets[idx].name || `Preset ${idx + 1}`;
+      const newName = prompt("Edit Nama Preset Spontan:", currentName);
+
+      if (newName === null) {
+        // User cancelled
+        return;
+      }
+
+      if (!newName.trim()) {
+        if (window.APP.ui && window.APP.ui.showToast) {
+          window.APP.ui.showToast("❌ Nama tidak boleh kosong", "error");
+        }
+        return;
+      }
+
+      // Update preset name
+      presets[idx].name = newName.trim();
+      LS_SAFE.setJSON("cscs_spon_presets", presets);
+
+      // Refresh presets display
+      APP.session.spontaneous.renderPresets();
+
+      if (window.APP.ui && window.APP.ui.showToast) {
+        window.APP.ui.showToast("✅ Nama preset diperbarui", "success");
+      }
+
+      console.log(`[SESSION] Spontaneous preset ${idx} renamed to: ${newName}`);
     },
     loadPreset: (idx, fromSource = "custom") => {
       let data;
-      if (fromSource === "custom") {
+      if (fromSource === "custom" || fromSource === "saved") {
+        // Load from saved presets (localStorage)
         const presets = LS_SAFE.getJSON("cscs_spon_presets", []);
-        data = presets[idx].data;
-      } else {
+        data = presets[idx]?.data;
+      } else if (fromSource === "blueprint") {
+        // Load from built-in blueprints
         data = PRESETS[idx];
       }
       if (data) {
@@ -721,27 +764,92 @@
         APP.state.workoutData["spontaneous"].label = "SPONTANEOUS";
         APP.ui.closeModal("spontaneous");
         APP.nav.loadWorkout("spontaneous");
+        console.log(`[SESSION] Loaded preset from ${fromSource}: ${idx}`);
+      } else {
+        console.error(`[SESSION] Preset not found: ${idx} from ${fromSource}`);
+        if (window.APP.ui && window.APP.ui.showToast) {
+          window.APP.ui.showToast("❌ Preset tidak ditemukan", "error");
+        }
       }
     },
     renderPresets: () => {
-      const presets = LS_SAFE.getJSON("cscs_spon_presets", []);
-      const el = document.getElementById("spon-preset-list");
-      if (!presets.length) {
-        el.innerHTML = `<div class="text-center text-[10px] text-slate-500 italic">Belum ada preset tersimpan.</div>`;
-      } else {
-        let html = "";
-        presets.forEach((p, i) => {
-          html += `<div class="bg-slate-900 p-2 rounded flex justify-between items-center border border-slate-700 mb-1"><span class="text-xs text-indigo-300 font-bold">${p.name}</span><div class="flex gap-2"><button onclick="APP.session.spontaneous.loadPreset(${i})" class="text-emerald-400 hover:text-emerald-300 text-[10px]"><i class="fa-solid fa-play"></i></button><button onclick="APP.session.spontaneous.deletePreset(${i})" class="text-red-500 hover:text-red-400 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
-        });
-        el.innerHTML = html;
-      }
+      // Render blueprint presets (built-in presets)
       const bpEl = document.getElementById("blueprint-list");
+      if (!bpEl) {
+        console.warn("[SESSION] Blueprint list element not found");
+        return;
+      }
+
+      // Get saved presets from localStorage
+      const savedPresets = LS_SAFE.getJSON("cscs_spon_presets", []);
+
       let bpHtml = "";
-      Object.keys(PRESETS).forEach((k) => {
-        const p = PRESETS[k];
-        bpHtml += `<button onclick="APP.session.spontaneous.loadPreset('${k}', 'blueprint')" class="w-full bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/30 p-2 rounded text-left flex items-center gap-3 transition"><div class="bg-indigo-500/20 w-8 h-8 rounded flex items-center justify-center text-indigo-400"><i class="fa-solid fa-dumbbell"></i></div><div><div class="text-xs font-bold text-white">${p.title}</div><div class="text-[10px] text-indigo-300">${p.exercises.length} Exercises</div></div></button>`;
-      });
+
+      // First, render saved presets (from Library/AI imports)
+      if (savedPresets.length > 0) {
+        bpHtml += `<div class="text-[10px] text-purple-400 font-bold uppercase mb-2 border-b border-purple-500/30 pb-1">📚 Saved Presets</div>`;
+        savedPresets.forEach((p, i) => {
+          bpHtml += `
+            <div class="w-full bg-purple-900/40 border border-purple-500/30 p-2 rounded flex items-center gap-2 mb-2">
+              <button
+                onclick="APP.session.spontaneous.loadPreset(${i}, 'saved')"
+                class="flex-1 flex items-center gap-3 hover:opacity-80 transition text-left"
+              >
+                <div class="bg-purple-500/20 w-8 h-8 rounded flex items-center justify-center text-purple-400 shrink-0">
+                  <i class="fa-solid fa-bookmark"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-bold text-white truncate">${p.name || 'Preset ' + (i + 1)}</div>
+                  <div class="text-[10px] text-purple-300">Custom preset</div>
+                </div>
+              </button>
+              <button
+                onclick="APP.session.spontaneous.editPresetName(${i}); event.stopPropagation();"
+                class="text-purple-400 hover:text-purple-300 transition text-xs px-2 shrink-0"
+                title="Edit nama"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                onclick="APP.session.spontaneous.deletePreset(${i}); event.stopPropagation();"
+                class="text-red-400 hover:text-red-300 transition text-xs px-2 shrink-0"
+                title="Hapus preset"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          `;
+        });
+      }
+
+      // Then, render built-in blueprint presets
+      if (Object.keys(PRESETS).length > 0) {
+        bpHtml += `<div class="text-[10px] text-indigo-400 font-bold uppercase mb-2 border-b border-indigo-500/30 pb-1 ${savedPresets.length > 0 ? 'mt-3' : ''}">⚡ Built-in Blueprints</div>`;
+        Object.keys(PRESETS).forEach((k) => {
+          const p = PRESETS[k];
+          bpHtml += `
+            <button
+              onclick="APP.session.spontaneous.loadPreset('${k}', 'blueprint')"
+              class="w-full bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/30 p-2 rounded text-left flex items-center gap-3 transition mb-2"
+            >
+              <div class="bg-indigo-500/20 w-8 h-8 rounded flex items-center justify-center text-indigo-400">
+                <i class="fa-solid fa-dumbbell"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-bold text-white truncate">${p.title}</div>
+                <div class="text-[10px] text-indigo-300">${p.exercises.length} Exercises</div>
+              </div>
+            </button>
+          `;
+        });
+      }
+
+      if (!bpHtml) {
+        bpHtml = `<div class="text-center text-xs text-slate-500 italic py-4">Belum ada preset</div>`;
+      }
+
       bpEl.innerHTML = bpHtml;
+      console.log(`[SESSION] Rendered ${savedPresets.length} saved + ${Object.keys(PRESETS).length} built-in presets`);
       },
     },
   };
