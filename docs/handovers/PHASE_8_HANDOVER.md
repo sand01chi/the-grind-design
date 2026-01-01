@@ -495,17 +495,12 @@ Deployment: ❌ FAILED
 - This is NOT a GitHub error - it's a documentation syntax conflict
 
 **Solution Applied (Commit a7dd8c3):**
-Wrapped all code blocks and inline examples containing `{{` or `}}` with Liquid raw tags:
+Wrapped all code blocks and inline examples containing `{{` or `}}` with Liquid raw tags.
 
-````markdown
-{% raw %}
-```javascript
-if (generated.content.includes('{{')) {
-  showToast("⚠️ Some placeholders not replaced", "warning");
-}
-```
-{% endraw %}
-````
+**Example pattern:**
+- Before: Code blocks with `{{` syntax directly in markdown
+- After: Wrapped with `{&#37; raw &#37;}` at the start and `{&#37; endraw &#37;}` at the end
+- This tells Jekyll to treat the content as plain text, not Liquid template syntax
 
 **Files Fixed:**
 - ✅ ARCHITECTURE.md (8 sections wrapped)
@@ -516,9 +511,9 @@ if (generated.content.includes('{{')) {
 
 When writing markdown files for GitHub Pages deployment:
 
-1. ✅ **ALWAYS** wrap code blocks with {% raw %}`{% raw %}...{% endraw %}`{% endraw %} if they contain:
-   - {% raw %}`{{` or `}}`{% endraw %}
-   - {% raw %}`{%` or `%}`{% endraw %}
+1. ✅ **ALWAYS** wrap code blocks with `{&#37; raw &#37;}...{&#37; endraw &#37;}` if they contain:
+   - `{&#123;` or `&#125;}`
+   - `{&#37;` or `&#37;}`
    - Any Liquid-like syntax
 
 2. ✅ Test locally with Jekyll before pushing:
