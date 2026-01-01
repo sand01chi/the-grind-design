@@ -497,7 +497,7 @@ Deployment: ❌ FAILED
 **Solution Applied (Commit a7dd8c3):**
 Wrapped all code blocks and inline examples containing `{{` or `}}` with Liquid raw tags:
 
-```markdown
+````markdown
 {% raw %}
 ```javascript
 if (generated.content.includes('{{')) {
@@ -505,7 +505,7 @@ if (generated.content.includes('{{')) {
 }
 ```
 {% endraw %}
-```
+````
 
 **Files Fixed:**
 - ✅ ARCHITECTURE.md (8 sections wrapped)
@@ -516,9 +516,9 @@ if (generated.content.includes('{{')) {
 
 When writing markdown files for GitHub Pages deployment:
 
-1. ✅ **ALWAYS** wrap code blocks with `{% raw %}...{% endraw %}` if they contain:
-   - `{{` or `}}`
-   - `{%` or `%}`
+1. ✅ **ALWAYS** wrap code blocks with {% raw %}`{% raw %}...{% endraw %}`{% endraw %} if they contain:
+   - {% raw %}`{{` or `}}`{% endraw %}
+   - {% raw %}`{%` or `%}`{% endraw %}
    - Any Liquid-like syntax
 
 2. ✅ Test locally with Jekyll before pushing:
