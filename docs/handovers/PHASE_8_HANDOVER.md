@@ -530,7 +530,29 @@ When writing markdown files for GitHub Pages deployment:
 - Ensures documentation renders correctly
 - Avoids confusion between code examples and templating syntax
 
-**Reference Commit:** `a7dd8c3` - "fix: Escape Liquid syntax in documentation for Jekyll compatibility"
+**Reference Commits:**
+- `a7dd8c3` - "fix: Escape Liquid syntax in documentation for Jekyll compatibility"
+- `a33157b` - "docs: Add Jekyll/Liquid syntax warning to PHASE_8_HANDOVER"
+- `0c86c43` - "fix: Escape Liquid tags in PHASE_8_HANDOVER documentation"
+- `24ec53e` - "fix: Replace Liquid tags with HTML entities in PHASE_8_HANDOVER"
+
+**Final Audit Results (January 2, 2026):**
+
+All documentation files verified safe for GitHub Pages deployment:
+
+| File | Status | Raw Tags | HTML Entities | Notes |
+|------|--------|----------|---------------|-------|
+| ARCHITECTURE.md | ✅ SAFE | 8 pairs | 0 | All `{&#123;` sections wrapped |
+| CHANGELOG_DETAILED.md | ✅ SAFE | 1 pair | 0 | Placeholder section wrapped |
+| README.md | ✅ SAFE | 1 pair | 0 | Inline usage wrapped |
+| PHASE_8_HANDOVER.md | ✅ SAFE | 0 | All | Uses HTML entities only |
+| HANDOVER_V27.md | ✅ SAFE | 0 | 0 | No Liquid-like syntax |
+
+**Key Learnings:**
+1. **Documentation files** use `{&#37; raw &#37;}...{&#37; endraw &#37;}` for code blocks
+2. **Handover files** use HTML entities (`&#37;`, `&#123;`, `&#125;`) to avoid meta-issues
+3. **Never nest** `{&#37; raw &#37;}` tags - they don't escape themselves
+4. **Always test** with `jekyll build` locally before pushing
 
 ---
 
