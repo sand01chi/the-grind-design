@@ -979,7 +979,6 @@ Confirm you understand:
 Let's begin the audit!`
 },
 
-
       /**
        * Coach Prompt - CSCS Fitness Coaching Scenario
        * Uses Indonesian format matching existing prepareGeminiAudit pattern
