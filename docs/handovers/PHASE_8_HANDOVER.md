@@ -443,6 +443,13 @@ project-root/
 - Error boundary (debug.js)
 - Secure cloud sync (cloud.js)
 
+### OAuth Client ID Security Note
+The Google OAuth Client ID documented in this handover (line 132) is **safe to expose** in public documentation:
+- OAuth Client IDs are public identifiers by design (not secrets)
+- Security is enforced via authorized domains in Google Cloud Console
+- No `client_secret` or private keys are exposed in the codebase
+- This follows OAuth 2.0 best practices for client-side applications
+
 ---
 
 ## 🎓 LESSONS LEARNED
@@ -464,6 +471,71 @@ project-root/
 2. **Automated Testing:** Add unit tests before major refactors
 3. **Incremental Commits:** Smaller, more frequent commits
 4. **Linting:** Configure ESLint for consistent formatting
+
+---
+
+## ⚠️ CRITICAL: GITHUB PAGES DEPLOYMENT WARNING
+
+### Jekyll/Liquid Syntax Conflict (Discovered January 2, 2026)
+
+**Issue:** GitHub Pages uses Jekyll static site generator with Liquid templating engine. Liquid interprets `{{` and `}}` as variable delimiters, causing build failures when these appear in documentation code blocks.
+
+**Error Example:**
+```
+Line 747 in ARCHITECTURE.md:
+if (generated.content.includes('{{')) { ...
+
+Jekyll Error: "Variable '{{'))' was not properly terminated"
+Deployment: ❌ FAILED
+```
+
+**Root Cause:**
+- Documentation contained code examples with `{{` and `}}` (placeholder syntax)
+- Jekyll tried to parse these as Liquid variables
+- This is NOT a GitHub error - it's a documentation syntax conflict
+
+**Solution Applied (Commit a7dd8c3):**
+Wrapped all code blocks and inline examples containing `{{` or `}}` with Liquid raw tags:
+
+```markdown
+{% raw %}
+```javascript
+if (generated.content.includes('{{')) {
+  showToast("⚠️ Some placeholders not replaced", "warning");
+}
+```
+{% endraw %}
+```
+
+**Files Fixed:**
+- ✅ ARCHITECTURE.md (8 sections wrapped)
+- ✅ CHANGELOG_DETAILED.md (placeholder system section)
+- ✅ README.md (AI integration description)
+
+**Prevention Rule for Future Documentation:**
+
+When writing markdown files for GitHub Pages deployment:
+
+1. ✅ **ALWAYS** wrap code blocks with `{% raw %}...{% endraw %}` if they contain:
+   - `{{` or `}}`
+   - `{%` or `%}`
+   - Any Liquid-like syntax
+
+2. ✅ Test locally with Jekyll before pushing:
+   ```bash
+   gem install jekyll bundler
+   jekyll build
+   # Should show: "Build: done in X.XXX seconds"
+   ```
+
+3. ✅ Check deployment status in GitHub Settings > Pages after pushing
+
+**Why This Matters:**
+- Prevents deployment failures
+- Ensures documentation renders correctly
+- Avoids confusion between code examples and templating syntax
+
+**Reference Commit:** `a7dd8c3` - "fix: Escape Liquid syntax in documentation for Jekyll compatibility"
 
 ---
 

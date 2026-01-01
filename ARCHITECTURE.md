@@ -533,6 +533,7 @@ APP.aiBridge = {
 
 ### Placeholder System
 
+{% raw %}
 #### Auto-Replaced (System)
 - `{{VERSION}}` → `APP.version.number` + `APP.version.name`
 - `{{ARCHITECTURE}}` → `APP.architecture.pattern`
@@ -548,8 +549,10 @@ APP.aiBridge = {
 - `{{FEEDBACK}}` - Audit feedback
 - `{{NEXT_STEP}}` - Next action
 - And 4 more handover-specific placeholders
+{% endraw %}
 
 **Replacement Logic:**
+{% raw %}
 ```javascript
 getPrompt(scenario, userInputs = {}) {
   // 1. Get template
@@ -559,6 +562,7 @@ getPrompt(scenario, userInputs = {}) {
   // 5. Return { title, description, content }
 }
 ```
+{% endraw %}
 
 ---
 
@@ -567,6 +571,7 @@ getPrompt(scenario, userInputs = {}) {
 **Key:** `"ai_custom_prompts"`
 
 **Format:**
+{% raw %}
 ```javascript
 {
   "myCustomPrompt": {
@@ -581,6 +586,7 @@ getPrompt(scenario, userInputs = {}) {
   }
 }
 ```
+{% endraw %}
 
 **Protection Rules:**
 1. Built-in IDs are reserved (cannot be overridden)
@@ -593,6 +599,7 @@ getPrompt(scenario, userInputs = {}) {
 ### CRUD Operations
 
 #### Add Custom Prompt
+{% raw %}
 ```javascript
 APP.aiBridge.library.add("myPrompt", {
   title: "My Custom Prompt",
@@ -604,6 +611,7 @@ APP.aiBridge.library.add("myPrompt", {
 // Returns: true/false (success)
 // Side effect: Saves to LocalStorage
 ```
+{% endraw %}
 
 #### Edit Custom Prompt
 ```javascript
@@ -700,6 +708,7 @@ const { builtIn, custom } = APP.aiBridge.library.list();
 - Copy functionality
 
 **Flow:**
+{% raw %}
 ```
 User clicks "Generate Prompt"
   ↓
@@ -715,6 +724,7 @@ Validate output (check for unreplaced {{...}})
   ↓
 Display generated prompt with copy button
 ```
+{% endraw %}
 
 ---
 
@@ -742,12 +752,14 @@ if (this._builtInPrompts[id]) {
 ```
 
 **Validation:**
+{% raw %}
 ```javascript
 // Incomplete replacement warning
 if (generated.content.includes('{{')) {
   showToast("⚠️ Some placeholders not replaced", "warning");
 }
 ```
+{% endraw %}
 
 ---
 
@@ -769,6 +781,7 @@ if (generated.content.includes('{{')) {
 ### Testing
 
 **Unit Tests (Console):**
+{% raw %}
 ```javascript
 // Test 1: Version placeholder
 const p = APP.aiBridge.getPrompt("codePartner");
@@ -783,6 +796,7 @@ APP.aiBridge.library.delete("test");
 const json = APP.aiBridge.library.export();
 APP.aiBridge.library.import(json);
 ```
+{% endraw %}
 
 **Integration Tests (UI):**
 1. Preview prompt → Generate → Verify placeholders replaced
@@ -805,7 +819,9 @@ APP.aiBridge.library.import(json);
 ### Troubleshooting
 
 **Issue:** Placeholders not replaced
+{% raw %}
 **Solution:** Check that prompt includes `{{PLACEHOLDER}}` exactly (case-sensitive)
+{% endraw %}
 
 **Issue:** Custom prompt not saving
 **Solution:** Verify ID doesn't conflict with built-in prompts, check localStorage quota
