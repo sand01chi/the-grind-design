@@ -291,7 +291,6 @@ const EXERCISE_TARGETS = {
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-
   "Machine Shoulder Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
