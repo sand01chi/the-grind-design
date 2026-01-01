@@ -98,8 +98,8 @@ AI Command Center:
 │   └── LocalStorage persistence
 │
 ├── Smart Placeholder System
-│   ├── Auto-Replaced: {{VERSION}}, {{ARCHITECTURE}}, {{STACK}}, {{CONTEXT}}
-│   └── User-Provided: {{USER_DESCRIPTION}}, {{TOPIC}}, {{PROPOSAL}}, etc.
+│   ├── Auto-Replaced: VERSION, ARCHITECTURE, STACK, CONTEXT
+│   └── User-Provided: USER_DESCRIPTION, TOPIC, PROPOSAL, etc.
 │
 ├── Dynamic Context Generator
 │   ├── User profile (height, weight, TDEE)
@@ -423,6 +423,7 @@ APP.ui.previewPrompt = function(promptId) { };
 
 ### **Placeholder System**
 
+{% raw %}
 #### **Auto-Replaced (System)**
 ```javascript
 {{VERSION}}       → "28.0 (AI Command Center)"
@@ -445,12 +446,14 @@ APP.ui.previewPrompt = function(promptId) { };
 {{AUDIT_FEEDBACK}}     → Auditor feedback
 {{NEXT_DELIVERABLE}}   → Upcoming deliverable
 ```
+{% endraw %}
 
 ---
 
 ### **Data Storage**
 
 #### **New LocalStorage Key**
+{% raw %}
 ```javascript
 // Key: "ai_custom_prompts"
 {
@@ -466,6 +469,7 @@ APP.ui.previewPrompt = function(promptId) { };
   }
 }
 ```
+{% endraw %}
 
 **Protection Rules:**
 1. Built-in IDs are reserved (cannot be overridden)
@@ -479,6 +483,7 @@ APP.ui.previewPrompt = function(promptId) { };
 
 ### **1. Version-Agnostic Design**
 
+{% raw %}
 ```javascript
 // ❌ WRONG - Hardcoded version
 template: "You are working with The Grind Design V27..."
@@ -486,6 +491,7 @@ template: "You are working with The Grind Design V27..."
 // ✅ CORRECT - Dynamic placeholder
 template: "You are working with The Grind Design V{{VERSION}}..."
 ```
+{% endraw %}
 
 **Rule:** Use placeholders for all version-specific references.
 
@@ -696,17 +702,17 @@ if (!window.APP?.aiBridge?.getPrompt) {
 
 ### **Issue Discovery (January 2, 2026)**
 
-During V28 deployment, discovered that GitHub Pages uses Jekyll static site generator with Liquid templating engine, which caused build failures when documentation contained `{{` and `}}` syntax (used for placeholder examples in AI Command Center docs).
+During V28 deployment, discovered that GitHub Pages uses Jekyll static site generator with Liquid templating engine, which caused build failures when documentation contained double-brace placeholder syntax (used for placeholder examples in AI Command Center docs).
 
 ### **Root Cause**
 
 **Problem:**
-- Jekyll/Liquid interprets `{{` and `}}` as variable delimiters
+- Jekyll/Liquid interprets double-brace syntax as variable delimiters
 - Documentation code blocks showing placeholder syntax triggered parsing errors
-- Error: "Variable '{{'))' was not properly terminated" on line 747 in ARCHITECTURE.md
+- Error: "Variable was not properly terminated" on line 747 in ARCHITECTURE.md
 
 **Why This Happened:**
-- V28 AI Command Center heavily uses `{{PLACEHOLDER}}` syntax
+- V28 AI Command Center heavily uses double-brace PLACEHOLDER syntax
 - Documentation needed to show examples of this syntax
 - Jekyll tried to parse these examples as actual Liquid variables
 
@@ -756,7 +762,7 @@ All documentation files verified safe for GitHub Pages deployment:
 
 ### **Prevention Rules for Future V28+ Documentation**
 
-When documenting AI Command Center features or any code with `{{` `}}` syntax:
+When documenting AI Command Center features or any code with double-brace placeholder syntax:
 
 1. ✅ **ALWAYS wrap code blocks** containing Liquid-like syntax:
    - Wrap code blocks with `{&#37; raw &#37;}...{&#37; endraw &#37;}` tags
@@ -764,10 +770,10 @@ When documenting AI Command Center features or any code with `{{` `}}` syntax:
    - This prevents Jekyll from parsing `{&#123;` and `&#125;}` as variables
 
 2. ✅ **For meta-documentation** (documenting the fix itself), use HTML entities:
-   - `{&#123;` instead of `{{`
-   - `&#125;}` instead of `}}`
-   - `{&#37;` instead of `{%`
-   - `&#37;}` instead of `%}`
+   - Use `{&#123;` instead of double opening braces
+   - Use `&#125;}` instead of double closing braces
+   - Use `{&#37;` instead of opening percent
+   - Use `&#37;}` instead of closing percent
 
 3. ✅ **Test locally before pushing:**
    ```bash
@@ -936,7 +942,7 @@ APP.aiBridge.library.import(json);
 **Creating Custom Prompts:**
 1. Click "Add Custom Prompt"
 2. Enter title, description, category
-3. Write template with {{PLACEHOLDERS}}
+3. Write template with double-brace PLACEHOLDERS
 4. Save (persists to LocalStorage)
 5. Use like built-in prompts
 
@@ -954,7 +960,7 @@ APP.aiBridge.library.import(json);
 1. ✅ AI Command Center is primary AI integration point
 2. ✅ Use `APP.aiBridge.getPromptContext()` for workout data
 3. ✅ Check ARCHITECTURE.md → AI Bridge System section
-4. ✅ Follow placeholder naming convention ({{UPPERCASE_UNDERSCORE}})
+4. ✅ Follow placeholder naming convention (double-brace UPPERCASE_UNDERSCORE)
 5. ✅ Built-in prompts cover common use cases
 
 **Critical Patterns:**
