@@ -735,13 +735,56 @@
       box.innerHTML = html;
     },
 
+    // V28.1: Simplified manual copy using textarea modal
     showManualCopy: (txt) => {
       APP.ui.openModal("library");
-      const b = document.getElementById("ai-input");
-      b.value = txt;
-      b.focus();
-      b.select();
-      alert("Auto-copy blocked. Silakan copy manual teks di bawah.");
+      const textarea = document.getElementById("ai-input");
+      if (textarea) {
+        textarea.value = txt;
+        textarea.focus();
+        textarea.select();
+      }
+    },
+
+    // V28.1: Copy text from library modal textarea
+    copyTextFromLibraryModal: () => {
+      const textarea = document.getElementById("ai-input");
+      if (!textarea || !textarea.value) {
+        APP.ui.showToast("⚠️ Tidak ada text untuk dicopy", "warning");
+        return;
+      }
+
+      // Try clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(textarea.value)
+          .then(() => {
+            APP.ui.showToast("✅ Text berhasil dicopy!", "success");
+          })
+          .catch((err) => {
+            console.error("[UI] Clipboard copy failed:", err);
+            // Fallback: text is already selected, user can copy manually
+            textarea.focus();
+            textarea.select();
+            APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+          });
+      } else {
+        // Fallback for older browsers or mobile
+        textarea.focus();
+        textarea.select();
+        try {
+          // Try execCommand as fallback
+          const success = document.execCommand("copy");
+          if (success) {
+            APP.ui.showToast("✅ Text berhasil dicopy!", "success");
+          } else {
+            APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+          }
+        } catch (err) {
+          console.error("[UI] execCommand copy failed:", err);
+          APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+        }
+      }
     },
 
     // Exercise Picker System
@@ -3194,77 +3237,6 @@
             });
         });
       }
-    },
-
-    /**
-     * Open consultation data in muscleImbalance prompt generate modal
-     * V28: Routes exportForConsultation() to AI Command Center
-     * @param {string} consultationData - Pre-formatted consultation text
-     */
-    showConsultationInPrompt: function(consultationData) {
-      // Validation
-      if (!consultationData || typeof consultationData !== 'string') {
-        console.error("[UI] Invalid consultation data");
-        this.showToast("❌ Data konsultasi tidak valid", "error");
-        return;
-      }
-
-      // Check if AI Bridge available
-      if (!window.APP?.aiBridge?.getPrompt) {
-        console.error("[UI] AI Bridge not available");
-        this.showToast("❌ AI Bridge tidak tersedia", "error");
-        return;
-      }
-
-      // Check if muscleImbalance prompt exists
-      if (!window.APP.aiBridge.prompts.muscleImbalance) {
-        console.error("[UI] muscleImbalance prompt not found");
-        this.showToast("❌ Prompt tidak ditemukan", "error");
-        return;
-      }
-
-      // Open AI Command Center in prompt-manager mode
-      // Note: Old library-modal can coexist (cleanup deferred to V28.2)
-      this.openAICommandCenter("prompt-manager");
-
-      // Small delay to ensure modal renders
-      setTimeout(() => {
-        // ✅ DIRECT CALL - Skip preview, call generate modal directly
-        this.showGeneratePromptModal("muscleImbalance");
-
-        // Small delay to ensure generate modal renders
-        setTimeout(() => {
-          // Pre-populate the output textarea
-          const outputTextarea = document.getElementById("generated-prompt-output");
-          const outputContainer = document.getElementById("generated-output-container");
-          const copyBtn = document.getElementById("copy-generated-btn");
-
-          if (outputTextarea && outputContainer) {
-            // Set consultation data as "generated" output
-            outputTextarea.value = consultationData;
-
-            // Show the output section
-            outputContainer.classList.remove("hidden");
-
-            // Show copy button
-            if (copyBtn) {
-              copyBtn.classList.remove("hidden");
-            }
-
-            // Show success toast
-            this.showToast("✅ Data konsultasi siap dicopy", "success");
-
-            // Auto-focus and select for easy manual copy
-            outputTextarea.focus();
-            outputTextarea.select();
-
-            console.log("[UI] Consultation data loaded into muscleImbalance prompt");
-          } else {
-            console.error("[UI] Generate modal elements not found");
-            this.showToast("⚠️ Modal belum siap, coba lagi", "warning");
-          }
-        }, 150);
-      }, 100);
     },
   };
 
