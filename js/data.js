@@ -1207,13 +1207,9 @@
         });
       });
       rep += `\n--- END ---`;
-      APP.ui.openModal("library");
-      const b = document.getElementById("ai-input");
-      b.value = rep;
-      b.focus();
-      b.select();
-      if (navigator.clipboard)
-        navigator.clipboard.writeText(rep).then(() => alert("Copied!"));
+
+      // V28.1: Use simplified library modal for manual copy
+      APP.ui.showManualCopy(rep);
     },
   };
 

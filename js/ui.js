@@ -735,13 +735,56 @@
       box.innerHTML = html;
     },
 
+    // V28.1: Simplified manual copy using textarea modal
     showManualCopy: (txt) => {
       APP.ui.openModal("library");
-      const b = document.getElementById("ai-input");
-      b.value = txt;
-      b.focus();
-      b.select();
-      alert("Auto-copy blocked. Silakan copy manual teks di bawah.");
+      const textarea = document.getElementById("ai-input");
+      if (textarea) {
+        textarea.value = txt;
+        textarea.focus();
+        textarea.select();
+      }
+    },
+
+    // V28.1: Copy text from library modal textarea
+    copyTextFromLibraryModal: () => {
+      const textarea = document.getElementById("ai-input");
+      if (!textarea || !textarea.value) {
+        APP.ui.showToast("⚠️ Tidak ada text untuk dicopy", "warning");
+        return;
+      }
+
+      // Try clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(textarea.value)
+          .then(() => {
+            APP.ui.showToast("✅ Text berhasil dicopy!", "success");
+          })
+          .catch((err) => {
+            console.error("[UI] Clipboard copy failed:", err);
+            // Fallback: text is already selected, user can copy manually
+            textarea.focus();
+            textarea.select();
+            APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+          });
+      } else {
+        // Fallback for older browsers or mobile
+        textarea.focus();
+        textarea.select();
+        try {
+          // Try execCommand as fallback
+          const success = document.execCommand("copy");
+          if (success) {
+            APP.ui.showToast("✅ Text berhasil dicopy!", "success");
+          } else {
+            APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+          }
+        } catch (err) {
+          console.error("[UI] execCommand copy failed:", err);
+          APP.ui.showToast("⚠️ Gunakan Ctrl+C atau long-press untuk copy", "warning");
+        }
+      }
     },
 
     // Exercise Picker System
