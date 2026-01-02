@@ -1207,13 +1207,14 @@
         });
       });
       rep += `\n--- END ---`;
-      APP.ui.openModal("library");
-      const b = document.getElementById("ai-input");
-      b.value = rep;
-      b.focus();
-      b.select();
-      if (navigator.clipboard)
-        navigator.clipboard.writeText(rep).then(() => alert("Copied!"));
+
+      // V28: Route consultation data to muscleImbalance prompt
+      if (window.APP?.ui?.showConsultationInPrompt) {
+        window.APP.ui.showConsultationInPrompt(rep);
+      } else {
+        console.error("[DATA] showConsultationInPrompt not available");
+        alert("Fitur konsultasi memerlukan AI Command Center. Silakan refresh halaman.");
+      }
     },
   };
 

@@ -3195,6 +3195,77 @@
         });
       }
     },
+
+    /**
+     * Open consultation data in muscleImbalance prompt generate modal
+     * V28: Routes exportForConsultation() to AI Command Center
+     * @param {string} consultationData - Pre-formatted consultation text
+     */
+    showConsultationInPrompt: function(consultationData) {
+      // Validation
+      if (!consultationData || typeof consultationData !== 'string') {
+        console.error("[UI] Invalid consultation data");
+        this.showToast("❌ Data konsultasi tidak valid", "error");
+        return;
+      }
+
+      // Check if AI Bridge available
+      if (!window.APP?.aiBridge?.getPrompt) {
+        console.error("[UI] AI Bridge not available");
+        this.showToast("❌ AI Bridge tidak tersedia", "error");
+        return;
+      }
+
+      // Check if muscleImbalance prompt exists
+      if (!window.APP.aiBridge.prompts.muscleImbalance) {
+        console.error("[UI] muscleImbalance prompt not found");
+        this.showToast("❌ Prompt tidak ditemukan", "error");
+        return;
+      }
+
+      // Open AI Command Center in prompt-manager mode
+      // Note: Old library-modal can coexist (cleanup deferred to V28.2)
+      this.openAICommandCenter("prompt-manager");
+
+      // Small delay to ensure modal renders
+      setTimeout(() => {
+        // ✅ DIRECT CALL - Skip preview, call generate modal directly
+        this.showGeneratePromptModal("muscleImbalance");
+
+        // Small delay to ensure generate modal renders
+        setTimeout(() => {
+          // Pre-populate the output textarea
+          const outputTextarea = document.getElementById("generated-prompt-output");
+          const outputContainer = document.getElementById("generated-output-container");
+          const copyBtn = document.getElementById("copy-generated-btn");
+
+          if (outputTextarea && outputContainer) {
+            // Set consultation data as "generated" output
+            outputTextarea.value = consultationData;
+
+            // Show the output section
+            outputContainer.classList.remove("hidden");
+
+            // Show copy button
+            if (copyBtn) {
+              copyBtn.classList.remove("hidden");
+            }
+
+            // Show success toast
+            this.showToast("✅ Data konsultasi siap dicopy", "success");
+
+            // Auto-focus and select for easy manual copy
+            outputTextarea.focus();
+            outputTextarea.select();
+
+            console.log("[UI] Consultation data loaded into muscleImbalance prompt");
+          } else {
+            console.error("[UI] Generate modal elements not found");
+            this.showToast("⚠️ Modal belum siap, coba lagi", "warning");
+          }
+        }, 150);
+      }, 100);
+    },
   };
 
 })();
