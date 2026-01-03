@@ -281,6 +281,7 @@
               const k = parseFloat(LS_SAFE.get(`${s}_k`) || 0);
               const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
               const rpe = LS_SAFE.get(`${s}_rpe`) || "";
+              const rir = LS_SAFE.get(`${s}_e`) || null; // V29.0.1: RIR support
               const do_ = LS_SAFE.get(`${s}_d`) === "true";
               if (do_ && k > 0 && re > 0) {
                 v += k * re;
@@ -289,6 +290,7 @@
                   k,
                   r: re,
                   rpe: rpe,
+                  e: rir, // V29.0.1: Add RIR field
                 });
                 LS_SAFE.set(`${s}_d`, "false");
               }
@@ -307,11 +309,24 @@
                 note: currentNote,
               });
           });
+          // V29.0.1 FIX: Save workout data
           LS_SAFE.setJSON("gym_hist", h);
           if (sessId !== "spontaneous") {
             LS_SAFE.set(`last_${sessId}`, now.getTime());
           }
-          window.APP.nav.switchView("dashboard");
+
+          // Show success feedback
+          if (window.APP.ui && window.APP.ui.showToast) {
+            window.APP.ui.showToast(
+              `Workout saved! ${totalSets} sets, ${totalVol}kg volume`,
+              "success"
+            );
+          }
+
+          // CRITICAL: Delay navigation to ensure localStorage commits
+          setTimeout(() => {
+            window.APP.nav.switchView("dashboard");
+          }, 250); // 250ms buffer for storage operations to complete
         } catch (e) {
           console.error("[FINISH SESSION ERROR]", e);
           if (window.APP.debug && window.APP.debug.showFatalError) {

@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN V28 AI Command Center</title>
+    <title>THE GRIND DESIGN V29 CLINICAL ANALYTICS EXPANSION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -512,7 +512,7 @@
           <p
             class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
           >
-            V28 AI Command Center
+            V29 CLINICAL ANALYTICS EXPANSION
           </p>
         </div>
       </div>
@@ -1640,6 +1640,33 @@
               </div>
             </div>
           </div>
+
+          <!-- V29.0: ADVANCED RATIOS SECTION -->
+          <div class="mt-6">
+            <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line"></i> Advanced Analytics
+              <span class="text-[9px] font-normal text-slate-500">(V29.0)</span>
+            </h3>
+
+            <!-- Ratio Cards Container -->
+            <div id="advanced-ratios-container" class="space-y-3">
+              <!-- Cards will be rendered by renderAdvancedRatios() -->
+            </div>
+          </div>
+
+          <!-- V29.0: TRAINING INSIGHTS PANEL -->
+          <div class="mt-6">
+            <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-lightbulb"></i> Clinical Insights
+              <span class="text-[9px] font-normal text-slate-500">(Evidence-Based)</span>
+            </h3>
+
+            <!-- Insights Container -->
+            <div id="insights-container" class="space-y-2">
+              <!-- Insight cards will be rendered by renderInsightCards() -->
+            </div>
+          </div>
+
         </div>
         <div id="vital-signs" class="grid grid-cols-3 gap-2 text-center hidden">
           <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
@@ -1656,6 +1683,12 @@
             <div class="text-[10px] text-slate-400 uppercase">Count</div>
             <div class="text-lg font-bold text-white" id="stat-count">--</div>
           </div>
+        </div>
+
+        <!-- V29.0: TOOLTIP CONTAINER -->
+        <div id="tooltip-container" class="hidden fixed z-50 bg-slate-900 text-white text-xs rounded-lg shadow-lg p-3 max-w-xs border border-slate-700">
+          <div id="tooltip-content"></div>
+          <div class="absolute w-2 h-2 bg-slate-900 border-l border-b border-slate-700 transform rotate-45 -bottom-1 left-4"></div>
         </div>
       </div>
     </div>

@@ -223,7 +223,16 @@
       if (n === "profile") APP.data.loadProfile();
       if (n === "stats") {
         APP.stats.loadOptions();
-        setTimeout(() => APP.stats.switchTab("dashboard"), 100);
+        setTimeout(() => {
+          APP.stats.switchTab("dashboard");
+          // V29.0: Render advanced ratios and insights
+          if (typeof APP.stats.renderAdvancedRatios === 'function') {
+            APP.stats.renderAdvancedRatios(30);
+          }
+          if (typeof APP.ui.renderInsightCards === 'function') {
+            APP.ui.renderInsightCards(30);
+          }
+        }, 100);
       }
       if (n === "library") APP.ui.renderLibrary();
       if (n === "calendar") {
@@ -3236,6 +3245,225 @@
               window.APP.ui.showToast('❌ Failed to copy', 'error');
             });
         });
+      }
+    },
+
+    // ============================================================================
+    // V29.0: CLINICAL INSIGHTS RENDERING
+    // ============================================================================
+
+    /**
+     * Render clinical insight cards in Analytics dashboard
+     * @param {number} daysBack - Number of days to analyze (default: 30)
+     */
+    renderInsightCards: function(daysBack = 30) {
+      const container = document.getElementById('insights-container');
+      if (!container) {
+        console.warn("[UI] Insights container not found");
+        return;
+      }
+
+      // Get insights from interpretation engine
+      const insights = window.APP.stats.interpretWorkoutData(daysBack);
+
+      if (insights.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-slate-500 py-6">
+            <div class="text-3xl mb-2">📊</div>
+            <div class="text-xs">Log more workouts to generate insights</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Build HTML for each insight
+      let html = '';
+
+      insights.forEach(insight => {
+        // Determine styling based on type
+        const bgClass = insight.type === 'danger' ? 'bg-red-900/20' :
+                        insight.type === 'warning' ? 'bg-yellow-900/20' :
+                        insight.type === 'info' ? 'bg-blue-900/20' :
+                        'bg-green-900/20';
+
+        const borderClass = insight.type === 'danger' ? 'border-red-900/50' :
+                            insight.type === 'warning' ? 'border-yellow-900/50' :
+                            insight.type === 'info' ? 'border-blue-900/50' :
+                            'border-green-900/50';
+
+        const textClass = insight.type === 'danger' ? 'text-red-300' :
+                          insight.type === 'warning' ? 'text-yellow-300' :
+                          insight.type === 'info' ? 'text-blue-300' :
+                          'text-green-300';
+
+        const textLightClass = insight.type === 'danger' ? 'text-red-400' :
+                               insight.type === 'warning' ? 'text-yellow-400' :
+                               insight.type === 'info' ? 'text-blue-400' :
+                               'text-green-400';
+
+        const evidenceClass = insight.type === 'danger' ? 'text-red-400' :
+                              insight.type === 'warning' ? 'text-yellow-400' :
+                              insight.type === 'info' ? 'text-blue-400' :
+                              'text-green-400';
+
+        html += `
+          <div class="${bgClass} border-l-4 ${borderClass} p-3 rounded-r-lg">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <span class="text-lg">${insight.icon}</span>
+              </div>
+              <div class="ml-2 flex-1">
+                <!-- Title -->
+                <h4 class="text-xs font-semibold ${textClass} mb-1">
+                  ${insight.title}
+                </h4>
+
+                <!-- Metrics -->
+                <p class="text-[10px] ${textLightClass} mb-1">
+                  ${insight.metrics}
+                </p>
+
+                ${insight.risk ? `
+                  <!-- Risk (danger/warning only) -->
+                  <div class="text-[10px] ${textLightClass} mb-1">
+                    <span class="font-medium">Risk:</span> ${insight.risk}
+                  </div>
+                ` : ''}
+
+                <!-- Action -->
+                <div class="text-[10px] ${textClass} mb-1">
+                  <span class="font-medium">Action:</span> ${insight.action}
+                </div>
+
+                ${insight.evidence ? `
+                  <!-- Evidence (with tooltip) -->
+                  <div class="flex items-center text-[9px] ${evidenceClass}">
+                    <span class="font-medium mr-1">Evidence:</span>
+                    <button class="underline hover:font-medium"
+                            onclick="window.APP.ui.showEvidenceTooltip('${insight.id}', event)"
+                            onmouseleave="window.APP.ui.hideTooltip()">
+                      ${insight.evidence.source}
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Render
+      container.innerHTML = html;
+
+      // Store insights for tooltip access
+      window.APP._currentInsights = insights;
+    },
+
+    // ============================================================================
+    // V29.0: TOOLTIP SYSTEM
+    // ============================================================================
+
+    /**
+     * Show scientific evidence tooltip
+     * @param {string} insightId - ID of the insight
+     * @param {Event} event - Click/hover event for positioning
+     */
+    showEvidenceTooltip: function(insightId, event) {
+      const insights = window.APP._currentInsights || [];
+      const insight = insights.find(i => i.id === insightId);
+
+      if (!insight || !insight.evidence) return;
+
+      const container = document.getElementById('tooltip-container');
+      const content = document.getElementById('tooltip-content');
+
+      if (!container || !content) return;
+
+      // Set content
+      content.innerHTML = `
+        <div class="font-semibold mb-1">${insight.evidence.source}</div>
+        ${insight.evidence.title ? `<div class="text-[10px] italic mb-1">${insight.evidence.title}</div>` : ''}
+        <div class="text-[10px]">${insight.evidence.citation}</div>
+      `;
+
+      // Position tooltip
+      const rect = event.target.getBoundingClientRect();
+      const tooltipHeight = container.offsetHeight;
+
+      // Position above button if too close to bottom
+      if (rect.bottom + tooltipHeight + 20 > window.innerHeight) {
+        container.style.top = (rect.top - tooltipHeight - 8) + 'px';
+      } else {
+        container.style.top = (rect.bottom + 8) + 'px';
+      }
+
+      container.style.left = rect.left + 'px';
+
+      // Show
+      container.classList.remove('hidden');
+    },
+
+    /**
+     * Show informational tooltip for ratio cards
+     * @param {string} tooltipId - ID of the tooltip content
+     * @param {Event} event - Click/hover event
+     */
+    showTooltip: function(tooltipId, event) {
+      const container = document.getElementById('tooltip-container');
+      const content = document.getElementById('tooltip-content');
+
+      if (!container || !content) return;
+
+      // Tooltip content database
+      const tooltips = {
+        'qh-info': {
+          title: 'Quad/Hamstring Ratio',
+          text: 'Optimal ratio: 0.6-0.8 (hamstrings should be 60-80% of quad strength). Prevents ACL injuries and anterior knee instability.',
+          source: 'Croisier et al. (2008)'
+        },
+        'pp-info': {
+          title: 'Push/Pull Ratio',
+          text: 'Optimal ratio: 1.0-1.2 (pull volume should equal or slightly exceed push). Prevents shoulder impingement and maintains posture.',
+          source: 'NSCA Guidelines'
+        },
+        'core-info': {
+          title: 'Core Training Volume',
+          text: 'Optimal range: 15-25 sets/week. Maintains spine health, athletic performance, and force transfer without overtraining.',
+          source: 'Dr. Stuart McGill'
+        },
+        'bw-info': {
+          title: 'Bodyweight Contribution',
+          text: 'Shows percentage of training volume from bodyweight exercises. Load estimated using biomechanics research (e.g., push-up = 64% bodyweight).',
+          source: 'Ebben et al. (2011)'
+        }
+      };
+
+      const tooltip = tooltips[tooltipId];
+      if (!tooltip) return;
+
+      // Set content
+      content.innerHTML = `
+        <div class="font-semibold mb-1">${tooltip.title}</div>
+        <div class="text-[10px] mb-2">${tooltip.text}</div>
+        <div class="text-[10px] italic text-slate-400">Source: ${tooltip.source}</div>
+      `;
+
+      // Position tooltip
+      const rect = event.target.getBoundingClientRect();
+      container.style.top = (rect.bottom + 8) + 'px';
+      container.style.left = Math.max(8, rect.left - 100) + 'px'; // Center under button with margin
+
+      // Show
+      container.classList.remove('hidden');
+    },
+
+    /**
+     * Hide tooltip
+     */
+    hideTooltip: function() {
+      const container = document.getElementById('tooltip-container');
+      if (container) {
+        container.classList.add('hidden');
       }
     },
   };
