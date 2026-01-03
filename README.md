@@ -1,8 +1,8 @@
 # 🏋️ THE GRIND DESIGN
 
-**Version:** V28.0 (AI Command Center)
+**Version:** V29.0 (Advanced Analytics)
 **Status:** Production Ready
-**Last Updated:** January 2, 2026
+**Last Updated:** January 3, 2026
 
 A clinical-grade Progressive Web App for evidence-based strength training management. Built with vanilla JavaScript, designed for both personal training and professional analytics.
 
@@ -22,6 +22,35 @@ A clinical-grade Progressive Web App for evidence-based strength training manage
 - 🎨 **Muscle Distribution Analysis** - Identify training imbalances
 - 📈 **RPE/RIR Tracking** - Monitor fatigue accumulation
 - 🔬 **Half-Set Rule** - PRIMARY (1.0x) vs SECONDARY (0.5x) muscle contribution
+
+### **V29.0: Advanced Analytics & Injury Prevention** 🆕
+- 🦵 **Quad/Hamstring Balance** - ACL injury prevention (optimal ratio: 0.6-0.8)
+  - Visual progress bar with danger/warning/optimal zones
+  - Volume breakdown display
+  - Automatic imbalance detection
+- ⚖️ **Push/Pull Balance** - Shoulder health monitoring (optimal ratio: 1.0-1.2)
+  - Total, upper, and lower body ratios
+  - Collapsible breakdown view
+  - Prevents shoulder impingement
+- 💪 **Core Training Analysis** - Spine stability assessment (target: 15-25 sets/week)
+  - Weekly volume tracking
+  - Frequency and variety metrics
+  - Dr. Stuart McGill's evidence-based thresholds
+- 🤸 **Bodyweight Exercise Integration** - Load estimation using biomechanics research
+  - 30+ exercises with research-based multipliers (Pull Up: 100% BW, Push Up: 64% BW)
+  - User weight detection with smart fallback
+  - Training style identification
+- 💡 **Clinical Insights Engine** - 3-7 prioritized evidence-based recommendations
+  - 🚨 Danger alerts (immediate injury risk)
+  - ⚠️ Warning notifications (imbalances detected)
+  - ℹ️ Optimization tips
+  - ✅ Success confirmations
+- 🔬 **Scientific Citation System** - Research sources for all recommendations
+  - Interactive tooltips with full citations
+  - Croisier et al. (2008), NSCA Guidelines, Dr. Stuart McGill
+  - Complete methodology in [SCIENTIFIC_BASIS.md](./SCIENTIFIC_BASIS.md)
+
+**[User Guide](./ANALYTICS_GUIDE.md)** | **[Scientific Basis](./SCIENTIFIC_BASIS.md)**
 
 ### **AI Integration**
 - 🤖 **AI Command Center** - Integrated AI consultation with prompt library
@@ -51,13 +80,13 @@ A clinical-grade Progressive Web App for evidence-based strength training manage
 
 ---
 
-## 🏗️ Architecture (V28.0)
+## 🏗️ Architecture (V29.0)
 
-**Modular Structure (13 files, ~12,000 lines total):**
+**Modular Structure (13 files, ~13,600 lines total):**
 
 ```
 project-root/
-├── index.html              (2,206 lines) - HTML skeleton
+├── index.html              (2,594 lines) - HTML skeleton + V29 analytics UI
 ├── exercises-library.js    (1,817 lines) - Exercise database
 ├── js/
 │   ├── constants.js        (455 lines)   - PRESETS, STARTER_PACK, version metadata
@@ -65,20 +94,23 @@ project-root/
 │   ├── validation.js      (491 lines)   - APP.validation
 │   ├── data.js            (1,218 lines)  - APP.data, CRUD operations
 │   ├── safety.js          (325 lines)   - APP.safety, backup/restore
-│   ├── stats.js           (1,665 lines)  - APP.stats, charts, analytics
+│   ├── stats.js           (2,715 lines)  - APP.stats, analytics, V29 ratios
 │   ├── session.js         (750 lines)   - APP.session management
 │   ├── cardio.js          (111 lines)   - APP.cardio, APP.timer
-│   ├── ui.js              (1,901 lines)  - APP.ui, rendering, modals
+│   ├── ui.js              (2,101 lines)  - APP.ui, rendering, V29 tooltips
 │   ├── ai-bridge.js       (1,060 lines)  - APP.aiBridge, prompt library
 │   ├── debug.js           (46 lines)    - APP.debug, error handling
-│   ├── nav.js             (827 lines)   - APP.nav, APP.init
+│   ├── nav.js             (829 lines)   - APP.nav, APP.init
 │   └── cloud.js           (195 lines)   - Google Drive integration
+├── SCIENTIFIC_BASIS.md     (800 lines)  - V29 methodology & citations
+├── ANALYTICS_GUIDE.md      (400 lines)  - V29 user guide
 └── sw.js, manifest.json    - PWA configuration
 ```
 
 **Key Improvements:**
 - ✅ V27: 58% reduction in index.html size (9,000 → 2,203 lines)
 - ✅ V28: AI Command Center with 12 built-in prompts + custom prompt management
+- ✅ V29: Advanced Analytics - Injury risk detection, bodyweight integration, scientific citations
 - ✅ Clear separation of concerns (module per namespace)
 - ✅ Easier maintenance and AI context efficiency
 - ✅ Git-friendly (cleaner diffs, parallel development)
@@ -129,7 +161,9 @@ Comprehensive documentation suite for developers and contributors:
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | System design, data flows, V27 module structure | Developers, Contributors |
+| **[SCIENTIFIC_BASIS.md](./SCIENTIFIC_BASIS.md)** 🆕 | V29 clinical thresholds, calculations, research citations | Medical Professionals, Researchers |
+| **[ANALYTICS_GUIDE.md](./ANALYTICS_GUIDE.md)** 🆕 | V29 user guide for Advanced Analytics dashboard | Users, Athletes, Coaches |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | System design, data flows, V27-V29 architecture | Developers, Contributors |
 | **[CODING_GUIDELINES.md](./CODING_GUIDELINES.md)** | Code standards, V27 module development rules | Developers, AI Assistants |
 | **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** | Active bugs, V27 gotchas, workarounds | Users, Developers |
 | **[CHANGELOG_DETAILED.md](./CHANGELOG_DETAILED.md)** | Version history with technical context | All |
@@ -187,6 +221,7 @@ Comprehensive documentation suite for developers and contributors:
 
 | Version | Date | Major Changes |
 |---------|------|---------------|
+| **V29.0** | Jan 2026 | Advanced Analytics - Injury risk detection, bodyweight integration, scientific citations (5 checkpoints, 1,638 lines) |
 | **V28.0** | Jan 2026 | AI Command Center - 12 built-in prompts, custom prompt CRUD, smart placeholders |
 | **V27.0** | Jan 2026 | Modular architecture - 12 modules, 8-phase refactoring, 11 bugs fixed |
 | **V26.6** | Dec 2025 | Data integrity hotfix - canonical exercise naming enforcement |

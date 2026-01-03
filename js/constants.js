@@ -8,10 +8,10 @@
   if (!window.APP) window.APP = {};
 
   window.APP.version = {
-    number: "28.0",
-    name: "AI Command Center",
+    number: "29.0",
+    name: "CLINICAL ANALYTICS EXPANSION",
     date: "January 2026",
-    previous: "27.0"
+    previous: "28.0"
   };
 
   window.APP.architecture = {

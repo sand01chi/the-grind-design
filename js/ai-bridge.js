@@ -1508,7 +1508,7 @@ getPrompt: function(scenario, userInputs = {}) {
       export: function() {
         try {
           const exportData = {
-            version: window.APP?.version?.number || "28.0",
+            version: window.APP?.version?.number || "29.0",
             exportedAt: new Date().toISOString(),
             customPrompts: window.APP.aiBridge._customPrompts
           };
