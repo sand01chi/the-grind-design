@@ -638,7 +638,7 @@
     </header>
     <main
       id="app-container"
-      class="flex-1 overflow-y-auto no-scrollbar pt-26 pb-24 px-4"
+      class="flex-1 overflow-y-auto no-scrollbar pt-28 pb-24 px-4"
     >
       <div id="dashboard-view" class="fade-in space-y-6">
         <div
@@ -2091,11 +2091,13 @@
           <input
             type="number"
             id="new-weight"
+            step="0.1"
             placeholder="00.0"
-            class="flex-1 glass-input text-white p-3 rounded-lg text-center font-bold border-white/10"
-          /><button
+            class="flex-1 glass-input text-white text-center font-bold rounded-xl border border-white/10"
+          />
+          <button
             onclick="APP.data.addWeight()"
-            class="bg-emerald-600 text-white px-5 rounded-lg"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white w-12 rounded-xl flex items-center justify-center transition active:scale-95 shadow-lg shadow-emerald-500/20"
           >
             <i class="fa-solid fa-plus"></i>
           </button>
