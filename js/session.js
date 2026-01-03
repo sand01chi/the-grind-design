@@ -227,6 +227,11 @@
       APP.core.saveProgram();
 
       APP.nav.renderDashboard();
+      
+      // Close modal if deleting from inside editor
+      if (typeof APP.ui.closeModal === "function") {
+        APP.ui.closeModal("session-editor");
+      }
 
       APP.ui.showToast(
         `✅ Sesi "${session.title}" berhasil dihapus`,
@@ -351,11 +356,11 @@
         const rest = exercise.rest || 0;
 
         html += `
-        <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3 flex items-center gap-3">
+        <div class="glass-card rounded-lg border border-white/10 p-3 flex items-center gap-3">
           <div class="flex flex-col gap-1">
             <button
               onclick="APP.session.moveExercise(${idx}, -1)"
-              class="text-slate-500 hover:text-emerald-400 text-xs transition"
+              class="text-slate-500 hover:text-emerald-400 text-xs transition p-2"
               title="Move up"
               ${idx === 0 ? 'disabled style="opacity:0.3"' : ""}
             >
@@ -363,7 +368,7 @@
             </button>
             <button
               onclick="APP.session.moveExercise(${idx}, 1)"
-              class="text-slate-500 hover:text-emerald-400 text-xs transition"
+              class="text-slate-500 hover:text-emerald-400 text-xs transition p-2"
               title="Move down"
               ${
                 idx === exercises.length - 1
@@ -385,7 +390,7 @@
 
           <button
             onclick="APP.session.deleteExercise(${idx})"
-            class="text-red-500/70 hover:text-red-500 px-2 transition"
+            class="text-red-500/70 hover:text-red-500 px-3 py-2 transition"
             title="Delete exercise"
           >
             <i class="fa-solid fa-trash text-sm"></i>
@@ -790,10 +795,10 @@
         bpHtml += `<div class="text-[10px] text-purple-400 font-bold uppercase mb-2 border-b border-purple-500/30 pb-1">📚 Saved Presets</div>`;
         savedPresets.forEach((p, i) => {
           bpHtml += `
-            <div class="w-full bg-purple-900/40 border border-purple-500/30 p-2 rounded flex items-center gap-2 mb-2">
+            <div class="w-full bg-purple-900/40 border border-purple-500/30 p-2 rounded flex items-center gap-1 mb-2 overflow-hidden">
               <button
                 onclick="APP.session.spontaneous.loadPreset(${i}, 'saved')"
-                class="flex-1 flex items-center gap-3 hover:opacity-80 transition text-left"
+                class="flex-1 min-w-0 flex items-center gap-3 hover:opacity-80 transition text-left"
               >
                 <div class="bg-purple-500/20 w-8 h-8 rounded flex items-center justify-center text-purple-400 shrink-0">
                   <i class="fa-solid fa-bookmark"></i>
@@ -805,14 +810,14 @@
               </button>
               <button
                 onclick="APP.session.spontaneous.editPresetName(${i}); event.stopPropagation();"
-                class="text-purple-400 hover:text-purple-300 transition text-xs px-2 shrink-0"
+                class="text-purple-400 hover:text-purple-300 transition text-[10px] p-2 shrink-0"
                 title="Edit nama"
               >
                 <i class="fa-solid fa-pen"></i>
               </button>
               <button
                 onclick="APP.session.spontaneous.deletePreset(${i}); event.stopPropagation();"
-                class="text-red-400 hover:text-red-300 transition text-xs px-2 shrink-0"
+                class="text-red-400 hover:text-red-300 transition text-[10px] p-2 shrink-0"
                 title="Hapus preset"
               >
                 <i class="fa-solid fa-trash"></i>

@@ -120,6 +120,11 @@
           <div class="flex items-center gap-3">
               ${allCompleted ? '<div class="text-3xl">🎯</div>' : ""}
               <div>
+                  ${
+                    allCompleted
+                      ? `<div class="text-sm font-bold text-white mb-1 opacity-75"><span class="text-emerald-500 mr-2">#${exerciseIdx + 1}</span> ${opt.n}</div>`
+                      : ""
+                  }
                   <div class="flex items-baseline gap-2">
                       <span class="text-emerald-400 font-black ${
                         allCompleted ? "text-4xl" : "text-lg"
