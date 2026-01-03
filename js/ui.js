@@ -140,7 +140,13 @@
       const card = document.getElementById(`card-${exerciseIdx}`);
       if (!card) return;
 
+      // Initialize state if not exists
+      if (!APP.state.expandedCards) APP.state.expandedCards = {};
+      const sessKey = `${APP.state.currentSessionId}_${exerciseIdx}`;
+
       const allCheckboxes = card.querySelectorAll(".checkbox-done");
+      if (allCheckboxes.length === 0) return; // Skip cardio or empty exercises
+
       let allCompleted = true;
       let completedCount = 0;
 
@@ -157,8 +163,9 @@
         if (setsContainer) {
           setsContainer.classList.add("sets-collapsed");
         }
-
-        card.classList.add("all-completed");
+        // Removed eager class addition here to allow state check below
+        // card.classList.add("all-completed"); 
+        card.classList.add("card-collapsed");
 
         const volumeCounter = document.getElementById(
           `volume-counter-${exerciseIdx}`
@@ -167,16 +174,32 @@
           volumeCounter.classList.add("completed-card-summary");
         }
 
-        APP.ui.showToast(
-          `✅ Exercise #${exerciseIdx + 1} selesai!`,
-          "success"
-        );
+        // Detect transition from incomplete -> complete
+        const wasCompleted = card.classList.contains("all-completed");
+        
+        // RESPECT MANUAL EXPANSION STATE
+        if (APP.state.expandedCards[sessKey]) {
+          card.classList.remove("card-collapsed");
+          if (setsContainer) setsContainer.classList.remove("sets-collapsed");
+        } else {
+             // Ensure collapsed
+             card.classList.add("card-collapsed");
+             if (setsContainer) setsContainer.classList.add("sets-collapsed");
+        }
+
+        // Only show toast if it wasn't already completed
+        if (!wasCompleted) {
+            card.classList.add("all-completed");
+            // Toast removed per user request
+        }
+        
+        // Ensure class is added (idempotent)
+        card.classList.add("all-completed");
       } else {
         const setsContainer = card.querySelector(".sets-container");
-        if (setsContainer) {
-          setsContainer.classList.remove("sets-collapsed");
-        }
+        // Don't auto-expand sets container, let user decide
         card.classList.remove("all-completed");
+        card.classList.remove("card-collapsed");
 
         const volumeCounter = document.getElementById(
           `volume-counter-${exerciseIdx}`
@@ -194,25 +217,22 @@
       const setsContainer = card.querySelector(".sets-container");
       if (!setsContainer) return;
 
-      const isCollapsed =
-        setsContainer.classList.contains("sets-collapsed");
+      // Logic: If Collapsed -> Expand. If Expanded -> Collapse.
+      const isCurrentlyCollapsed = card.classList.contains("card-collapsed");
+      
+      if (!APP.state.expandedCards) APP.state.expandedCards = {};
+      const sessKey = `${APP.state.currentSessionId}_${exerciseIdx}`;
 
-      if (isCollapsed) {
-        setsContainer.classList.remove("sets-collapsed");
-        const volumeCounter = document.getElementById(
-          `volume-counter-${exerciseIdx}`
-        );
-        if (volumeCounter) {
-          volumeCounter.classList.remove("completed-card-summary");
-        }
+      if (isCurrentlyCollapsed) {
+          // USER WANTS TO EXPAND
+          setsContainer.classList.remove("sets-collapsed");
+          card.classList.remove("card-collapsed");
+          APP.state.expandedCards[sessKey] = true;
       } else {
-        setsContainer.classList.add("sets-collapsed");
-        const volumeCounter = document.getElementById(
-          `volume-counter-${exerciseIdx}`
-        );
-        if (volumeCounter) {
-          volumeCounter.classList.add("completed-card-summary");
-        }
+          // USER WANTS TO COLLAPSE
+          setsContainer.classList.add("sets-collapsed");
+          card.classList.add("card-collapsed");
+          APP.state.expandedCards[sessKey] = false;
       }
     },
 
@@ -274,7 +294,7 @@
           const zoneIcon = inZone ? "✅" : "⚠️";
 
           html += `
-            <div class="bg-slate-900/50 p-3 rounded-xl border border-blue-700/50 mb-2">
+            <div class="glass-card p-3 rounded-xl border border-blue-700/50 mb-2">
               <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
                 <span class="text-xs font-bold text-slate-300">${
                   x.date
@@ -326,7 +346,7 @@
           }
         });
         html += `
-                  <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 mb-2">
+                  <div class="glass-card p-3 rounded-xl border border-white/10 mb-2">
                       <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-1">
                           <div class="flex items-center">
                               ${spontaneousTag}
@@ -456,7 +476,7 @@
             w,
             baseBar
           )}</div>`;
-        html += `<div class="bg-slate-700/50 p-2 rounded text-sm mb-2 border border-slate-700/50"><div class="flex justify-between items-center"><span class="text-slate-400">${s.l}</span><span class="font-mono font-bold text-white">${w}kg <span class="text-emerald-400 text-xs">x${s.r}</span></span></div>${pHTML}</div>`;
+        html += `<div class="bg-white/5 p-2 rounded text-sm mb-2 border border-white/10"><div class="flex justify-between items-center"><span class="text-slate-400">${s.l}</span><span class="font-mono font-bold text-white">${w}kg <span class="text-emerald-400 text-xs">x${s.r}</span></span></div>${pHTML}</div>`;
       });
       steps.innerHTML = html;
       APP.ui.openModal("calc");
@@ -495,7 +515,7 @@
       let html = "";
       w.forEach(
         (x) =>
-          (html += `<div class="flex justify-between p-2 bg-slate-900/50 rounded mb-1 text-xs"><span class="text-white font-bold">${x.v} kg</span><span class="text-slate-500">${x.d}</span></div>`)
+          (html += `<div class="flex justify-between p-2 glass-card rounded mb-1 text-xs"><span class="text-white font-bold">${x.v} kg</span><span class="text-slate-500">${x.d}</span></div>`)
       );
       l.innerHTML = html;
     },
@@ -517,7 +537,7 @@
       let html = "";
       lib.forEach((item, i) => {
         const dStr = DT.formatDate(new Date(item.date));
-        html += `<div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center"><div><div class="text-xs text-white font-bold">${item.name}</div><div class="text-[10px] text-slate-500">${dStr}</div></div><div class="flex gap-2"><button onclick="APP.data.loadFromLibrary(${i})" class="bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded text-[10px] hover:bg-emerald-900/50 border border-emerald-900">Load</button><button onclick="APP.data.deleteFromLibrary(${i})" class="text-red-500 hover:text-white px-2 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
+        html += `<div class="glass-card p-2 rounded border border-white/10 flex justify-between items-center"><div><div class="text-xs text-white font-bold">${item.name}</div><div class="text-[10px] text-slate-500">${dStr}</div></div><div class="flex gap-2"><button onclick="APP.data.loadFromLibrary(${i})" class="bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded text-[10px] hover:bg-emerald-900/50 border border-emerald-900">Load</button><button onclick="APP.data.deleteFromLibrary(${i})" class="text-red-500 hover:text-white px-2 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
       });
       el.innerHTML = html;
     },
@@ -550,7 +570,7 @@
         const logs = hist.filter(
           (x) => x.date === dStr && new Date(x.ts).getMonth() === m
         );
-        let c = "bg-slate-700 text-slate-400";
+        let c = "bg-white/5 text-slate-400";
         let dot = "";
 
         // ⚠️ FIX: Add spontaneous indicator
@@ -584,7 +604,7 @@
         }
         if (new Date().toDateString() === dateObj.toDateString())
           c += " ring-1 ring-yellow-400";
-        html += `<div onclick="APP.ui.viewDay('${dStr}')" class="h-12 rounded-lg ${c} flex flex-col items-center justify-center cursor-pointer hover:bg-slate-600 transition active:scale-95"><span class="text-xs font-bold leading-none">${d}</span>${dot}</div>`;
+        html += `<div onclick="APP.ui.viewDay('${dStr}')" class="h-12 rounded-lg ${c} flex flex-col items-center justify-center cursor-pointer hover:bg-white/20 transition active:scale-95"><span class="text-xs font-bold leading-none">${d}</span>${dot}</div>`;
       }
       g.innerHTML = html;
     },
@@ -657,11 +677,11 @@
                       <span class="text-[10px] text-slate-400 bg-slate-800 px-2 rounded"><i class="fa-solid fa-clock mr-1"></i> ${duration}m</span>
                   </div>
                   <div class="grid grid-cols-2 gap-2 mt-2">
-                       <div class="bg-slate-800 p-1.5 rounded text-center border border-slate-700">
+                       <div class="bg-white/5 p-1.5 rounded text-center border border-white/10">
                           <div class="text-[9px] text-slate-500 uppercase">Total Vol</div>
                           <div class="text-xs font-bold text-blue-300">${totalVol} <span class="text-[9px]">kg</span></div>
                        </div>
-                       <div class="bg-slate-800 p-1.5 rounded text-center border border-slate-700">
+                       <div class="bg-white/5 p-1.5 rounded text-center border border-white/10">
                           <div class="text-[9px] text-slate-500 uppercase">Max RPE</div>
                           <div class="text-xs font-bold ${fatigueColor}">${maxRPE} <span class="text-[9px] font-normal opacity-70">(${fatigueStatus})</span></div>
                        </div>
@@ -731,7 +751,7 @@
           : '';
 
         html += `
-                  <div class="flex justify-between items-center bg-slate-800/80 p-1.5 rounded border border-slate-700">
+                  <div class="flex justify-between items-center glass-card p-1.5 rounded border border-white/10">
                       <div class="flex items-center min-w-0">
                           <span class="text-[10px] text-slate-200 truncate font-medium">${l.ex}</span>
                           ${badge}
@@ -928,7 +948,7 @@
           (ex.category || "other").charAt(0).toUpperCase() +
           (ex.category || "other").slice(1);
         html += `
-                  <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 hover:border-emerald-500/50 transition">
+                  <div class="glass-card p-3 rounded-lg border border-white/10 hover:border-emerald-500/50 transition">
                       <div class="flex justify-between items-start mb-2">
                           <div class="flex-1">
                               <span class="text-sm font-bold text-white">${displayName}</span>
@@ -2953,10 +2973,10 @@
         '<span class="text-xs bg-purple-600 text-white px-2 py-1 rounded">✏️ Custom</span>';
 
       const modalHTML = `
-        <div id="preview-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+        <div id="preview-prompt-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+          <div class="glass-panel w-full max-w-4xl rounded-2xl border border-white/10 flex flex-col max-h-[90vh] fade-in overflow-y-auto">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+            <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
               <div>
                 <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
                   <i class="fa-solid fa-eye"></i> ${prompt.title}
@@ -2988,12 +3008,12 @@
                   Template:
                 </label>
                 <textarea readonly id="prompt-template-preview"
-                  class="w-full bg-slate-900 border border-slate-700 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  class="w-full glass-input border border-white/10 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
                   rows="15">${prompt.template}</textarea>
               </div>
 
               <!-- Placeholders Info -->
-              <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
+              <div class="glass-card border border-white/10 rounded-lg p-3">
                 <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">Available Placeholders:</h5>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div><code class="text-purple-400">{{CONTEXT}}</code> - Workout data & history</div>
@@ -3097,7 +3117,7 @@
       let inputFieldsHTML = '';
       if (usedPlaceholders.length > 0) {
         inputFieldsHTML = `
-          <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 space-y-3">
+          <div class="glass-card border border-white/10 rounded-lg p-4 space-y-3">
             <h5 class="text-xs text-slate-400 font-bold uppercase mb-2">
               <i class="fa-solid fa-edit"></i> User Inputs:
             </h5>
@@ -3108,7 +3128,7 @@
                     <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
                     <textarea id="input-${ph.key.toLowerCase()}"
                       placeholder="${ph.placeholder}"
-                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition resize-none"
+                      class="w-full glass-input border border-white/10 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition resize-none"
                       rows="3"></textarea>
                   </div>
                 `;
@@ -3118,7 +3138,7 @@
                     <label class="text-xs text-slate-300 font-bold block mb-1">${ph.label}:</label>
                     <input type="text" id="input-${ph.key.toLowerCase()}"
                       placeholder="${ph.placeholder}"
-                      class="w-full bg-slate-900 border border-slate-700 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition">
+                      class="w-full glass-input border border-white/10 text-white text-sm p-2 rounded-lg focus:border-emerald-500 transition">
                   </div>
                 `;
               }
@@ -3136,18 +3156,18 @@
       }
 
       const modalHTML = `
-        <div id="generate-prompt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
-          <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-500/50 max-h-[90vh] flex flex-col">
+        <div id="generate-prompt-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+          <div class="glass-panel w-full max-w-4xl rounded-2xl border border-white/10 flex flex-col max-h-[90vh] fade-in overflow-y-auto">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+            <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
               <div>
                 <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-1">
                   <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Prompt: ${prompt.title}
                 </h3>
-                <p class="text-sm text-emerald-100">${prompt.description}</p>
+                <p class="text-sm text-slate-400">${prompt.description}</p>
               </div>
               <button onclick="document.getElementById('generate-prompt-modal').remove()"
-                class="text-white hover:text-emerald-200 transition">
+                class="text-slate-400 hover:text-white transition">
                 <i class="fa-solid fa-times text-xl"></i>
               </button>
             </div>
@@ -3162,7 +3182,7 @@
                   <i class="fa-solid fa-check-circle text-emerald-500"></i> Generated Prompt (Placeholders Replaced):
                 </label>
                 <textarea readonly id="generated-prompt-output"
-                  class="w-full bg-slate-900 border border-emerald-500 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
+                  class="w-full glass-input border border-emerald-500/50 text-slate-100 font-mono text-xs p-3 rounded-lg resize-none"
                   rows="15"></textarea>
               </div>
             </div>

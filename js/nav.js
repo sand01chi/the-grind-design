@@ -359,12 +359,12 @@
                   const isRec = k === recommended;
 
                   htmlBuffer += `
-      <div onclick="APP.nav.loadWorkout('${k}')" class="bg-slate-800 p-4 rounded-xl border ${
-                    isRec
-                      ? "border-emerald-500/50 pulse-border"
-                      : "border-slate-700"
-                  } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
-        <div>
+  <div onclick="APP.nav.loadWorkout('${k}')" class="glass-panel p-4 rounded-xl border ${
+                isRec
+                  ? "border-emerald-500/50 pulse-border"
+                  : "border-white/5"
+              } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
+    <div>
           <div class="flex items-center mb-1">
             <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
               d.label
@@ -375,45 +375,22 @@
                 : ""
             }
           </div>
-          <h3 class="font-bold text-white text-lg flex items-center gap-2">
-            ${d.title} 
-            <button 
-              onclick="APP.session.openEditor(event, '${k}')" 
-              class="z-10 relative p-1 text-slate-600 hover:text-emerald-400 transition"
-              title="Edit Sesi Lengkap"
-            >
-              <i class="fa-solid fa-pen-to-square text-xs"></i>
-            </button>
+          <h3 class="font-bold text-white text-base">
+            ${d.title}
           </h3>
           <div class="text-xs text-slate-400 mt-1">
             <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
           </div>
         </div>
         <div class="flex flex-col items-end gap-2">
-          <div class="flex gap-1">
-            <button
-              onclick="APP.session.reorder('${k}', -1); event.stopPropagation();"
-              class="text-slate-500 hover:text-emerald-400 px-2 py-1 text-xs bg-slate-700/50 rounded transition"
-              title="Pindah ke atas"
-            >
-              <i class="fa-solid fa-arrow-up"></i>
-            </button>
-            <button
-              onclick="APP.session.reorder('${k}', 1); event.stopPropagation();"
-              class="text-slate-500 hover:text-emerald-400 px-2 py-1 text-xs bg-slate-700/50 rounded transition"
-              title="Pindah ke bawah"
-            >
-              <i class="fa-solid fa-arrow-down"></i>
-            </button>
-            <button
-              onclick="APP.session.confirmDelete(event, '${k}')"
-              class="text-slate-600 hover:text-red-500 px-2 py-1 z-20 transition text-xs bg-slate-700/50 rounded"
-              title="Hapus Sesi"
-            >
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-          <i class="fa-solid fa-chevron-right text-slate-500"></i>
+          <button
+            onclick="APP.session.openEditor(event, '${k}')"
+            class="text-slate-400 hover:text-emerald-400 p-2.5 text-xs bg-white/5 border border-white/10 rounded-xl transition shadow-sm active:scale-90"
+            title="Edit Sesi"
+          >
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <i class="fa-solid fa-chevron-right text-slate-600/50 text-[10px]"></i>
         </div>
       </div>
     `;
@@ -435,6 +412,9 @@
       APP.state.currentSessionId = id;
       APP.state.focusMode = false;
       APP.ui.updateFocusBtn();
+
+      // Initialize expansion state if needed
+      if (!APP.state.expandedCards) APP.state.expandedCards = {};
 
       const isSpon = id === "spontaneous";
       const badge = document.getElementById("spontaneous-badge");
@@ -546,14 +526,14 @@
             .join("");
 
           htmlBuffer += `
-    <div class="exercise-card cardio-card ${
-      isCompleted ? "all-completed" : ""
-    } bg-slate-800 rounded-xl border overflow-hidden shadow-md mb-4" id="card-${idx}">
+    <div class="exercise-card cardio-card glass-panel ${
+      isCompleted ? "all-completed card-collapsed" : ""
+    } rounded-xl border border-white/10 overflow-hidden shadow-md mb-4" id="card-${idx}">
         <div class="cardio-header p-3">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-blue-400 font-bold text-sm flex items-center gap-2">
                     <span>🏃 #${idx + 1} CARDIO</span>
-                    <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">${optNote}</span>
+                    <span class="text-xs text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">${optNote}</span>
                 </span>
 <div class="flex items-center">
                     <button onclick="APP.data.moveCard('${id}',${idx},-1)" class="text-slate-500 hover:text-white px-2" title="Naik">
@@ -570,7 +550,7 @@
             <div class="text-xs text-slate-400">${optBio}</div>
         </div>
         
-        <div class="p-4 space-y-3">
+        <div class="p-4 space-y-3 bg-white/5 border-t border-white/10">
             ${
               isCompleted
                 ? `
@@ -578,6 +558,7 @@
                 <div class="flex items-center gap-3 mb-2">
                     <div class="text-4xl">🎯</div>
                     <div>
+                        <div class="text-sm font-bold text-white mb-1 opacity-75"><span class="text-blue-400 mr-2">#${idx + 1}</span> ${optName}</div>
                         <div class="text-2xl font-black text-blue-400">${savedDuration} min</div>
                         <div class="text-sm text-slate-300">💓 ${savedHR} bpm • ${savedMachine}</div>
                     </div>
@@ -590,7 +571,7 @@
                 : `
             <div>
                 <label class="text-xs text-slate-400 block mb-1">Equipment</label>
-                <select onchange="LS_SAFE.set('${id}_ex${idx}_machine', this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded p-2">
+                <select onchange="LS_SAFE.set('${id}_ex${idx}_machine', this.value)" class="w-full glass-input border border-white/10 text-white text-sm rounded p-2">
                     ${machineOptions}
                 </select>
             </div>
@@ -608,12 +589,12 @@
                       )
                       .join("")}
                 </div>
-                <input type="number" id="duration-${id}-${idx}" value="${savedDuration}" onchange="APP.cardio.setDuration('${id}', ${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-center rounded p-2 text-sm" placeholder="Custom minutes" />
+                <input type="number" id="duration-${id}-${idx}" value="${savedDuration}" onchange="APP.cardio.setDuration('${id}', ${idx}, this.value)" class="w-full glass-input border border-white/10 text-white text-center rounded p-2 text-sm" placeholder="Custom minutes" />
             </div>
             
             <div>
                 <label class="text-xs text-slate-400 block mb-1">💓 Average Heart Rate</label>
-                <input type="number" id="hr-${id}-${idx}" value="${savedHR}" oninput="APP.cardio.validateHR('${id}', ${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-center rounded p-2 text-sm mb-1" placeholder="bpm" />
+                <input type="number" id="hr-${id}-${idx}" value="${savedHR}" oninput="APP.cardio.validateHR('${id}', ${idx}, this.value)" class="w-full glass-input border border-white/10 text-white text-center rounded p-2 text-sm mb-1" placeholder="bpm" />
                 <div id="hr-status-${id}-${idx}" class="text-xs ${hrClass}">${
                     hrStatus ||
                     `Target: ${zone2Lower}-${zone2Upper} bpm (Zone 2)`
@@ -721,30 +702,30 @@
             }">${v}</option>`;
           }
 
-          setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center ${
-            done ? "bg-emerald-900/20 set-row-completed" : ""
+          setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center py-1 border-b border-white/5 ${
+            done ? "bg-emerald-900/10" : ""
           }" id="row_${sid}">
     <div class="col-span-1 text-center relative">
-        <span class="text-slate-500 text-xs font-bold">${i}</span>
+        <span class="text-slate-400 text-xs font-bold">${i}</span>
         <i class="fa-solid fa-message set-note-icon ${
           note ? "has-note" : ""
         } absolute -top-1 -right-1 text-[8px]" onclick="APP.data.openSetNoteModal('${_id}',${_idx},${i})" title="${
             note || "Add note"
           }"></i>
-    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full bg-slate-900 border-slate-700 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full bg-slate-900 border-slate-700 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
+    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
             done ? "checked" : ""
           } onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
         }
 
         htmlBuffer += `
-    <div class="exercise-card bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-md mb-4 transition-all duration-300" id="card-${_idx}">
-        <div class="p-3 border-b border-slate-700 bg-slate-800/50">
+    <div class="exercise-card glass-panel rounded-xl border border-white/10 overflow-hidden shadow-md mb-4 transition-all duration-300" id="card-${_idx}">
+        <div class="exercise-header p-3">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-emerald-500 font-bold text-sm">#${
                   _idx + 1
                 }</span>
                 <div class="flex items-center gap-2">
-                    <div class="bg-slate-700/50 px-2 py-0.5 rounded text-[10px] text-slate-400 font-medium border border-slate-600"><i class="fa-solid fa-stopwatch mr-1"></i> Rest: ${
+                    <div class="glass-card px-2 py-0.5 rounded text-[10px] text-slate-400 font-medium border border-white/10"><i class="fa-solid fa-stopwatch mr-1"></i> Rest: ${
                       ex.rest
                     }s</div>
                 <button onclick="APP.data.smartAutoFill('${_id}',${_idx})" class="text-blue-400 px-2.5 py-1.5 rounded bg-blue-500/10 text-xs hover:bg-blue-500/20 transition" title="Smart Auto-Fill All Sets">
@@ -760,7 +741,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 mb-2">
-                <select id="variant-select-${_idx}" onchange="APP.data.changeVariant('${_id}',${_idx},this.value)" class="bg-slate-900 border border-slate-600 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
+                <select id="variant-select-${_idx}" onchange="APP.data.changeVariant('${_id}',${_idx},this.value)" class="glass-input border border-white/10 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
             </div>
             <div class="grid grid-cols-2 gap-2 px-1 mb-2">
                 <div class="flex gap-1 bg-red-900/20 rounded border border-red-900/30 overflow-hidden">
@@ -793,23 +774,21 @@
     </div>
 </div>
         </div>
-<div class="p-3 sets-container">
-    <div class="volume-counter" id="volume-counter-${_idx}">
-        <div class="text-xs text-slate-400 text-center">Complete sets to see volume</div>
-    </div>
+<div class="p-4 sets-container bg-white/5 mx-0 mb-0 space-y-1 border-t border-b border-white/10">
+    <div class="volume-counter" id="volume-counter-${_idx}"></div>
     <div class="grid grid-cols-12 gap-1 text-[10px] text-slate-500 font-bold text-center mb-1">                        <div class="col-span-1">#</div><div class="col-span-4">KG</div><div class="col-span-3">REPS</div><div class="col-span-2">RPE</div><div class="col-span-2">OK</div>
             </div>
             ${setsHtml}
         </div>
-        <div class="flex justify-between items-center bg-slate-900/50 p-2 border-t border-slate-700/50">
-            <div class="flex gap-2">
-                <button onclick="APP.data.modifySet('${_id}',${_idx},1)" class="text-[10px] bg-slate-700 text-emerald-400 px-2 py-1 rounded"><b>+ Set</b></button>
-                <button onclick="APP.data.modifySet('${_id}',${_idx},-1)" class="text-[10px] bg-slate-700 text-red-400 px-2 py-1 rounded"><b>- Set</b></button>
+        <div class="exercise-footer flex justify-between items-center p-2 border-t border-white/5 opacity-90">
+            <div class="flex gap-1.5">
+                <button onclick="APP.data.modifySet('${_id}',${_idx},1)" class="text-[9px] bg-white/5 text-emerald-400/80 px-2 py-1 rounded border border-white/10 hover:bg-emerald-500/10 hover:text-emerald-400 transition"><b>+ Set</b></button>
+                <button onclick="APP.data.modifySet('${_id}',${_idx},-1)" class="text-[9px] bg-white/5 text-red-400/80 px-2 py-1 rounded border border-white/10 hover:bg-red-500/10 hover:text-red-400 transition"><b>- Set</b></button>
             </div>
-            <div class="flex gap-2">
-                <button onclick="APP.data.moveCard('${_id}',${_idx},-1)" class="text-slate-500 hover:text-white px-1"><i class="fa-solid fa-arrow-up"></i></button>
-                <button onclick="APP.data.moveCard('${_id}',${_idx},1)" class="text-slate-500 hover:text-white px-1"><i class="fa-solid fa-arrow-down"></i></button>
-                <button onclick="APP.data.deleteCard('${_id}',${_idx})" class="text-red-500/50 hover:text-red-500 px-1"><i class="fa-solid fa-trash"></i></button>
+            <div class="flex items-center">
+                <button onclick="APP.data.moveCard('${_id}',${_idx},-1)" class="text-slate-600 hover:text-slate-300 px-2 transition" title="Move Up"><i class="fa-solid fa-arrow-up text-[10px]"></i></button>
+                <button onclick="APP.data.moveCard('${_id}',${_idx},1)" class="text-slate-600 hover:text-slate-300 px-2 transition" title="Move Down"><i class="fa-solid fa-arrow-down text-[10px]"></i></button>
+                <button onclick="APP.data.deleteCard('${_id}',${_idx})" class="text-slate-600 hover:text-red-400 px-2 transition ml-1" title="Delete"><i class="fa-solid fa-trash text-[10px]"></i></button>
             </div>
         </div>
     </div>`;
@@ -820,6 +799,7 @@
 
       data.exercises.forEach((ex, idx) => {
         APP.data.updateVolumeCounter(id, idx);
+        APP.ui.checkAllSetsCompleted(idx);
       });
 
       APP.nav.switchView("workout");

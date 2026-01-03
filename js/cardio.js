@@ -68,6 +68,29 @@
         `${sessionId}_ex${exerciseIdx}_completed`,
         complete.toString()
       );
+
+      // Manual DOM update for smoother experience (collapse/expand)
+      const card = document.getElementById(`card-${exerciseIdx}`);
+      const cardContent = card.querySelector('.p-4.space-y-3'); // Adjust selector as needed for cardio card body
+
+      if (complete) {
+        if (!card.classList.contains("all-completed")) {
+            // Toast removed per user request
+        }
+        card.classList.add("all-completed");
+        card.classList.add("card-collapsed");
+        if(cardContent) cardContent.style.display = 'none';
+
+        // Update header summary if needed
+        const header = card.querySelector('.cardio-header');
+        // ... update header logic ... 
+      } else {
+        card.classList.remove("all-completed");
+        card.classList.remove("card-collapsed");
+        if(cardContent) cardContent.style.display = 'block';
+      }
+
+      // We still need to reload to save state properly and render the "Show Details" view
       window.APP.nav.loadWorkout(sessionId);
     },
   };
