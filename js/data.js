@@ -583,14 +583,25 @@
         g: document.getElementById("prof-gender").value,
         act: parseFloat(document.getElementById("prof-active").value),
       };
+      
       LS_SAFE.setJSON("profile", p);
+      APP.data.calculateTDEE();
+      APP.data.loadProfile();
+      APP.nav.renderDashboard();
+      APP.ui.showToast("Profil diperbarui", "success");
+    },
+
+    calculateTDEE: () => {
+      const p = LS_SAFE.getJSON("profile", {});
+      if (!p.h || !p.a || !p.g || !p.act) return 0;
+
       const w = LS_SAFE.getJSON("weights", []);
       const kg = w.length > 0 ? parseFloat(w[0].v) : 80;
-      let bmr =
-        10 * kg + 6.25 * p.h - 5 * p.a + (p.g === "male" ? 5 : -161);
+      
+      let bmr = 10 * kg + 6.25 * p.h - 5 * p.a + (p.g === "male" ? 5 : -161);
       const tdee = Math.round(bmr * p.act);
       LS_SAFE.set("tdee", tdee);
-      APP.data.loadProfile();
+      return tdee;
     },
 
     mergeProgram: function (newData) {
@@ -800,30 +811,46 @@
       });
       const w = LS_SAFE.getJSON("weights", []);
       const tdee = LS_SAFE.get("tdee");
+      
       document.getElementById("display-name").innerText = p.name;
       document.getElementById("dashboard-bw").innerText = `${
         w.length ? w[0].v : "--"
       } kg`;
+
       if (tdee) {
-        document.getElementById(
-          "dashboard-tdee"
-        ).innerHTML = `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
-        document.getElementById("tdee-box").classList.remove("hidden");
-        document.getElementById("tdee-val").innerText = tdee;
-        document.getElementById("bulk-val").innerText =
-          parseInt(tdee) + 300;
-        document.getElementById("cut-val").innerText =
-          parseInt(tdee) - 500;
+        document.getElementById("dashboard-tdee").innerHTML = 
+          `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
       }
+
       if (document.getElementById("prof-name")) {
         document.getElementById("prof-name").value = p.name || "";
         if (p.h) document.getElementById("prof-height").value = p.h;
         if (p.a) document.getElementById("prof-age").value = p.a;
         if (p.g) document.getElementById("prof-gender").value = p.g;
         if (p.act) document.getElementById("prof-active").value = p.act;
-        if (p.act) {
-          document.getElementById("prof-active").value = p.act.toString();
-        }
+      }
+    },
+
+    loadNutrition: () => {
+      // Recalculate to ensure absolute accuracy on load
+      const tdee = APP.data.calculateTDEE();
+      const w = LS_SAFE.getJSON("weights", []);
+      const currentWeight = w.length > 0 ? parseFloat(w[0].v) : 80;
+
+      if (tdee) {
+        const t = parseInt(tdee);
+        document.getElementById("nut-tdee-val").innerText = t;
+        document.getElementById("nut-bulk-val").innerText = t + 300;
+        document.getElementById("nut-cut-val").innerText = t - 500;
+
+        // Simple Macro Estimation (2g Protein/kg, 0.8g Fat/kg, Remainder Carbs)
+        const protein = Math.round(currentWeight * 2);
+        const fat = Math.round(currentWeight * 0.8);
+        const carb = Math.round((t - (protein * 4 + fat * 9)) / 4);
+
+        document.getElementById("nut-pro-val").innerText = protein;
+        document.getElementById("nut-fat-val").innerText = fat;
+        document.getElementById("nut-carb-val").innerText = Math.max(0, carb);
       }
     },
 
