@@ -241,6 +241,7 @@
       document.getElementById(`${n}-modal`).classList.remove("hidden");
       if (n === "weight") APP.ui.renderWeight();
       if (n === "profile") APP.data.loadProfile();
+      if (n === "nutrition") APP.data.loadNutrition();
       if (n === "stats") {
         APP.stats.loadOptions();
         setTimeout(() => {
