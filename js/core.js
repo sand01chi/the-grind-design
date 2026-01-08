@@ -335,6 +335,30 @@
             );
           }
 
+          // V29.5 P0-006: Auto-advance to next session
+          if (sessId !== "spontaneous") {
+            try {
+              const currentNext = LS_SAFE.get("pref_next_session") || "s1";
+
+              // Get all regular session IDs (exclude spontaneous)
+              const sessionIds = Object.keys(window.APP.state.workoutData)
+                .filter(id => id !== "spontaneous")
+                .sort();
+
+              const currentIndex = sessionIds.indexOf(currentNext);
+              const nextIndex = (currentIndex + 1) % sessionIds.length;
+              const nextSessionId = sessionIds[nextIndex] || "s1";
+
+              // Save new next session
+              LS_SAFE.set("pref_next_session", nextSessionId);
+
+              console.log(`[CORE] ✅ Auto-advanced: ${currentNext} → ${nextSessionId}`);
+            } catch (err) {
+              console.warn("[CORE] Auto-advance failed:", err);
+              // Not critical - continue with navigation
+            }
+          }
+
           // CRITICAL: Delay navigation to ensure localStorage commits
           setTimeout(() => {
             window.APP.nav.switchView("dashboard");

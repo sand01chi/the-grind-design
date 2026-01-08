@@ -262,6 +262,17 @@
             APP.safety.createBackup("app_init");
             console.log("[INIT] Init snapshot created");
 
+            // V29.5 P0-006: Initialize default next session preference
+            if (!LS_SAFE.get("pref_next_session")) {
+              const sessionIds = Object.keys(APP.state.workoutData)
+                .filter(id => id !== "spontaneous")
+                .sort();
+              if (sessionIds.length > 0) {
+                LS_SAFE.set("pref_next_session", sessionIds[0]);
+                console.log(`[INIT] Set default next session: ${sessionIds[0]}`);
+              }
+            }
+
             window.APP.data.loadProfile();
             window.APP.nav.renderDashboard();
 
@@ -319,17 +330,9 @@
               }
 
               let htmlBuffer = "";
-              let oldest = Infinity;
-              let recommended = "s1";
               const wData = APP.state.workoutData;
-              Object.keys(wData).forEach((k) => {
-                if (k === "spontaneous") return;
-                const t = parseInt(LS_SAFE.get(`last_${k}`) || 0);
-                if (t < oldest) {
-                  oldest = t;
-                  recommended = k;
-                }
-              });
+              // V29.5 P0-006: Use preference-based highlight (not timestamp-based)
+              const nextSession = LS_SAFE.get("pref_next_session") || "s1";
               Object.keys(wData).forEach((k) => {
                 try {
                   if (k === "spontaneous") return;
@@ -356,11 +359,12 @@
 
                   const last = LS_SAFE.get(`last_${k}`);
                   const timeStr = DT.formatRelative(last);
-                  const isRec = k === recommended;
+                  // V29.5 P0-006: Use preference-based highlight
+                  const isNextSession = (k === nextSession);
 
                   htmlBuffer += `
   <div onclick="APP.nav.loadWorkout('${k}')" class="glass-panel p-4 rounded-xl border ${
-                isRec
+                isNextSession
                   ? "border-emerald-500/50 pulse-border"
                   : "border-white/5"
               } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
@@ -370,7 +374,7 @@
               d.label
             }</span>
             ${
-              isRec
+              isNextSession
                 ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
                 : ""
             }
@@ -383,6 +387,13 @@
           </div>
         </div>
         <div class="flex flex-col items-end gap-2">
+          <button
+            onclick="event.stopPropagation(); APP.data.setNextSession('${k}')"
+            class="${isNextSession ? 'text-emerald-400' : 'text-slate-500 hover:text-yellow-400'} p-2 text-xs transition"
+            title="${isNextSession ? 'Current next session' : 'Set as next session'}"
+          >
+            <i class="fa-solid ${isNextSession ? 'fa-bullseye' : 'fa-star'}"></i>
+          </button>
           <button
             onclick="APP.session.openEditor(event, '${k}')"
             class="text-slate-400 hover:text-emerald-400 p-2.5 text-xs bg-white/5 border border-white/10 rounded-xl transition shadow-sm active:scale-90"

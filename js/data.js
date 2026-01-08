@@ -963,6 +963,41 @@
       APP.nav.renderDashboard();
     },
 
+    // V29.5 P0-006: User-controlled session ordering
+    setNextSession: function(sessionId) {
+      // Validate session exists
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        console.error("[DATA] workoutData not initialized");
+        return false;
+      }
+
+      const session = window.APP.state.workoutData[sessionId];
+      if (!session) {
+        console.error(`[DATA] Session ${sessionId} not found`);
+        return false;
+      }
+
+      // Save preference
+      LS_SAFE.set("pref_next_session", sessionId);
+
+      // Show confirmation
+      const sessionTitle = session.title || `Session ${sessionId}`;
+      if (window.APP.ui && window.APP.ui.showToast) {
+        window.APP.ui.showToast(
+          `🎯 Next workout set to: ${sessionTitle}`,
+          "success"
+        );
+      }
+
+      // Refresh dashboard to show new highlight
+      if (window.APP.nav && window.APP.nav.renderDashboard) {
+        window.APP.nav.renderDashboard();
+      }
+
+      console.log(`[DATA] Next session set to ${sessionId}`);
+      return true;
+    },
+
     exportData: () => {
       const d = {};
       for (let i = 0; i < localStorage.length; i++) {
