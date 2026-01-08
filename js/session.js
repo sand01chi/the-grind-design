@@ -205,7 +205,8 @@
       event.stopPropagation();
 
       const session = APP.state.workoutData[sessionId];
-      if (!session) return;
+      // V29.5 FIX: Comprehensive null guard
+      if (!session || !session.exercises || !Array.isArray(session.exercises)) return;
 
       const confirmed = confirm(
         `🗑️ HAPUS SESI\n\n` +

@@ -281,7 +281,7 @@
               const k = parseFloat(LS_SAFE.get(`${s}_k`) || 0);
               const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
               const rpe = LS_SAFE.get(`${s}_rpe`) || "";
-              const rir = LS_SAFE.get(`${s}_e`) || null; // V29.0.1: RIR support
+              const rir = LS_SAFE.get(`${s}_e`) || ""; // V29.5: Standardized to empty string
               const do_ = LS_SAFE.get(`${s}_d`) === "true";
               if (do_ && k > 0 && re > 0) {
                 v += k * re;
@@ -297,6 +297,7 @@
             }
             if (r.length)
               h.push({
+                type: "strength", // V29.5: Explicit type field for schema consistency
                 date: ds,
                 ts: now.getTime(),
                 ex: opt.n,
