@@ -1010,32 +1010,78 @@
       const dName = `Program ${DT.formatDate(new Date())}`;
       const name = prompt("Nama Program:", dName);
       if (!name) return;
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      lib.push({
-        name,
-        date: Date.now(),
-        data: APP.state.workoutData,
-      });
-      LS_SAFE.setJSON("cscs_library", lib);
-      APP.ui.renderLibrary();
-      alert("Tersimpan!");
+
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+        lib.push({
+          name,
+          date: Date.now(),
+          data: APP.state.workoutData,
+        });
+
+        // V29.5 FIX: Check if save succeeded
+        const saved = LS_SAFE.setJSON("cscs_library", lib);
+
+        if (saved) {
+          APP.ui.renderLibrary();
+          alert("Tersimpan!");
+        } else {
+          alert("Failed to save - storage may be full");
+        }
+      } catch (err) {
+        alert(`Failed to save to library: ${err.message}`);
+        console.error("[DATA] saveToLibrary error:", err);
+      }
     },
 
     loadFromLibrary: (idx) => {
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      if (confirm(`Load "${lib[idx].name}"?`)) {
-        APP.state.workoutData = lib[idx].data;
-        APP.core.saveProgram();
-        location.reload();
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+
+        // V29.5 FIX: Validate index and entry exist
+        if (!lib[idx]) {
+          alert(`Program not found in library`);
+          return;
+        }
+
+        if (confirm(`Load "${lib[idx].name}"?`)) {
+          APP.state.workoutData = lib[idx].data;
+          APP.core.saveProgram();
+          // V29.5 FIX: Delay reload for storage commit
+          setTimeout(() => location.reload(), 250);
+        }
+      } catch (err) {
+        alert(`Failed to load from library: ${err.message}`);
+        console.error("[DATA] loadFromLibrary error:", err);
       }
     },
 
     deleteFromLibrary: (idx) => {
       if (!confirm("Hapus?")) return;
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      lib.splice(idx, 1);
-      LS_SAFE.setJSON("cscs_library", lib);
-      APP.ui.renderLibrary();
+
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+
+        // V29.5 FIX: Validate index exists
+        if (!lib[idx]) {
+          alert("Program not found");
+          return;
+        }
+
+        lib.splice(idx, 1);
+
+        // V29.5 FIX: Check if delete succeeded
+        const saved = LS_SAFE.setJSON("cscs_library", lib);
+
+        if (saved) {
+          APP.ui.renderLibrary();
+        } else {
+          alert("Failed to delete - storage error");
+        }
+      } catch (err) {
+        alert(`Failed to delete from library: ${err.message}`);
+        console.error("[DATA] deleteFromLibrary error:", err);
+      }
     },
 
     applyAIProgram: () => {
