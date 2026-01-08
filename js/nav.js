@@ -49,7 +49,7 @@
 
               try {
                 console.log("Running automatic data integrity check...");
-                const integrityReport = APP.data.normalizeExerciseNames();
+                const integrityReport = APP.validation.normalizeExerciseNames();
 
                 if (integrityReport.normalized > 0) {
                   console.warn(

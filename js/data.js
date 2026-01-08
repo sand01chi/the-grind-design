@@ -887,10 +887,21 @@
         const today = DT.formatDate(new Date());
         if (!confirm(`Hapus semua log latihan hari ini (${today})?`))
           return;
+
+        // V29.5 FIX: Backup before delete
+        window.APP.safety.createBackup('delete_today_logs');
+
         const newLogs = logs.filter((l) => l.date !== today);
         LS_SAFE.setJSON("gym_hist", newLogs);
         resetSessionTimestamp(today);
         alert("Log hari ini dihapus. Rotasi sesi dikembalikan.");
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => {
+          APP.stats.loadOptions();
+          APP.nav.renderDashboard();
+        }, 250);
+        return;
       } else if (mode === "date") {
         const inputDate =
           document.getElementById("del-date-picker").value;
@@ -901,9 +912,20 @@
         const newLogs = logs.filter((l) => l.date !== targetDate);
         if (newLogs.length === initialLen)
           return alert("Tidak ada data di tanggal tersebut.");
+
+        // V29.5 FIX: Backup before delete
+        window.APP.safety.createBackup('delete_date_logs');
+
         LS_SAFE.setJSON("gym_hist", newLogs);
         resetSessionTimestamp(targetDate);
         alert(`Data tanggal ${targetDate} dihapus.`);
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => {
+          APP.stats.loadOptions();
+          APP.nav.renderDashboard();
+        }, 250);
+        return;
       } else if (mode === "all") {
         if (
           !confirm(
@@ -911,6 +933,10 @@
           )
         )
           return;
+
+        // V29.5 FIX: Backup before delete all
+        window.APP.safety.createBackup('delete_all_logs');
+
         LS_SAFE.remove("gym_hist");
         const toRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -928,7 +954,10 @@
         }
         toRemove.forEach((k) => LS_SAFE.remove(k));
         alert("Fresh Start Berhasil! Kembali ke Sesi 1.");
-        location.reload();
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => location.reload(), 250);
+        return;
       }
       APP.stats.loadOptions();
       APP.nav.renderDashboard();
@@ -955,11 +984,23 @@
       r.onload = (e) => {
         try {
           const d = JSON.parse(e.target.result);
+
+          // V29.5 FIX: Validate structure before destroying data
+          if (!d || typeof d !== 'object' || Object.keys(d).length === 0) {
+            throw new Error('Invalid or empty backup file');
+          }
+
+          // V29.5 FIX: Backup current state before clear
+          window.APP.safety.createBackup('pre_import_backup');
+
           LS_SAFE.clear();
           for (let k in d) LS_SAFE.set(k, d[k]);
-          location.reload();
-        } catch {
-          alert("File Corrupt/Invalid");
+
+          // V29.5 FIX: Delay for storage commit
+          setTimeout(() => location.reload(), 250);
+        } catch (err) {
+          // V29.5 FIX: Show actual error message
+          alert("Import failed: " + (err.message || "File Corrupt/Invalid"));
         }
       };
       r.readAsText(i.files[0]);

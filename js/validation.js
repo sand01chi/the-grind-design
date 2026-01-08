@@ -124,28 +124,31 @@
         `🛡️ Running Data Integrity Check on ${workoutLogs.length} workout logs...`
       );
 
+      // V29.5 FIX: Use correct gym_hist schema - log.ex (not log.exercises)
+      // Each log entry has a single exercise name in log.ex field
       workoutLogs.forEach((log, logIdx) => {
-        if (!log.exercises || !Array.isArray(log.exercises)) return;
+        // Skip logs without exercise name (e.g., cardio entries might have different format)
+        if (!log.ex || typeof log.ex !== 'string') {
+          return;
+        }
 
-        log.exercises.forEach((exercise, exIdx) => {
-          if (!exercise.name) return;
+        const currentName = log.ex;
 
-          const currentName = exercise.name;
-
-          const canonicalName =
-            APP.validation.fuzzyMatchExercise(currentName);
+        // Check if exercise exists in library
+        if (typeof EXERCISE_TARGETS !== 'undefined' && !EXERCISE_TARGETS[currentName]) {
+          // Try fuzzy match
+          const canonicalName = this.fuzzyMatchExercise(currentName);
 
           if (canonicalName && canonicalName !== currentName) {
-            exercise.name = canonicalName;
-
+            log.ex = canonicalName; // Update to canonical name
             report.normalized++;
-            const changeLog = `Log ${logIdx + 1}, Ex ${
-              exIdx + 1
-            }: "${currentName}" → "${canonicalName}"`;
+            const changeLog = `Log ${logIdx + 1}: "${currentName}" → "${canonicalName}"`;
             report.changes.push(changeLog);
             console.log(`✅ ${changeLog}`);
+          } else {
+            console.warn(`[VALIDATION] Unknown exercise: "${currentName}" - no match found`);
           }
-        });
+        }
       });
 
       if (report.normalized > 0) {

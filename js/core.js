@@ -309,13 +309,24 @@
                 note: currentNote,
               });
           });
-          // V29.0.1 FIX: Save workout data
-          LS_SAFE.setJSON("gym_hist", h);
+          // V29.5 FIX: Check save result before showing success
+          const saveSuccess = LS_SAFE.setJSON("gym_hist", h);
+
+          if (!saveSuccess) {
+            // Save failed - show error, don't navigate
+            window.APP.ui.showToast(
+              "⚠️ Failed to save workout! Storage may be full. Try clearing old backups.",
+              "error"
+            );
+            console.error("[CORE] Failed to save gym_hist - storage quota exceeded?");
+            return; // Don't navigate away - let user retry
+          }
+
           if (sessId !== "spontaneous") {
             LS_SAFE.set(`last_${sessId}`, now.getTime());
           }
 
-          // Show success feedback
+          // Only show success if save actually worked
           if (window.APP.ui && window.APP.ui.showToast) {
             window.APP.ui.showToast(
               `Workout saved! ${totalSets} sets, ${totalVol}kg volume`,
