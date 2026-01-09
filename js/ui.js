@@ -3410,11 +3410,59 @@
     // ============================================================================
 
     /**
+     * V30.0: Position tooltip with viewport awareness
+     * @param {HTMLElement} container - Tooltip container
+     * @param {DOMRect} triggerRect - Bounding rect of trigger element
+     */
+    _positionTooltip: function(container, triggerRect) {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const padding = 12;
+      const tooltipMaxWidth = 280;
+
+      // Reset position to measure natural size
+      container.style.left = '0px';
+      container.style.top = '0px';
+      container.style.display = 'block';
+      container.classList.remove('hidden');
+
+      // Force reflow to get accurate dimensions
+      const tooltipWidth = Math.min(container.offsetWidth, tooltipMaxWidth);
+      const tooltipHeight = container.offsetHeight;
+
+      // Calculate centered position below trigger
+      let left = triggerRect.left + (triggerRect.width / 2) - (tooltipWidth / 2);
+      let top = triggerRect.bottom + 8;
+
+      // Horizontal boundary checks
+      if (left < padding) {
+        left = padding;
+      } else if (left + tooltipWidth > viewportWidth - padding) {
+        left = viewportWidth - tooltipWidth - padding;
+      }
+
+      // Vertical boundary checks - show above if no space below
+      if (top + tooltipHeight > viewportHeight - padding) {
+        top = triggerRect.top - tooltipHeight - 8;
+      }
+
+      // Final boundary check - keep in viewport
+      if (top < padding) {
+        top = padding;
+      }
+
+      container.style.left = left + 'px';
+      container.style.top = top + 'px';
+    },
+
+    /**
      * Show scientific evidence tooltip
      * @param {string} insightId - ID of the insight
      * @param {Event} event - Click/hover event for positioning
      */
     showEvidenceTooltip: function(insightId, event) {
+      event.stopPropagation();
+
       const insights = window.APP._currentInsights || [];
       const insight = insights.find(i => i.id === insightId);
 
@@ -3427,26 +3475,14 @@
 
       // Set content
       content.innerHTML = `
-        <div class="font-semibold mb-1">${insight.evidence.source}</div>
-        ${insight.evidence.title ? `<div class="text-[10px] italic mb-1">${insight.evidence.title}</div>` : ''}
-        <div class="text-[10px]">${insight.evidence.citation}</div>
+        <div class="font-semibold text-sm mb-1">${insight.evidence.source}</div>
+        ${insight.evidence.title ? `<div class="text-xs italic mb-1 text-slate-300">${insight.evidence.title}</div>` : ''}
+        <div class="text-xs text-slate-400">${insight.evidence.citation}</div>
       `;
 
       // Position tooltip
       const rect = event.target.getBoundingClientRect();
-      const tooltipHeight = container.offsetHeight;
-
-      // Position above button if too close to bottom
-      if (rect.bottom + tooltipHeight + 20 > window.innerHeight) {
-        container.style.top = (rect.top - tooltipHeight - 8) + 'px';
-      } else {
-        container.style.top = (rect.bottom + 8) + 'px';
-      }
-
-      container.style.left = rect.left + 'px';
-
-      // Show
-      container.classList.remove('hidden');
+      this._positionTooltip(container, rect);
     },
 
     /**
@@ -3455,6 +3491,8 @@
      * @param {Event} event - Click/hover event
      */
     showTooltip: function(tooltipId, event) {
+      event.stopPropagation();
+
       const container = document.getElementById('tooltip-container');
       const content = document.getElementById('tooltip-content');
 
@@ -3489,18 +3527,14 @@
 
       // Set content
       content.innerHTML = `
-        <div class="font-semibold mb-1">${tooltip.title}</div>
-        <div class="text-[10px] mb-2">${tooltip.text}</div>
-        <div class="text-[10px] italic text-slate-400">Source: ${tooltip.source}</div>
+        <div class="font-semibold text-sm mb-1">${tooltip.title}</div>
+        <div class="text-xs mb-2 text-slate-300">${tooltip.text}</div>
+        <div class="text-xs italic text-slate-400">Source: ${tooltip.source}</div>
       `;
 
       // Position tooltip
       const rect = event.target.getBoundingClientRect();
-      container.style.top = (rect.bottom + 8) + 'px';
-      container.style.left = Math.max(8, rect.left - 100) + 'px'; // Center under button with margin
-
-      // Show
-      container.classList.remove('hidden');
+      this._positionTooltip(container, rect);
     },
 
     /**
@@ -3510,6 +3544,7 @@
       const container = document.getElementById('tooltip-container');
       if (container) {
         container.classList.add('hidden');
+        container.style.display = 'none';
       }
     },
   };

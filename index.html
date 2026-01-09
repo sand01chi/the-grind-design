@@ -9,12 +9,42 @@
     <link rel="icon" type="image/png" href="app-logo.png" />
     <link rel="apple-touch-icon" href="app-logo.png" />
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN V29.5 CODE HEALTH AUDIT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>THE GRIND DESIGN V30.0 MOBILE UI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Tailwind Custom Configuration for V30.0 Mobile UI -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              app: {
+                bg: '#000000',           // Pure black background
+                card: '#1C1C1E',         // Dark card background
+                accent: '#4FD1C5',       // Teal accent (primary actions)
+                'accent-dim': 'rgba(79, 209, 197, 0.15)', // Teal background dim
+                text: '#FFFFFF',         // Primary text
+                subtext: '#9CA3AF',      // Secondary text (gray-400)
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            boxShadow: {
+              'glow': '0 0 15px rgba(79, 209, 197, 0.3)',
+              'inner-glow': 'inset 0 0 20px rgba(79, 209, 197, 0.2)',
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <!-- Font Awesome 6.4.0 -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -24,27 +54,93 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      /* GLASSMMORPHISM THEME */
+      /* ========================================
+         V30.0 MOBILE UI - PURE BLACK THEME
+         ======================================== */
+
       :root {
-        --glass-bg: rgba(15, 23, 42, 0.85); /* Slightly more opaque */
-        --glass-border: rgba(255, 255, 255, 0.12); /* Sharper border */
+        /* V30.0 Pure Black Theme */
+        --glass-bg: rgba(28, 28, 30, 0.95); /* #1C1C1E with opacity */
+        --glass-border: rgba(255, 255, 255, 0.1);
         --glass-highlight: rgba(255, 255, 255, 0.05);
         --glass-blur: 16px;
-        --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
         --glass-text-secondary: rgba(148, 163, 184, 0.8);
-        --primary-glow: rgba(16, 185, 129, 0.2); 
-        --primary-color: #10b981;
+        --primary-glow: rgba(79, 209, 197, 0.2); /* Teal glow */
+        --primary-color: #4FD1C5; /* Teal accent */
       }
 
       body {
-        /* Premium deep dark background */
-        background: #0b0f1a;
+        /* V30.0 Pure Black Background */
+        background: #000000;
         background-attachment: fixed;
-        color: #e2e8f0;
+        color: #ffffff;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      /* Hide scrollbar for cleaner mobile look */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Spontaneous button glow effect (V30.0) */
+      .spontaneous-btn-bg {
+        background: linear-gradient(90deg, #111827 0%, rgba(45, 212, 191, 0.15) 50%, #111827 100%);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        box-shadow: 0 0 15px rgba(79, 209, 197, 0.15);
+      }
+
+      /* Next badge positioning (V30.0) */
+      .next-badge {
+        position: absolute;
+        top: -12px;
+        left: 16px;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background-color: #4FD1C5;
+        color: #000000;
+        z-index: 10;
+      }
+
+      /* Bottom nav styles (V30.0) */
+      .nav-item {
+        transition: color 0.2s;
+      }
+
+      .nav-item-active i {
+        filter: drop-shadow(0 0 5px rgba(79, 209, 197, 0.6));
+      }
+
+      .nav-item:not(.nav-item-active):hover {
+        color: #9CA3AF;
+      }
+
+      /* Button transitions (V30.0) */
+      button {
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      /* Modal styling (V30.0) */
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal-content {
+        background-color: #1C1C1E;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
       }
 
       /* Global Glass Utilities */
@@ -598,49 +694,59 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
   </head>
 
-  <body class="h-screen flex flex-col overflow-hidden">
-    <header
-      class="glass-panel border-b border-white/10 rounded-none border-x-0 border-t-0 p-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center z-30 fixed top-0 w-full shadow-2xl"
-    >
-      <div class="app-header">
-        <img
-          src="app-logo.png"
-          onerror="this.style.display='none'"
-          class="app-logo"
-          alt="Logo"
-        />
-        <div>
-          <h1 class="font-bold text-white text-sm tracking-wide">
-            THE GRIND DESIGN
-          </h1>
-          <p
-            class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
-          >
-            V29.5 CODE HEALTH AUDIT
-          </p>
+  <body class="flex justify-center min-h-screen bg-black">
+    <!-- V30.0 Mobile Container Wrapper -->
+    <div class="w-full max-w-md bg-black min-h-screen overflow-y-auto relative flex flex-col">
+      <!-- Status Bar Spacer (for mobile notch/status bar) -->
+      <div class="h-3 w-full shrink-0"></div>
+
+      <header
+        class="glass-panel border-b border-white/10 rounded-none border-x-0 border-t-0 p-4 pt-[calc(0.5rem+env(safe-area-inset-top))] flex justify-between items-center z-30 sticky top-0 shadow-2xl bg-black/90 backdrop-blur-md"
+      >
+        <div class="app-header">
+          <img
+            src="app-logo.png"
+            onerror="this.style.display='none'"
+            class="app-logo"
+            alt="Logo"
+          />
+          <div>
+            <h1 class="font-bold text-white text-sm tracking-wide">
+              THE GRIND DESIGN
+            </h1>
+            <p
+              class="text-[10px] text-app-accent uppercase tracking-wider font-bold"
+            >
+              V30.0 MOBILE UI
+            </p>
+          </div>
         </div>
-      </div>
-      <div class="flex gap-2">
-        <button
-          onclick="APP.ui.openAICommandCenter()"
-          class="glass-btn text-xs text-purple-400 border border-purple-900/50 px-3 py-1.5 rounded hover:bg-purple-900/50 transition"
-          title="AI Command Center"
-        >
-          <i class="fa-solid fa-microchip mr-1"></i> AI
-        </button>
-        <button
-          onclick="APP.ui.openModal('calendar')"
-          class="glass-btn text-xs text-emerald-400 border border-emerald-900/50 px-3 py-1.5 rounded hover:bg-emerald-900/50 transition"
-        >
-          <i class="fa-solid fa-calendar-days"></i>
-        </button>
-      </div>
-    </header>
-    <main
-      id="app-container"
-      class="flex-1 overflow-y-auto no-scrollbar pt-28 pb-24 px-4"
-    >
+        <div class="flex gap-2">
+          <button
+            onclick="APP.ui.openAICommandCenter()"
+            class="glass-btn text-xs text-purple-400 border border-purple-900/50 px-3 py-1.5 rounded hover:bg-purple-900/50 transition"
+            title="AI Command Center"
+          >
+            <i class="fa-solid fa-microchip mr-1"></i> AI
+          </button>
+          <button
+            onclick="APP.ui.openModal('calendar')"
+            class="glass-btn text-xs text-app-accent border border-app-accent/30 px-3 py-1.5 rounded hover:bg-app-accent/10 transition"
+          >
+            <i class="fa-solid fa-calendar-days"></i>
+          </button>
+        </div>
+      </header>
+      <main
+        id="app-container"
+        class="flex-1 overflow-y-auto no-scrollbar pb-24 px-4"
+      >
       <div id="dashboard-view" class="fade-in space-y-6">
+        <!-- V30.0: Stats Cards Container -->
+        <div id="stats-cards-container" class="mb-2">
+          <!-- Stats cards will be injected here by renderDashboard() -->
+        </div>
+
         <div
           class="glass-panel rounded-3xl p-6 relative overflow-hidden"
         >
@@ -660,7 +766,7 @@
           </div>
           <div class="relative z-10">
             <h1 class="text-3xl font-bold text-white mb-1">
-              Halo, <span id="display-name" class="text-emerald-400">Dok</span>!
+              Halo, <span id="display-name" class="text-app-accent">Dok</span>!
             </h1>
             <p class="text-slate-400 text-sm mb-6">
               Kelola Intensitas, Raih Puncak Volume.
@@ -668,13 +774,13 @@
             <div class="grid grid-cols-2 gap-3">
               <button
                 onclick="APP.ui.openModal('weight')"
-                class="glass-card hover:bg-emerald-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-emerald-500/30 active:scale-95"
+                class="glass-card hover:bg-app-accent/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-app-accent/30 active:scale-95"
               >
                 <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-weight-scale text-emerald-400"></i>
+                <i class="fa-solid fa-weight-scale text-app-accent"></i>
                 <div class="text-left">
                   <p
-                    class="text-[10px] text-emerald-300 uppercase tracking-wider"
+                    class="text-[10px] text-app-accent uppercase tracking-wider"
                   >
                     Weight
                   </p>
@@ -731,29 +837,16 @@
             </div>
           </div>
         </div>
-        <div
-          onclick="APP.ui.openModal('spontaneous')"
-          class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group"
-        >
-          <div
-            class="absolute right-0 bottom-0 text-indigo-500/10 text-6xl -mr-4 -mb-4"
+        <!-- V30.0 Spontaneous Mode Button with Glow Effect -->
+        <section class="mb-2">
+          <button
+            onclick="window.APP.nav.loadWorkout('spontaneous')"
+            class="w-full py-4 rounded-3xl spontaneous-btn-bg flex items-center justify-center gap-3 group active:scale-[0.98] transition-transform"
           >
-            <i class="fa-solid fa-bolt"></i>
-          </div>
-          <div class="flex items-center gap-3">
-            <div
-              class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition"
-            >
-              <i class="fa-solid fa-bolt"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-white text-sm">SPONTANEOUS MODE</h3>
-              <p class="text-[10px] text-indigo-300">
-                Sesi Bebas / Active Recovery (No Rotation Impact)
-              </p>
-            </div>
-          </div>
-        </div>
+            <i class="fa-solid fa-person-running fa-lg text-app-accent group-hover:animate-pulse"></i>
+            <span class="text-app-accent font-bold text-lg tracking-wide">Spontaneous Mode</span>
+          </button>
+        </section>
         <div class="flex items-center justify-between">
           <p
             class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1"
@@ -761,7 +854,7 @@
             Rotasi Sesi
           </p>
           <span
-            class="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center"
+            class="text-[10px] text-app-accent bg-app-accent/10 px-2 py-0.5 rounded flex items-center"
             ><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>
             Auto-Suggest</span
           >
@@ -771,10 +864,10 @@
         <div class="mt-4">
           <button
             onclick="APP.session.openCreator()"
-            class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition border border-emerald-400/30"
+            class="w-full bg-app-accent hover:bg-app-accent/90 text-black font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition"
           >
-            <i class="fa-solid fa-plus-circle text-xl"></i>
-            <span>BUAT SESI LATIHAN BARU</span>
+            <i class="fa-solid fa-plus text-xl"></i>
+            <span>Add New Session</span>
           </button>
 
           <p class="text-[10px] text-slate-500 text-center mt-2 italic">
@@ -785,7 +878,7 @@
       <div id="workout-view" class="hidden fade-in space-y-4">
         <div class="flex justify-between items-center mb-2">
           <button
-            onclick="APP.nav.switchView('dashboard')"
+            onclick="window.APP.nav.switchView('dashboard')"
             class="flex items-center text-slate-400 hover:text-white text-sm group"
           >
             <div
@@ -891,20 +984,74 @@
         <div id="exercise-list" class="space-y-4"></div>
         <button
           onclick="APP.data.addNewExerciseCard()"
-          class="w-full glass-card border border-dashed border-slate-700 text-slate-400 py-3 rounded-xl hover:text-white hover:border-emerald-500 hover:bg-slate-700/50 transition mb-4"
+          class="w-full glass-card border border-dashed border-slate-700 text-slate-400 py-3 rounded-xl hover:text-white hover:border-app-accent hover:bg-slate-700/50 transition mb-4"
         >
           <i class="fa-solid fa-plus mr-2"></i> Tambah Gerakan Baru
         </button>
         <div class="pt-2 pb-10">
           <button
             onclick="APP.core.finishSession()"
-            class="w-full glass-btn border-2 border-emerald-500/50 text-emerald-400 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition hover:bg-emerald-500/10"
+            class="w-full glass-btn border-2 border-app-accent/50 text-app-accent font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition hover:bg-app-accent/10"
           >
             <i class="fa-solid fa-flag-checkered"></i> SELESAI & SIMPAN LOG
           </button>
         </div>
       </div>
     </main>
+
+    <!-- V30.0: Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-black/90 backdrop-blur-md border-t border-white/5 pb-6 pt-2 px-6 z-50">
+      <ul class="flex justify-between items-center">
+
+        <!-- Home Tab -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-app-accent nav-item-active"
+             data-view="dashboard"
+             href="#"
+             onclick="window.APP.nav.switchView('dashboard'); return false;">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="text-[10px] font-medium">Home</span>
+          </a>
+        </li>
+
+        <!-- Analytics Tab -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="stats"
+             href="#"
+             onclick="window.APP.ui.openModal('stats'); return false;">
+            <i class="fa-solid fa-chart-simple text-xl"></i>
+            <span class="text-[10px] font-medium">Analytics</span>
+          </a>
+        </li>
+
+        <!-- AI Tab -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="ai"
+             href="#"
+             onclick="window.APP.ui.openAICommandCenter(); return false;">
+            <i class="fa-solid fa-brain text-xl"></i>
+            <span class="text-[10px] font-medium">AI</span>
+          </a>
+        </li>
+
+        <!-- Profile Tab -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="profile"
+             href="#"
+             onclick="window.APP.ui.openModal('profile'); return false;">
+            <i class="fa-regular fa-user text-xl"></i>
+            <span class="text-[10px] font-medium">Profile</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    </div><!-- END: V30.0 Mobile Container Wrapper -->
+
     <div id="toast-container"></div>
 
     <!-- DEEP SESSION EDITOR MODAL -->
@@ -919,7 +1066,7 @@
           class="flex justify-between items-center mb-4 pb-3 border-b border-white/10"
         >
           <h3 class="font-bold text-white text-lg">
-            <i class="fa-solid fa-pen-to-square text-emerald-400 mr-2"></i>
+            <i class="fa-solid fa-pen-to-square text-app-accent mr-2"></i>
             Edit Sesi Lengkap
           </h3>
           <button
@@ -1819,11 +1966,6 @@
           </div>
         </div>
 
-        <!-- V29.0: TOOLTIP CONTAINER -->
-        <div id="tooltip-container" class="hidden fixed z-50 bg-slate-900 text-white text-xs rounded-lg shadow-lg p-3 max-w-xs border border-slate-700">
-          <div id="tooltip-content"></div>
-          <div class="absolute w-2 h-2 bg-slate-900 border-l border-b border-slate-700 transform rotate-45 -bottom-1 left-4"></div>
-        </div>
       </div>
     </div>
     <div
@@ -2359,6 +2501,14 @@
           <!-- Content injected by switchAIMode() -->
         </div>
       </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- V30.0: GLOBAL TOOLTIP CONTAINER            -->
+    <!-- Must be at body level for proper z-index   -->
+    <!-- ========================================== -->
+    <div id="tooltip-container" class="hidden fixed bg-slate-900/95 backdrop-blur-sm text-white text-xs rounded-xl shadow-2xl p-4 max-w-[280px] border border-slate-600" style="z-index: 99999; pointer-events: none;">
+      <div id="tooltip-content"></div>
     </div>
 
     <!-- ========================================== -->

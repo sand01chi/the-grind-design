@@ -318,10 +318,135 @@
       document.getElementById("workout-view").classList.add("hidden");
       document.getElementById(`${v}-view`).classList.remove("hidden");
       if (v === "dashboard") APP.nav.renderDashboard();
+
+      // V30.0: Update bottom nav active state
+      window.APP.nav.updateBottomNav(v);
+    },
+
+    /**
+     * V30.0: Update bottom navigation active state
+     * @param {string} activeView - Current view identifier
+     */
+    updateBottomNav: function(activeView) {
+      // View mapping (some views use different IDs)
+      const viewMap = {
+        'dashboard': 'dashboard',
+        'klinik': 'stats',
+        'stats': 'stats',
+        'ai': 'ai',
+        'settings': 'profile',
+        'profile': 'profile'
+      };
+
+      const mappedView = viewMap[activeView] || activeView;
+
+      // Update all nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const itemView = item.getAttribute('data-view');
+
+        if (itemView === mappedView) {
+          // Activate this item
+          item.classList.add('text-app-accent', 'nav-item-active');
+          item.classList.remove('text-gray-500');
+        } else {
+          // Deactivate other items
+          item.classList.remove('text-app-accent', 'nav-item-active');
+          item.classList.add('text-gray-500');
+        }
+      });
     },
 
     renderDashboard: () => {
             try {
+              // ============================================
+              // V30.0: STATS CARDS
+              // ============================================
+
+              // Get user weight from profile
+              const profile = LS_SAFE.getJSON("profile", {});
+              const userWeight = profile.weight || 70; // Default 70kg if not set
+
+              // Calculate weekly volume
+              const logs = LS_SAFE.getJSON("gym_hist", []);
+              const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+
+              const weeklyVolume = logs
+                .filter(log => log.ts >= sevenDaysAgo)
+                .reduce((sum, log) => {
+                  return sum + (log.vol || 0);
+                }, 0);
+
+              // Format weekly volume (convert to tons if > 1000kg)
+              const volumeDisplay = weeklyVolume >= 1000
+                ? (weeklyVolume / 1000).toFixed(1)
+                : Math.round(weeklyVolume);
+              const volumeUnit = weeklyVolume >= 1000 ? 'tons' : 'kg';
+
+              // Calculate previous week for comparison
+              const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
+              const previousWeekVolume = logs
+                .filter(log => log.ts >= fourteenDaysAgo && log.ts < sevenDaysAgo)
+                .reduce((sum, log) => sum + (log.vol || 0), 0);
+
+              // Calculate volume change
+              const volumeChange = weeklyVolume - previousWeekVolume;
+              const volumeChangePercent = previousWeekVolume > 0
+                ? ((volumeChange / previousWeekVolume) * 100).toFixed(0)
+                : 0;
+              const volumeChangeIcon = volumeChange > 0 ? '↑' : (volumeChange < 0 ? '↓' : '→');
+              const volumeChangeColor = volumeChange > 0 ? 'text-green-400' : (volumeChange < 0 ? 'text-red-400' : 'text-gray-400');
+
+              // Render stats cards container
+              const statsContainer = document.getElementById('stats-cards-container');
+              if (statsContainer) {
+                statsContainer.innerHTML = `
+                  <section aria-label="Stats" class="grid grid-cols-2 gap-4">
+
+                    <!-- Weight Card -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5">
+                      <div class="flex justify-between items-start">
+                        <span class="text-gray-400 font-medium text-sm">Weight</span>
+                        <i class="fa-solid fa-weight-scale text-gray-500 text-sm"></i>
+                      </div>
+                      <div>
+                        <div class="flex items-baseline gap-1">
+                          <span class="font-bold text-white text-4xl">${userWeight}</span>
+                          <span class="text-sm text-gray-400 font-medium">kg</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                          <i class="fa-solid fa-chart-line"></i>
+                          <span>Track progress</span>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- Weekly Volume Card -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5">
+                      <div class="flex justify-between items-start">
+                        <span class="text-gray-400 font-medium text-sm">Weekly Vol</span>
+                        <i class="fa-solid fa-dumbbell text-gray-500 text-sm"></i>
+                      </div>
+                      <div>
+                        <div class="flex items-baseline gap-1">
+                          <span class="font-bold text-white text-4xl">${volumeDisplay}</span>
+                          <span class="text-sm text-gray-400 font-medium">${volumeUnit}</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1">
+                          <span class="text-xs font-bold ${volumeChangeColor}">
+                            ${volumeChangeIcon} ${Math.abs(volumeChangePercent)}%
+                          </span>
+                          <span class="text-xs text-gray-500">vs last week</span>
+                        </div>
+                      </div>
+                    </article>
+
+                  </section>
+                `;
+              }
+
+              // ============================================
+              // EXISTING SESSION LIST CODE BELOW
+              // ============================================
               const list = document.getElementById("schedule-list");
 
               if (!list) {
@@ -329,94 +454,116 @@
                 return;
               }
 
-              let htmlBuffer = "";
-              const wData = APP.state.workoutData;
-              // V29.5 P0-006: Use preference-based highlight (not timestamp-based)
+              // V30.0: Get next session preference
               const nextSession = LS_SAFE.get("pref_next_session") || "s1";
+
+              // Build session cards HTML
+              let sessionsHTML = '';
+              const wData = APP.state.workoutData;
+
               Object.keys(wData).forEach((k) => {
                 try {
-                  if (k === "spontaneous") return;
+                  if (k === "spontaneous") return; // Skip spontaneous
 
-                  const d = wData[k];
+                  const session = wData[k];
 
-                  if (!d || typeof d !== "object") {
-                    console.warn(
-                      `[DASHBOARD] Session ${k} has invalid structure - skipping`
-                    );
+                  if (!session || typeof session !== "object") {
+                    console.warn(`[DASHBOARD] Session ${k} has invalid structure - skipping`);
                     return;
                   }
 
-                  if (!d.title) {
-                    console.warn(
-                      `[DASHBOARD] Session ${k} has no title - using fallback`
-                    );
-                    d.title = "Untitled Session";
+                  if (!session.title) {
+                    console.warn(`[DASHBOARD] Session ${k} has no title - using fallback`);
+                    session.title = "Untitled Session";
                   }
 
-                  if (!d.label) {
-                    d.label = "CUSTOM";
+                  // Sanitize session data (V29.5 security)
+                  const safeTitle = window.APP.validation?.sanitizeHTML
+                    ? window.APP.validation.sanitizeHTML(session.title)
+                    : session.title;
+                  const safeLabel = session.label || "CUSTOM";
+
+                  // Get last performed timestamp
+                  const lastTimestamp = LS_SAFE.get(`last_${k}`);
+
+                  // V30.0: Calculate relative time
+                  let timeStr = "Never performed";
+                  if (lastTimestamp) {
+                    const lastDate = new Date(parseInt(lastTimestamp));
+                    const now = new Date();
+                    const diffMs = now - lastDate;
+                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 0) {
+                      timeStr = "Today";
+                    } else if (diffDays === 1) {
+                      timeStr = "Yesterday";
+                    } else if (diffDays < 7) {
+                      timeStr = `${diffDays} days ago`;
+                    } else if (diffDays < 30) {
+                      const weeks = Math.floor(diffDays / 7);
+                      timeStr = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+                    } else {
+                      const months = Math.floor(diffDays / 30);
+                      timeStr = `${months} month${months > 1 ? 's' : ''} ago`;
+                    }
                   }
 
-                  // V29.5 P2-003: Sanitize session title and label
-                  const safeTitle = window.APP.validation.sanitizeHTML(d.title);
-                  const safeLabel = window.APP.validation.sanitizeHTML(d.label);
+                  // Check if this is the next session
+                  const isNext = (k === nextSession);
 
-                  const last = LS_SAFE.get(`last_${k}`);
-                  const timeStr = DT.formatRelative(last);
-                  // V29.5 P0-006: Use preference-based highlight
-                  const isNextSession = (k === nextSession);
+                  // Count exercises for display
+                  const exerciseCount = session.exercises?.length || 0;
 
-                  htmlBuffer += `
-  <div onclick="APP.nav.loadWorkout('${k}')" class="glass-panel p-4 rounded-xl border ${
-                isNextSession
-                  ? "border-emerald-500/50 pulse-border"
-                  : "border-white/5"
-              } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
-    <div>
-          <div class="flex items-center mb-1">
-            <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
-              safeLabel
-            }</span>
-            ${
-              isNextSession
-                ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
-                : ""
-            }
-          </div>
-          <h3 class="font-bold text-white text-base">
-            ${safeTitle}
-          </h3>
-          <div class="text-xs text-slate-400 mt-1">
-            <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
-          </div>
-        </div>
-        <div class="flex flex-col items-end gap-2">
-          <button
-            onclick="event.stopPropagation(); APP.data.setNextSession('${k}')"
-            class="${isNextSession ? 'text-emerald-400' : 'text-slate-500 hover:text-yellow-400'} p-2 text-xs transition"
-            title="${isNextSession ? 'Current next session' : 'Set as next session'}"
-          >
-            <i class="fa-solid ${isNextSession ? 'fa-bullseye' : 'fa-star'}"></i>
-          </button>
-          <button
-            onclick="APP.session.openEditor(event, '${k}')"
-            class="text-slate-400 hover:text-emerald-400 p-2.5 text-xs bg-white/5 border border-white/10 rounded-xl transition shadow-sm active:scale-90"
-            title="Edit Sesi"
-          >
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <i class="fa-solid fa-chevron-right text-slate-600/50 text-[10px]"></i>
-        </div>
-      </div>
-    `;
+                  // V30.0: Build session card HTML with modern design
+                  sessionsHTML += `
+                    <div class="relative p-4 rounded-2xl ${
+                      isNext
+                        ? 'border border-app-accent bg-[#1E1E1E]'
+                        : 'bg-app-card border border-transparent'
+                    } mb-4 active:scale-[0.98] transition-transform cursor-pointer"
+                         onclick="window.APP.nav.loadWorkout('${k}')">
+
+                      ${isNext ? '<div class="next-badge">Next</div>' : ''}
+
+                      <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 py-0.5 rounded uppercase">
+                              ${safeLabel}
+                            </span>
+                            ${isNext ? '<i class="fa-solid fa-bullseye text-app-accent text-xs"></i>' : ''}
+                          </div>
+                          <h3 class="text-white font-bold text-lg mb-1">${safeTitle}</h3>
+                          <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <span><i class="fa-solid fa-clock-rotate-left mr-1"></i>${timeStr}</span>
+                            <span><i class="fa-solid fa-list-check mr-1"></i>${exerciseCount} exercises</span>
+                          </div>
+                        </div>
+
+                        <div class="flex flex-col items-end gap-2">
+                          <button class="text-app-accent text-sm font-medium flex items-center gap-1 hover:text-app-accent/80 transition"
+                                  onclick="event.stopPropagation(); window.APP.nav.loadWorkout('${k}')">
+                            <i class="fa-solid fa-play text-xs"></i> Start
+                          </button>
+                          <button class="text-gray-400 hover:text-app-accent p-2 text-xs transition"
+                                  onclick="event.stopPropagation(); window.APP.session.openEditor(event, '${k}')"
+                                  title="Edit Session">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  `;
+
                 } catch (e) {
-                  console.error(
-                    `[DASHBOARD] Failed to render session ${k}:`,
-                    e
-                  );
+                  console.error(`[DASHBOARD] Failed to render session ${k}:`, e);
                 }
               });
-              list.innerHTML = htmlBuffer;
+
+              // Inject into DOM
+              list.innerHTML = sessionsHTML;
             } catch (e) {
               APP.debug.showFatalError("Render Dashboard", e);
             }
