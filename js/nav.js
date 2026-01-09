@@ -359,83 +359,71 @@
     renderDashboard: () => {
             try {
               // ============================================
-              // V30.0: STATS CARDS
+              // V30.0: STATS CARDS (Weight + TDEE)
               // ============================================
 
-              // Get user weight from profile
+              // Get user profile and weight data
               const profile = LS_SAFE.getJSON("profile", {});
-              const userWeight = profile.weight || 70; // Default 70kg if not set
+              const weights = LS_SAFE.getJSON("weights", []);
+              // Use latest weight from weights array, fallback to profile.weight, then default 70
+              const userWeight = weights.length > 0 ? parseFloat(weights[0].v) : (profile.weight || 70);
+              const userHeight = profile.h || 170; // cm
+              const userAge = profile.a || 25;
+              const userGender = profile.g || 'male';
+              const activityLevel = profile.act || 1.55; // Moderate activity default
 
-              // Calculate weekly volume
-              const logs = LS_SAFE.getJSON("gym_hist", []);
-              const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+              // Calculate BMR (Mifflin-St Jeor Equation)
+              let bmr;
+              if (userGender === 'male' || userGender === 'M') {
+                bmr = (10 * userWeight) + (6.25 * userHeight) - (5 * userAge) + 5;
+              } else {
+                bmr = (10 * userWeight) + (6.25 * userHeight) - (5 * userAge) - 161;
+              }
 
-              const weeklyVolume = logs
-                .filter(log => log.ts >= sevenDaysAgo)
-                .reduce((sum, log) => {
-                  return sum + (log.vol || 0);
-                }, 0);
-
-              // Format weekly volume (convert to tons if > 1000kg)
-              const volumeDisplay = weeklyVolume >= 1000
-                ? (weeklyVolume / 1000).toFixed(1)
-                : Math.round(weeklyVolume);
-              const volumeUnit = weeklyVolume >= 1000 ? 'tons' : 'kg';
-
-              // Calculate previous week for comparison
-              const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
-              const previousWeekVolume = logs
-                .filter(log => log.ts >= fourteenDaysAgo && log.ts < sevenDaysAgo)
-                .reduce((sum, log) => sum + (log.vol || 0), 0);
-
-              // Calculate volume change
-              const volumeChange = weeklyVolume - previousWeekVolume;
-              const volumeChangePercent = previousWeekVolume > 0
-                ? ((volumeChange / previousWeekVolume) * 100).toFixed(0)
-                : 0;
-              const volumeChangeIcon = volumeChange > 0 ? '↑' : (volumeChange < 0 ? '↓' : '→');
-              const volumeChangeColor = volumeChange > 0 ? 'text-green-400' : (volumeChange < 0 ? 'text-red-400' : 'text-gray-400');
+              // Calculate TDEE (or use stored value if available)
+              const storedTdee = LS_SAFE.get("tdee");
+              const tdee = storedTdee ? parseInt(storedTdee) : Math.round(bmr * activityLevel);
 
               // Render stats cards container
               const statsContainer = document.getElementById('stats-cards-container');
               if (statsContainer) {
                 statsContainer.innerHTML = `
-                  <section aria-label="Stats" class="grid grid-cols-2 gap-4">
+                  <section aria-label="Stats" class="grid grid-cols-2 gap-4 mb-4">
 
-                    <!-- Weight Card -->
-                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5">
+                    <!-- Weight Card (Interactive) -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5 cursor-pointer hover:border-app-accent/30 active:scale-[0.98] transition-all group"
+                             onclick="window.APP.ui.openModal('weight')">
                       <div class="flex justify-between items-start">
-                        <span class="text-gray-400 font-medium text-sm">Weight</span>
-                        <i class="fa-solid fa-weight-scale text-gray-500 text-sm"></i>
+                        <span class="text-gray-400 font-medium text-sm group-hover:text-app-accent transition">Weight</span>
+                        <i class="fa-solid fa-weight-scale text-gray-500 text-sm group-hover:text-app-accent transition"></i>
                       </div>
                       <div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-bold text-white text-4xl">${userWeight}</span>
+                          <span class="font-bold text-white text-4xl group-hover:text-app-accent transition">${userWeight}</span>
                           <span class="text-sm text-gray-400 font-medium">kg</span>
                         </div>
-                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                          <i class="fa-solid fa-chart-line"></i>
-                          <span>Track progress</span>
+                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500 group-hover:text-app-accent transition">
+                          <i class="fa-solid fa-pen-to-square"></i>
+                          <span>Tap to update</span>
                         </div>
                       </div>
                     </article>
 
-                    <!-- Weekly Volume Card -->
-                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5">
+                    <!-- TDEE Card (Interactive) -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5 cursor-pointer hover:border-app-accent/30 active:scale-[0.98] transition-all group"
+                             onclick="window.APP.ui.openModal('nutrition')">
                       <div class="flex justify-between items-start">
-                        <span class="text-gray-400 font-medium text-sm">Weekly Vol</span>
-                        <i class="fa-solid fa-dumbbell text-gray-500 text-sm"></i>
+                        <span class="text-gray-400 font-medium text-sm group-hover:text-app-accent transition">TDEE</span>
+                        <i class="fa-solid fa-fire text-gray-500 text-sm group-hover:text-app-accent transition"></i>
                       </div>
                       <div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-bold text-white text-4xl">${volumeDisplay}</span>
-                          <span class="text-sm text-gray-400 font-medium">${volumeUnit}</span>
+                          <span class="font-bold text-white text-4xl group-hover:text-app-accent transition">${tdee}</span>
+                          <span class="text-sm text-gray-400 font-medium">kcal</span>
                         </div>
-                        <div class="flex items-center gap-1 mt-1">
-                          <span class="text-xs font-bold ${volumeChangeColor}">
-                            ${volumeChangeIcon} ${Math.abs(volumeChangePercent)}%
-                          </span>
-                          <span class="text-xs text-gray-500">vs last week</span>
+                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500 group-hover:text-app-accent transition">
+                          <i class="fa-solid fa-calculator"></i>
+                          <span>Daily energy</span>
                         </div>
                       </div>
                     </article>
@@ -541,12 +529,13 @@
                           </div>
                         </div>
 
-                        <div class="flex flex-col items-end gap-2">
-                          <button class="text-app-accent text-sm font-medium flex items-center gap-1 hover:text-app-accent/80 transition"
-                                  onclick="event.stopPropagation(); window.APP.nav.loadWorkout('${k}')">
-                            <i class="fa-solid fa-play text-xs"></i> Start
+                        <div class="flex flex-col items-end gap-3">
+                          <button class="${isNext ? 'text-app-accent' : 'text-slate-500 hover:text-yellow-400'} p-1 transition"
+                                  onclick="event.stopPropagation(); window.APP.data.setNextSession('${k}')"
+                                  title="${isNext ? 'Current next session' : 'Set as next session'}">
+                            <i class="fa-solid ${isNext ? 'fa-bullseye' : 'fa-star'}"></i>
                           </button>
-                          <button class="text-gray-400 hover:text-app-accent p-2 text-xs transition"
+                          <button class="text-gray-400 hover:text-app-accent p-1 transition"
                                   onclick="event.stopPropagation(); window.APP.session.openEditor(event, '${k}')"
                                   title="Edit Session">
                             <i class="fa-regular fa-pen-to-square"></i>

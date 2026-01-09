@@ -857,15 +857,19 @@
       });
       const w = LS_SAFE.getJSON("weights", []);
       const tdee = LS_SAFE.get("tdee");
-      
-      document.getElementById("display-name").innerText = p.name;
-      document.getElementById("dashboard-bw").innerText = `${
-        w.length ? w[0].v : "--"
-      } kg`;
 
-      if (tdee) {
-        document.getElementById("dashboard-tdee").innerHTML = 
-          `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
+      // V30.0: Add null checks for removed dashboard elements
+      const displayNameEl = document.getElementById("display-name");
+      if (displayNameEl) displayNameEl.innerText = p.name;
+
+      const dashboardBwEl = document.getElementById("dashboard-bw");
+      if (dashboardBwEl) {
+        dashboardBwEl.innerText = `${w.length ? w[0].v : "--"} kg`;
+      }
+
+      const dashboardTdeeEl = document.getElementById("dashboard-tdee");
+      if (tdee && dashboardTdeeEl) {
+        dashboardTdeeEl.innerHTML = `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
       }
 
       if (document.getElementById("prof-name")) {

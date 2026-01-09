@@ -722,18 +722,13 @@
           </div>
         </div>
         <div class="flex gap-2">
+          <!-- Calendar button only (AI accessible via bottom nav) -->
           <button
-            onclick="APP.ui.openAICommandCenter()"
-            class="glass-btn text-xs text-purple-400 border border-purple-900/50 px-3 py-1.5 rounded hover:bg-purple-900/50 transition"
-            title="AI Command Center"
+            onclick="window.APP.ui.openModal('calendar')"
+            class="text-gray-400 hover:text-app-accent transition p-2"
+            title="Calendar"
           >
-            <i class="fa-solid fa-microchip mr-1"></i> AI
-          </button>
-          <button
-            onclick="APP.ui.openModal('calendar')"
-            class="glass-btn text-xs text-app-accent border border-app-accent/30 px-3 py-1.5 rounded hover:bg-app-accent/10 transition"
-          >
-            <i class="fa-solid fa-calendar-days"></i>
+            <i class="fa-regular fa-calendar fa-lg"></i>
           </button>
         </div>
       </header>
@@ -743,99 +738,8 @@
       >
       <div id="dashboard-view" class="fade-in space-y-6">
         <!-- V30.0: Stats Cards Container -->
-        <div id="stats-cards-container" class="mb-2">
-          <!-- Stats cards will be injected here by renderDashboard() -->
-        </div>
-
-        <div
-          class="glass-panel rounded-3xl p-6 relative overflow-hidden"
-        >
-          <div
-            class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none"
-          >
-            <svg
-              width="150"
-              height="150"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 12h3L9 3l6 18 3-9h3" />
-            </svg>
-          </div>
-          <div class="relative z-10">
-            <h1 class="text-3xl font-bold text-white mb-1">
-              Halo, <span id="display-name" class="text-app-accent">Dok</span>!
-            </h1>
-            <p class="text-slate-400 text-sm mb-6">
-              Kelola Intensitas, Raih Puncak Volume.
-            </p>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                onclick="APP.ui.openModal('weight')"
-                class="glass-card hover:bg-app-accent/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-app-accent/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-weight-scale text-app-accent"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-app-accent uppercase tracking-wider"
-                  >
-                    Weight
-                  </p>
-                  <p class="text-white font-bold" id="dashboard-bw">-- kg</p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('stats')"
-                class="glass-card hover:bg-indigo-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-indigo-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-chart-line text-blue-400"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-indigo-300 uppercase tracking-wider"
-                  >
-                    Analyze
-                  </p>
-                  <p class="text-white font-bold">Stats</p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('nutrition')"
-                class="glass-card hover:bg-orange-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-orange-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-orange-300 uppercase tracking-wider"
-                  >
-                    TDEE
-                  </p>
-                  <p class="text-white font-bold" id="dashboard-tdee">
-                    -- <span class="text-[10px] font-normal">kkal</span>
-                  </p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('profile')"
-                class="glass-card hover:bg-stone-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-stone-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-user-gear text-stone-400"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-stone-300 uppercase tracking-wider"
-                  >
-                    Manage
-                  </p>
-                  <p class="text-white font-bold">Profile</p>
-                </div>
-              </button>
-            </div>
-          </div>
+        <div id="stats-cards-container">
+          <!-- Stats cards (Weight + TDEE) will be injected here by renderDashboard() -->
         </div>
         <!-- V30.0 Spontaneous Mode Button with Glow Effect -->
         <section class="mb-2">
