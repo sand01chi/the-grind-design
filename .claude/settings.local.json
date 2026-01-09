@@ -23,7 +23,9 @@
       "Bash(fi)",
       "Bash(git push)",
       "Bash(node:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git tag:*)",
+      "Bash(dir:*)"
     ]
   }
 }

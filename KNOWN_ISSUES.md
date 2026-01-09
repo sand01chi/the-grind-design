@@ -1,8 +1,58 @@
 # 🐛 KNOWN ISSUES - THE GRIND DESIGN
 
-**Version:** V27.0  
-**Last Updated:** January 1, 2026  
+**Version:** V29.5
+**Last Updated:** January 9, 2026
 **Purpose:** Active bugs, edge cases, and documented workarounds
+
+---
+
+## ✅ RESOLVED IN V29.5
+
+### **RESOLVED: XSS Vulnerability in User-Controlled Content**
+
+**Status:** ✅ Fixed in V29.5
+**Resolved By:** P2-001 through P2-006
+
+**Problem:**
+User-entered content (notes, titles, exercise names) was rendered via innerHTML without sanitization.
+
+**Solution:**
+Added XSS sanitization utilities in `js/validation.js`:
+- `APP.validation.sanitizeHTML()` - Full HTML escape
+- `APP.validation.sanitizeHTMLWithTags()` - Whitelist approach for allowed tags
+- Applied to: showToast, openHist, viewDay, renderDashboard, renderLibrary, loadWorkout, renderPresets
+
+---
+
+### **RESOLVED: Silent Validation Mode Missing**
+
+**Status:** ✅ Fixed in V29.5
+**Resolved By:** P1-011
+
+**Problem:**
+`validateSession()` and `validateExercise()` always threw errors, no option for graceful handling.
+
+**Solution:**
+Enhanced with `silent` parameter:
+- `validateSession(sessionId, silent=false)` - Returns null on error in silent mode
+- `validateExercise(sessionId, idx, silent=false)` - Same pattern
+- Added `validateExerciseOptions(exercise)` helper
+
+---
+
+### **RESOLVED: Missing Null Guards for Arrays**
+
+**Status:** ✅ Fixed in V29.5
+**Resolved By:** P2-009, P2-010, P2-011
+
+**Problem:**
+Several functions accessed `.forEach()` or `.push()` on arrays without null checks:
+- `finishSession()` - d.exercises
+- `validateExercise()` - exercise.options
+- `selectExercise()` - session.exercises
+
+**Solution:**
+Added comprehensive guards with early returns and user-friendly error messages.
 
 ---
 

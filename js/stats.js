@@ -223,6 +223,88 @@
     bodyPartViewMode: "combined",
 
     // ============================================================================
+    // V29.5 P1-009: CENTRALIZED DATE UTILITIES
+    // ============================================================================
+    // Purpose: Eliminate date parsing code duplication across analytics functions
+    // Used by: calculateQuadHamsRatio, calculatePushPullRatio, analyzeBodyweightContribution,
+    //          analyzeCoreTraining, interpretWorkoutData
+
+    /**
+     * Parse date from workout log entry
+     * Handles both timestamp (ts) and date string (date) formats
+     * @param {Object} log - Workout log entry
+     * @returns {Date} Parsed date object
+     */
+    _parseLogDate: function(log) {
+      if (!log) {
+        console.warn("[STATS] _parseLogDate: null log");
+        return new Date();
+      }
+
+      // Prefer timestamp (more accurate)
+      if (log.ts) {
+        return new Date(log.ts);
+      }
+
+      // Fallback to date string
+      if (log.date) {
+        return new Date(log.date);
+      }
+
+      // Last resort: use current date
+      console.warn("[STATS] _parseLogDate: log has no ts or date field", log);
+      return new Date();
+    },
+
+    /**
+     * Filter logs to recent timeframe
+     * @param {Array} logs - Array of workout logs
+     * @param {Number} daysBack - Number of days to look back (default 30)
+     * @returns {Array} Filtered logs within timeframe
+     */
+    _filterRecentLogs: function(logs, daysBack = 30) {
+      if (!Array.isArray(logs)) {
+        console.warn("[STATS] _filterRecentLogs: logs is not an array");
+        return [];
+      }
+
+      if (logs.length === 0) {
+        return [];
+      }
+
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+      return logs.filter(log => {
+        const logDate = this._parseLogDate(log);
+        return logDate >= cutoffDate;
+      });
+    },
+
+    /**
+     * Get age of log in days
+     * @param {Object} log - Workout log entry
+     * @returns {Number} Age in days (0 for today, 1 for yesterday, etc)
+     */
+    _getLogAge: function(log) {
+      const now = new Date();
+      const logDate = this._parseLogDate(log);
+      const ageMs = now - logDate;
+      return Math.floor(ageMs / (1000 * 60 * 60 * 24));
+    },
+
+    /**
+     * Get cutoff date for daysBack calculation
+     * @param {Number} daysBack - Number of days to look back
+     * @returns {Date} Cutoff date
+     */
+    _getCutoffDate: function(daysBack) {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      return cutoffDate;
+    },
+
+    // ============================================================================
     // V29.0: EXERCISE CLASSIFICATION ENGINE
     // ============================================================================
 
@@ -403,19 +485,15 @@
      * Target Ratio: 0.6-0.8 (hamstrings should be 60-80% of quad strength)
      */
     calculateQuadHamsRatio: function(daysBack = 30) {
-      const logs = LS_SAFE.getJSON("gym_hist", []);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      // V29.5 P1-009: Use centralized date utilities
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
 
       let quadVolume = 0;
       let hamsVolume = 0;
 
-      // Iterate through ARRAY of log objects
-      logs.forEach(log => {
-        // Filter by date
-        const logDate = new Date(log.ts || log.date); // V29.0.1 FIX: Use timestamp
-        if (logDate < cutoffDate) return;
-
+      // Iterate through filtered log objects
+      recentLogs.forEach(log => {
         // Classify exercise
         const classification = this.classifyExercise(log.ex);
 
@@ -500,20 +578,17 @@
      * Target Ratio: 1.0-1.2 (pull should equal or slightly exceed push)
      */
     calculatePushPullRatio: function(daysBack = 30) {
-      const logs = LS_SAFE.getJSON("gym_hist", []);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      // V29.5 P1-009: Use centralized date utilities
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
 
       let upperPush = 0;
       let upperPull = 0;
       let lowerPush = 0;  // Quad-dominant
       let lowerPull = 0;  // Hams-dominant
 
-      // Iterate through ARRAY of log objects
-      logs.forEach(log => {
-        // Filter by date
-        const logDate = new Date(log.ts || log.date); // V29.0.1 FIX: Use timestamp
-        if (logDate < cutoffDate) return;
+      // Iterate through filtered log objects
+      recentLogs.forEach(log => {
 
         // Classify exercise
         const classification = this.classifyExercise(log.ex);
@@ -634,9 +709,9 @@
      * - List of bodyweight exercises detected
      */
     analyzeBodyweightContribution: function(daysBack = 30) {
-      const logs = LS_SAFE.getJSON("gym_hist", []);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      // V29.5 P1-009: Use centralized date utilities
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
 
       let bodyweightVolume = 0;
       let weightedVolume = 0;
@@ -656,9 +731,8 @@
       };
       const bodyweightExercises = new Set();
 
-      logs.forEach(log => {
-        const logDate = new Date(log.ts || log.date); // V29.0.1 FIX: Use timestamp
-        if (logDate < cutoffDate) return;
+      // Iterate through filtered log objects
+      recentLogs.forEach(log => {
 
         const classification = this.classifyExercise(log.ex);
         if (!log.d || !Array.isArray(log.d)) return;
@@ -730,20 +804,16 @@
      * Target: 15-25 sets/week for spine health
      */
     analyzeCoreTraining: function(daysBack = 30) {
-      const logs = LS_SAFE.getJSON("gym_hist", []);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      // V29.5 P1-009: Use centralized date utilities
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
 
       let totalSets = 0;
       const daysWithCore = new Set();
       const exercisesUsed = new Set();
 
-      // Iterate through logs
-      logs.forEach(log => {
-        // V29.0.1 FIX: Use timestamp instead of formatted date string
-        const logDate = new Date(log.ts || log.date);
-        if (logDate < cutoffDate) return;
-
+      // Iterate through filtered logs
+      recentLogs.forEach(log => {
         // Classify exercise
         const classification = this.classifyExercise(log.ex);
 
@@ -824,11 +894,9 @@
       const bodyweight = this.analyzeBodyweightContribution(daysBack);
       const core = this.analyzeCoreTraining(daysBack);
 
-      // Calculate total volume for data adequacy check
-      const logs = LS_SAFE.getJSON("gym_hist", []);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-      const recentLogs = logs.filter(log => new Date(log.ts || log.date) >= cutoffDate); // V29.0.1 FIX: Use timestamp
+      // V29.5 P1-009: Use centralized date utilities for data adequacy check
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
       const uniqueDays = [...new Set(recentLogs.map(l => l.date))].length;
 
       // ========================================

@@ -49,7 +49,7 @@
 
               try {
                 console.log("Running automatic data integrity check...");
-                const integrityReport = APP.data.normalizeExerciseNames();
+                const integrityReport = APP.validation.normalizeExerciseNames();
 
                 if (integrityReport.normalized > 0) {
                   console.warn(
@@ -262,6 +262,17 @@
             APP.safety.createBackup("app_init");
             console.log("[INIT] Init snapshot created");
 
+            // V29.5 P0-006: Initialize default next session preference
+            if (!LS_SAFE.get("pref_next_session")) {
+              const sessionIds = Object.keys(APP.state.workoutData)
+                .filter(id => id !== "spontaneous")
+                .sort();
+              if (sessionIds.length > 0) {
+                LS_SAFE.set("pref_next_session", sessionIds[0]);
+                console.log(`[INIT] Set default next session: ${sessionIds[0]}`);
+              }
+            }
+
             window.APP.data.loadProfile();
             window.APP.nav.renderDashboard();
 
@@ -319,17 +330,9 @@
               }
 
               let htmlBuffer = "";
-              let oldest = Infinity;
-              let recommended = "s1";
               const wData = APP.state.workoutData;
-              Object.keys(wData).forEach((k) => {
-                if (k === "spontaneous") return;
-                const t = parseInt(LS_SAFE.get(`last_${k}`) || 0);
-                if (t < oldest) {
-                  oldest = t;
-                  recommended = k;
-                }
-              });
+              // V29.5 P0-006: Use preference-based highlight (not timestamp-based)
+              const nextSession = LS_SAFE.get("pref_next_session") || "s1";
               Object.keys(wData).forEach((k) => {
                 try {
                   if (k === "spontaneous") return;
@@ -354,35 +357,47 @@
                     d.label = "CUSTOM";
                   }
 
+                  // V29.5 P2-003: Sanitize session title and label
+                  const safeTitle = window.APP.validation.sanitizeHTML(d.title);
+                  const safeLabel = window.APP.validation.sanitizeHTML(d.label);
+
                   const last = LS_SAFE.get(`last_${k}`);
                   const timeStr = DT.formatRelative(last);
-                  const isRec = k === recommended;
+                  // V29.5 P0-006: Use preference-based highlight
+                  const isNextSession = (k === nextSession);
 
                   htmlBuffer += `
   <div onclick="APP.nav.loadWorkout('${k}')" class="glass-panel p-4 rounded-xl border ${
-                isRec
+                isNextSession
                   ? "border-emerald-500/50 pulse-border"
                   : "border-white/5"
               } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
     <div>
           <div class="flex items-center mb-1">
             <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
-              d.label
+              safeLabel
             }</span>
             ${
-              isRec
+              isNextSession
                 ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
                 : ""
             }
           </div>
           <h3 class="font-bold text-white text-base">
-            ${d.title}
+            ${safeTitle}
           </h3>
           <div class="text-xs text-slate-400 mt-1">
             <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
           </div>
         </div>
         <div class="flex flex-col items-end gap-2">
+          <button
+            onclick="event.stopPropagation(); APP.data.setNextSession('${k}')"
+            class="${isNextSession ? 'text-emerald-400' : 'text-slate-500 hover:text-yellow-400'} p-2 text-xs transition"
+            title="${isNextSession ? 'Current next session' : 'Set as next session'}"
+          >
+            <i class="fa-solid ${isNextSession ? 'fa-bullseye' : 'fa-star'}"></i>
+          </button>
           <button
             onclick="APP.session.openEditor(event, '${k}')"
             class="text-slate-400 hover:text-emerald-400 p-2.5 text-xs bg-white/5 border border-white/10 rounded-xl transition shadow-sm active:scale-90"
@@ -460,7 +475,9 @@
           const opt = ex.options[optIdx] || ex.options[0];
           const optName = opt.n || "LISS Cardio";
           const optBio = opt.bio || "Low-intensity steady state cardio";
-          const optNote = opt.note || "Post-workout";
+          // V29.5 P2-005: Sanitize cardio note
+          const rawCardioNote = opt.note || "Post-workout";
+          const optNote = window.APP.validation.sanitizeHTMLWithTags(rawCardioNote, ['br']);
 
           const savedMachine =
             LS_SAFE.get(`${id}_ex${idx}_machine`) ||
@@ -647,7 +664,9 @@
         const optName = opt.n || "Unknown Exercise";
         const optVid = opt.vid || "";
         const optBio = opt.bio || "No description";
-        const optNote = opt.note || ex.note || "Edit Note";
+        // V29.5 P2-005: Sanitize exercise notes (allow basic formatting)
+        const rawNote = opt.note || ex.note || "Edit Note";
+        const optNote = window.APP.validation.sanitizeHTMLWithTags(rawNote, ['br', 'b', 'i', 'strong', 'em']);
         const optTargetK = opt.t_k || "-";
         const optTargetR = opt.t_r || "-";
 

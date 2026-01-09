@@ -12,6 +12,52 @@
   if (!window.APP) window.APP = {};
 
   APP.data = {
+
+    // ============================================================================
+    // V29.5 P1-010: EXTRACTED SESSION TIMESTAMP UTILITY
+    // ============================================================================
+    // Purpose: Reset session timestamps matching a specific date
+    // Extracted from deleteLogs() for reusability and testability
+
+    /**
+     * Reset session timestamps that match the given date
+     * @param {String} dateStr - Date string to match (e.g., "9 Jan")
+     * @returns {Number} Count of timestamps reset
+     */
+    resetSessionTimestamp: function(dateStr) {
+      if (!dateStr || typeof dateStr !== 'string') {
+        console.warn("[DATA] resetSessionTimestamp: Invalid dateStr:", dateStr);
+        return 0;
+      }
+
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        console.warn("[DATA] resetSessionTimestamp: workoutData not initialized");
+        return 0;
+      }
+
+      let resetCount = 0;
+
+      Object.keys(window.APP.state.workoutData).forEach((sid) => {
+        const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
+
+        if (lastTs > 0) {
+          const lastDate = DT.formatDate(new Date(lastTs));
+
+          if (lastDate === dateStr) {
+            LS_SAFE.remove(`last_${sid}`);
+            console.log(`[DATA] Reset timestamp for ${sid} (matched ${dateStr})`);
+            resetCount++;
+          }
+        }
+      });
+
+      return resetCount;
+    },
+
+    // ============================================================================
+    // CORE DATA METHODS
+    // ============================================================================
+
     saveSet: (id, t, v) => {
       LS_SAFE.set(`${id}_${t}`, v);
       if (t === "rpe") APP.nav.loadWorkout(APP.state.currentSessionId);
@@ -872,25 +918,28 @@
     deleteLogs: (mode) => {
       let logs = LS_SAFE.getJSON("gym_hist", []);
       if (!logs.length) return alert("Log sudah kosong.");
-      const resetSessionTimestamp = (dateStr) => {
-        Object.keys(APP.state.workoutData).forEach((sid) => {
-          const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
-          if (lastTs > 0) {
-            const lastDate = DT.formatDate(new Date(lastTs));
-            if (lastDate === dateStr) {
-              LS_SAFE.remove(`last_${sid}`);
-            }
-          }
-        });
-      };
+
+      // V29.5 P1-010: Local function removed - now using APP.data.resetSessionTimestamp
+
       if (mode === "today") {
         const today = DT.formatDate(new Date());
         if (!confirm(`Hapus semua log latihan hari ini (${today})?`))
           return;
+
+        // V29.5 FIX: Backup before delete
+        window.APP.safety.createBackup('delete_today_logs');
+
         const newLogs = logs.filter((l) => l.date !== today);
         LS_SAFE.setJSON("gym_hist", newLogs);
-        resetSessionTimestamp(today);
+        window.APP.data.resetSessionTimestamp(today);
         alert("Log hari ini dihapus. Rotasi sesi dikembalikan.");
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => {
+          APP.stats.loadOptions();
+          APP.nav.renderDashboard();
+        }, 250);
+        return;
       } else if (mode === "date") {
         const inputDate =
           document.getElementById("del-date-picker").value;
@@ -901,9 +950,20 @@
         const newLogs = logs.filter((l) => l.date !== targetDate);
         if (newLogs.length === initialLen)
           return alert("Tidak ada data di tanggal tersebut.");
+
+        // V29.5 FIX: Backup before delete
+        window.APP.safety.createBackup('delete_date_logs');
+
         LS_SAFE.setJSON("gym_hist", newLogs);
-        resetSessionTimestamp(targetDate);
+        window.APP.data.resetSessionTimestamp(targetDate);
         alert(`Data tanggal ${targetDate} dihapus.`);
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => {
+          APP.stats.loadOptions();
+          APP.nav.renderDashboard();
+        }, 250);
+        return;
       } else if (mode === "all") {
         if (
           !confirm(
@@ -911,6 +971,10 @@
           )
         )
           return;
+
+        // V29.5 FIX: Backup before delete all
+        window.APP.safety.createBackup('delete_all_logs');
+
         LS_SAFE.remove("gym_hist");
         const toRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -928,10 +992,48 @@
         }
         toRemove.forEach((k) => LS_SAFE.remove(k));
         alert("Fresh Start Berhasil! Kembali ke Sesi 1.");
-        location.reload();
+
+        // V29.5 FIX: Delay reload for storage commit
+        setTimeout(() => location.reload(), 250);
+        return;
       }
       APP.stats.loadOptions();
       APP.nav.renderDashboard();
+    },
+
+    // V29.5 P0-006: User-controlled session ordering
+    setNextSession: function(sessionId) {
+      // Validate session exists
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        console.error("[DATA] workoutData not initialized");
+        return false;
+      }
+
+      const session = window.APP.state.workoutData[sessionId];
+      if (!session) {
+        console.error(`[DATA] Session ${sessionId} not found`);
+        return false;
+      }
+
+      // Save preference
+      LS_SAFE.set("pref_next_session", sessionId);
+
+      // Show confirmation
+      const sessionTitle = session.title || `Session ${sessionId}`;
+      if (window.APP.ui && window.APP.ui.showToast) {
+        window.APP.ui.showToast(
+          `🎯 Next workout set to: ${sessionTitle}`,
+          "success"
+        );
+      }
+
+      // Refresh dashboard to show new highlight
+      if (window.APP.nav && window.APP.nav.renderDashboard) {
+        window.APP.nav.renderDashboard();
+      }
+
+      console.log(`[DATA] Next session set to ${sessionId}`);
+      return true;
     },
 
     exportData: () => {
@@ -955,11 +1057,23 @@
       r.onload = (e) => {
         try {
           const d = JSON.parse(e.target.result);
+
+          // V29.5 FIX: Validate structure before destroying data
+          if (!d || typeof d !== 'object' || Object.keys(d).length === 0) {
+            throw new Error('Invalid or empty backup file');
+          }
+
+          // V29.5 FIX: Backup current state before clear
+          window.APP.safety.createBackup('pre_import_backup');
+
           LS_SAFE.clear();
           for (let k in d) LS_SAFE.set(k, d[k]);
-          location.reload();
-        } catch {
-          alert("File Corrupt/Invalid");
+
+          // V29.5 FIX: Delay for storage commit
+          setTimeout(() => location.reload(), 250);
+        } catch (err) {
+          // V29.5 FIX: Show actual error message
+          alert("Import failed: " + (err.message || "File Corrupt/Invalid"));
         }
       };
       r.readAsText(i.files[0]);
@@ -969,32 +1083,78 @@
       const dName = `Program ${DT.formatDate(new Date())}`;
       const name = prompt("Nama Program:", dName);
       if (!name) return;
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      lib.push({
-        name,
-        date: Date.now(),
-        data: APP.state.workoutData,
-      });
-      LS_SAFE.setJSON("cscs_library", lib);
-      APP.ui.renderLibrary();
-      alert("Tersimpan!");
+
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+        lib.push({
+          name,
+          date: Date.now(),
+          data: APP.state.workoutData,
+        });
+
+        // V29.5 FIX: Check if save succeeded
+        const saved = LS_SAFE.setJSON("cscs_library", lib);
+
+        if (saved) {
+          APP.ui.renderLibrary();
+          alert("Tersimpan!");
+        } else {
+          alert("Failed to save - storage may be full");
+        }
+      } catch (err) {
+        alert(`Failed to save to library: ${err.message}`);
+        console.error("[DATA] saveToLibrary error:", err);
+      }
     },
 
     loadFromLibrary: (idx) => {
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      if (confirm(`Load "${lib[idx].name}"?`)) {
-        APP.state.workoutData = lib[idx].data;
-        APP.core.saveProgram();
-        location.reload();
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+
+        // V29.5 FIX: Validate index and entry exist
+        if (!lib[idx]) {
+          alert(`Program not found in library`);
+          return;
+        }
+
+        if (confirm(`Load "${lib[idx].name}"?`)) {
+          APP.state.workoutData = lib[idx].data;
+          APP.core.saveProgram();
+          // V29.5 FIX: Delay reload for storage commit
+          setTimeout(() => location.reload(), 250);
+        }
+      } catch (err) {
+        alert(`Failed to load from library: ${err.message}`);
+        console.error("[DATA] loadFromLibrary error:", err);
       }
     },
 
     deleteFromLibrary: (idx) => {
       if (!confirm("Hapus?")) return;
-      const lib = LS_SAFE.getJSON("cscs_library", []);
-      lib.splice(idx, 1);
-      LS_SAFE.setJSON("cscs_library", lib);
-      APP.ui.renderLibrary();
+
+      try {
+        const lib = LS_SAFE.getJSON("cscs_library", []);
+
+        // V29.5 FIX: Validate index exists
+        if (!lib[idx]) {
+          alert("Program not found");
+          return;
+        }
+
+        lib.splice(idx, 1);
+
+        // V29.5 FIX: Check if delete succeeded
+        const saved = LS_SAFE.setJSON("cscs_library", lib);
+
+        if (saved) {
+          APP.ui.renderLibrary();
+        } else {
+          alert("Failed to delete - storage error");
+        }
+      } catch (err) {
+        alert(`Failed to delete from library: ${err.message}`);
+        console.error("[DATA] deleteFromLibrary error:", err);
+      }
     },
 
     applyAIProgram: () => {

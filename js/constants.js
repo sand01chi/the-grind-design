@@ -8,10 +8,10 @@
   if (!window.APP) window.APP = {};
 
   window.APP.version = {
-    number: "29.0",
-    name: "CLINICAL ANALYTICS EXPANSION",
+    number: "29.5",
+    name: "CODE HEALTH AUDIT",
     date: "January 2026",
-    previous: "28.0"
+    previous: "29.0"
   };
 
   window.APP.architecture = {

@@ -203,6 +203,26 @@
             totalSets = 0;
           const sessId = APP.state.currentSessionId;
           const d = APP.state.workoutData[sessId];
+
+          // V29.5 P2-009: Guard d.exercises access
+          if (!d) {
+            console.error("[CORE] finishSession: Session data not found for", sessId);
+            window.APP.ui.showToast("Error: Session data missing", "error");
+            return;
+          }
+
+          if (!d.exercises || !Array.isArray(d.exercises)) {
+            console.error("[CORE] finishSession: Invalid exercises array for", sessId);
+            window.APP.ui.showToast("Error: Session has no valid exercises", "error");
+            return;
+          }
+
+          if (d.exercises.length === 0) {
+            console.warn("[CORE] finishSession: Empty exercises array");
+            window.APP.ui.showToast("Cannot finish session with no exercises", "warning");
+            return;
+          }
+
           d.exercises.forEach((ex, i) => {
             for (let j = 1; j <= ex.sets; j++) {
               const s = `${sessId}_ex${i}_s${j}`;
@@ -281,7 +301,7 @@
               const k = parseFloat(LS_SAFE.get(`${s}_k`) || 0);
               const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
               const rpe = LS_SAFE.get(`${s}_rpe`) || "";
-              const rir = LS_SAFE.get(`${s}_e`) || null; // V29.0.1: RIR support
+              const rir = LS_SAFE.get(`${s}_e`) || ""; // V29.5: Standardized to empty string
               const do_ = LS_SAFE.get(`${s}_d`) === "true";
               if (do_ && k > 0 && re > 0) {
                 v += k * re;
@@ -297,6 +317,7 @@
             }
             if (r.length)
               h.push({
+                type: "strength", // V29.5: Explicit type field for schema consistency
                 date: ds,
                 ts: now.getTime(),
                 ex: opt.n,
@@ -309,18 +330,53 @@
                 note: currentNote,
               });
           });
-          // V29.0.1 FIX: Save workout data
-          LS_SAFE.setJSON("gym_hist", h);
+          // V29.5 FIX: Check save result before showing success
+          const saveSuccess = LS_SAFE.setJSON("gym_hist", h);
+
+          if (!saveSuccess) {
+            // Save failed - show error, don't navigate
+            window.APP.ui.showToast(
+              "⚠️ Failed to save workout! Storage may be full. Try clearing old backups.",
+              "error"
+            );
+            console.error("[CORE] Failed to save gym_hist - storage quota exceeded?");
+            return; // Don't navigate away - let user retry
+          }
+
           if (sessId !== "spontaneous") {
             LS_SAFE.set(`last_${sessId}`, now.getTime());
           }
 
-          // Show success feedback
+          // Only show success if save actually worked
           if (window.APP.ui && window.APP.ui.showToast) {
             window.APP.ui.showToast(
               `Workout saved! ${totalSets} sets, ${totalVol}kg volume`,
               "success"
             );
+          }
+
+          // V29.5 P0-006: Auto-advance to next session
+          if (sessId !== "spontaneous") {
+            try {
+              const currentNext = LS_SAFE.get("pref_next_session") || "s1";
+
+              // Get all regular session IDs (exclude spontaneous)
+              const sessionIds = Object.keys(window.APP.state.workoutData)
+                .filter(id => id !== "spontaneous")
+                .sort();
+
+              const currentIndex = sessionIds.indexOf(currentNext);
+              const nextIndex = (currentIndex + 1) % sessionIds.length;
+              const nextSessionId = sessionIds[nextIndex] || "s1";
+
+              // Save new next session
+              LS_SAFE.set("pref_next_session", nextSessionId);
+
+              console.log(`[CORE] ✅ Auto-advanced: ${currentNext} → ${nextSessionId}`);
+            } catch (err) {
+              console.warn("[CORE] Auto-advance failed:", err);
+              // Not critical - continue with navigation
+            }
           }
 
           // CRITICAL: Delay navigation to ensure localStorage commits
