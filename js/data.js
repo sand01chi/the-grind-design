@@ -12,6 +12,52 @@
   if (!window.APP) window.APP = {};
 
   APP.data = {
+
+    // ============================================================================
+    // V29.5 P1-010: EXTRACTED SESSION TIMESTAMP UTILITY
+    // ============================================================================
+    // Purpose: Reset session timestamps matching a specific date
+    // Extracted from deleteLogs() for reusability and testability
+
+    /**
+     * Reset session timestamps that match the given date
+     * @param {String} dateStr - Date string to match (e.g., "9 Jan")
+     * @returns {Number} Count of timestamps reset
+     */
+    resetSessionTimestamp: function(dateStr) {
+      if (!dateStr || typeof dateStr !== 'string') {
+        console.warn("[DATA] resetSessionTimestamp: Invalid dateStr:", dateStr);
+        return 0;
+      }
+
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        console.warn("[DATA] resetSessionTimestamp: workoutData not initialized");
+        return 0;
+      }
+
+      let resetCount = 0;
+
+      Object.keys(window.APP.state.workoutData).forEach((sid) => {
+        const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
+
+        if (lastTs > 0) {
+          const lastDate = DT.formatDate(new Date(lastTs));
+
+          if (lastDate === dateStr) {
+            LS_SAFE.remove(`last_${sid}`);
+            console.log(`[DATA] Reset timestamp for ${sid} (matched ${dateStr})`);
+            resetCount++;
+          }
+        }
+      });
+
+      return resetCount;
+    },
+
+    // ============================================================================
+    // CORE DATA METHODS
+    // ============================================================================
+
     saveSet: (id, t, v) => {
       LS_SAFE.set(`${id}_${t}`, v);
       if (t === "rpe") APP.nav.loadWorkout(APP.state.currentSessionId);
@@ -872,17 +918,9 @@
     deleteLogs: (mode) => {
       let logs = LS_SAFE.getJSON("gym_hist", []);
       if (!logs.length) return alert("Log sudah kosong.");
-      const resetSessionTimestamp = (dateStr) => {
-        Object.keys(APP.state.workoutData).forEach((sid) => {
-          const lastTs = parseInt(LS_SAFE.get(`last_${sid}`) || 0);
-          if (lastTs > 0) {
-            const lastDate = DT.formatDate(new Date(lastTs));
-            if (lastDate === dateStr) {
-              LS_SAFE.remove(`last_${sid}`);
-            }
-          }
-        });
-      };
+
+      // V29.5 P1-010: Local function removed - now using APP.data.resetSessionTimestamp
+
       if (mode === "today") {
         const today = DT.formatDate(new Date());
         if (!confirm(`Hapus semua log latihan hari ini (${today})?`))
@@ -893,7 +931,7 @@
 
         const newLogs = logs.filter((l) => l.date !== today);
         LS_SAFE.setJSON("gym_hist", newLogs);
-        resetSessionTimestamp(today);
+        window.APP.data.resetSessionTimestamp(today);
         alert("Log hari ini dihapus. Rotasi sesi dikembalikan.");
 
         // V29.5 FIX: Delay reload for storage commit
@@ -917,7 +955,7 @@
         window.APP.safety.createBackup('delete_date_logs');
 
         LS_SAFE.setJSON("gym_hist", newLogs);
-        resetSessionTimestamp(targetDate);
+        window.APP.data.resetSessionTimestamp(targetDate);
         alert(`Data tanggal ${targetDate} dihapus.`);
 
         // V29.5 FIX: Delay reload for storage commit

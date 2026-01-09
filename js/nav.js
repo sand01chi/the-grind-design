@@ -357,6 +357,10 @@
                     d.label = "CUSTOM";
                   }
 
+                  // V29.5 P2-003: Sanitize session title and label
+                  const safeTitle = window.APP.validation.sanitizeHTML(d.title);
+                  const safeLabel = window.APP.validation.sanitizeHTML(d.label);
+
                   const last = LS_SAFE.get(`last_${k}`);
                   const timeStr = DT.formatRelative(last);
                   // V29.5 P0-006: Use preference-based highlight
@@ -371,7 +375,7 @@
     <div>
           <div class="flex items-center mb-1">
             <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
-              d.label
+              safeLabel
             }</span>
             ${
               isNextSession
@@ -380,7 +384,7 @@
             }
           </div>
           <h3 class="font-bold text-white text-base">
-            ${d.title}
+            ${safeTitle}
           </h3>
           <div class="text-xs text-slate-400 mt-1">
             <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
@@ -471,7 +475,9 @@
           const opt = ex.options[optIdx] || ex.options[0];
           const optName = opt.n || "LISS Cardio";
           const optBio = opt.bio || "Low-intensity steady state cardio";
-          const optNote = opt.note || "Post-workout";
+          // V29.5 P2-005: Sanitize cardio note
+          const rawCardioNote = opt.note || "Post-workout";
+          const optNote = window.APP.validation.sanitizeHTMLWithTags(rawCardioNote, ['br']);
 
           const savedMachine =
             LS_SAFE.get(`${id}_ex${idx}_machine`) ||
@@ -658,7 +664,9 @@
         const optName = opt.n || "Unknown Exercise";
         const optVid = opt.vid || "";
         const optBio = opt.bio || "No description";
-        const optNote = opt.note || ex.note || "Edit Note";
+        // V29.5 P2-005: Sanitize exercise notes (allow basic formatting)
+        const rawNote = opt.note || ex.note || "Edit Note";
+        const optNote = window.APP.validation.sanitizeHTMLWithTags(rawNote, ['br', 'b', 'i', 'strong', 'em']);
         const optTargetK = opt.t_k || "-";
         const optTargetR = opt.t_r || "-";
 

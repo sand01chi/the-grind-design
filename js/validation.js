@@ -13,33 +13,199 @@
   if (!window.APP) window.APP = {};
 
   APP.validation = {
-    validateSession: (sessionId) => {
-      const session = APP.state.workoutData[sessionId];
+
+    // ============================================================================
+    // V29.5 P2-001-006: XSS PREVENTION UTILITIES
+    // ============================================================================
+    // Purpose: Sanitize user input to prevent Cross-Site Scripting attacks
+    // Used by: showToast, openHist, renderCalendar, renderLibrary, etc.
+
+    /**
+     * Sanitize HTML string to prevent XSS
+     * Converts HTML special characters to entities
+     * @param {String} str - String to sanitize
+     * @returns {String} Sanitized string safe for innerHTML
+     */
+    sanitizeHTML: function(str) {
+      if (str === null || str === undefined) return '';
+      if (typeof str !== 'string') return String(str);
+
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+
+    /**
+     * Sanitize and allow specific HTML tags (whitelist approach)
+     * @param {String} html - HTML string to sanitize
+     * @param {Array} allowedTags - Array of allowed tag names (default: ['br', 'b', 'i', 'strong', 'em'])
+     * @returns {String} Sanitized HTML with only allowed tags
+     */
+    sanitizeHTMLWithTags: function(html, allowedTags = ['br', 'b', 'i', 'strong', 'em']) {
+      if (!html) return '';
+      if (typeof html !== 'string') return String(html);
+
+      const div = document.createElement('div');
+      div.innerHTML = html;
+
+      // Remove script tags
+      const scripts = div.querySelectorAll('script');
+      scripts.forEach(script => script.remove());
+
+      // Remove event handler attributes from all elements
+      const allElements = div.querySelectorAll('*');
+      allElements.forEach(el => {
+        // Remove all event handler attributes (onclick, onerror, etc.)
+        Array.from(el.attributes).forEach(attr => {
+          if (attr.name.startsWith('on')) {
+            el.removeAttribute(attr.name);
+          }
+        });
+
+        // Remove disallowed tags (replace with text content)
+        if (!allowedTags.includes(el.tagName.toLowerCase())) {
+          el.replaceWith(...el.childNodes);
+        }
+      });
+
+      return div.innerHTML;
+    },
+
+    /**
+     * Check if string contains potential XSS patterns
+     * @param {String} str - String to check
+     * @returns {Boolean} True if suspicious content detected
+     */
+    containsXSS: function(str) {
+      if (!str || typeof str !== 'string') return false;
+
+      const xssPatterns = [
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        /javascript:/gi,
+        /on\w+\s*=/gi, // onclick, onerror, etc.
+        /<iframe/gi,
+        /<embed/gi,
+        /<object/gi
+      ];
+
+      return xssPatterns.some(pattern => pattern.test(str));
+    },
+
+    // ============================================================================
+    // V29.5 P1-011: ENHANCED SESSION VALIDATION
+    // ============================================================================
+
+    /**
+     * Validate session exists and has required structure
+     * V29.5 P1-011: Enhanced with silent mode option
+     * @param {String} sessionId - Session identifier (e.g., "s1")
+     * @param {Boolean} silent - If true, don't throw errors (default: false for backward compatibility)
+     * @returns {Object|null} Session object if valid, null if invalid (in silent mode)
+     */
+    validateSession: function(sessionId, silent = false) {
+      // Check sessionId provided
+      if (!sessionId) {
+        if (silent) {
+          console.error("[VALIDATION] sessionId is required");
+          return null;
+        }
+        throw new Error("sessionId is required");
+      }
+
+      // Check workoutData initialized
+      if (!window.APP.state || !window.APP.state.workoutData) {
+        if (silent) {
+          console.error("[VALIDATION] workoutData not initialized");
+          return null;
+        }
+        throw new Error("workoutData not initialized");
+      }
+
+      // Check session exists
+      const session = window.APP.state.workoutData[sessionId];
       if (!session) {
+        if (silent) {
+          console.error(`[VALIDATION] Session ${sessionId} not found`);
+          return null;
+        }
         throw new Error(`Session '${sessionId}' tidak ditemukan`);
       }
+
+      // Check exercises array exists and is valid
       if (!session.exercises || !Array.isArray(session.exercises)) {
-        throw new Error(
-          `Session '${sessionId}' tidak memiliki exercises array`
-        );
+        if (silent) {
+          console.error(`[VALIDATION] Session ${sessionId} has invalid exercises`);
+          return null;
+        }
+        throw new Error(`Session '${sessionId}' tidak memiliki exercises array`);
       }
+
       return session;
     },
 
-    validateExercise: (sessionId, exerciseIdx) => {
-      const session = APP.validation.validateSession(sessionId);
+    /**
+     * Validate exercise structure
+     * V29.5 P2-010: Enhanced with comprehensive guards
+     * @param {String} sessionId - Session identifier
+     * @param {Number} exerciseIdx - Exercise index
+     * @param {Boolean} silent - If true, return null instead of throwing (default: false)
+     * @returns {Object|null} Exercise object if valid
+     */
+    validateExercise: function(sessionId, exerciseIdx, silent = false) {
+      const session = silent
+        ? window.APP.validation.validateSession(sessionId, true)
+        : window.APP.validation.validateSession(sessionId);
+
+      if (!session) return null;
+
       const exercise = session.exercises[exerciseIdx];
       if (!exercise) {
+        if (silent) {
+          console.warn(`[VALIDATION] Exercise index ${exerciseIdx} not found`);
+          return null;
+        }
         throw new Error(
           `Exercise index ${exerciseIdx} tidak valid (max: ${
             session.exercises.length - 1
           })`
         );
       }
-      if (!exercise.options || exercise.options.length === 0) {
+
+      // V29.5 P2-010: Guard exercise.options
+      if (!exercise.options || !Array.isArray(exercise.options) || exercise.options.length === 0) {
+        if (silent) {
+          console.warn(`[VALIDATION] Exercise ${exerciseIdx} has no valid options`);
+          return null;
+        }
         throw new Error(`Exercise ${exerciseIdx} tidak memiliki options`);
       }
+
       return exercise;
+    },
+
+    /**
+     * Validate exercise options structure (standalone check)
+     * V29.5 P2-010: Helper for validating exercise.options
+     * @param {Object} exercise - Exercise object to validate
+     * @returns {Boolean} True if valid, false otherwise
+     */
+    validateExerciseOptions: function(exercise) {
+      if (!exercise) {
+        console.warn("[VALIDATION] validateExerciseOptions: null exercise");
+        return false;
+      }
+
+      if (!exercise.options || !Array.isArray(exercise.options)) {
+        console.warn("[VALIDATION] Exercise has no options array:", exercise);
+        return false;
+      }
+
+      if (exercise.options.length === 0) {
+        console.warn("[VALIDATION] Exercise has empty options:", exercise);
+        return false;
+      }
+
+      return true;
     },
 
     getSafeVariantIndex: (sessionId, exerciseIdx) => {

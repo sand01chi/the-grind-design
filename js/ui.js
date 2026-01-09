@@ -21,6 +21,7 @@
     },
 
     // Toast Notifications
+    // V29.5 P2-001: XSS sanitization applied
     showToast: (msg, type = "success") => {
       const con = document.getElementById("toast-container");
       const t = document.createElement("div");
@@ -29,7 +30,9 @@
         type === "success"
           ? '<i class="fa-solid fa-arrow-up"></i>'
           : '<i class="fa-solid fa-triangle-exclamation"></i>';
-      t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight">${msg}</div>`;
+      // V29.5 P2-001: Sanitize message to prevent XSS (defense-in-depth)
+      const safeMsg = window.APP.validation.sanitizeHTML(msg);
+      t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight">${safeMsg}</div>`;
       con.appendChild(t);
       requestAnimationFrame(() => t.classList.add("show"));
       setTimeout(() => {
@@ -320,11 +323,12 @@
               </div>
               ${
                 x.note
-                  ? `<div class="text-[10px] text-slate-400 mt-2 italic">💭 ${x.note}</div>`
+                  ? `<div class="text-[10px] text-slate-400 mt-2 italic">💭 ${window.APP.validation.sanitizeHTMLWithTags(x.note, ['br'])}</div>`
                   : ""
               }
             </div>
           `;
+          // V29.5 P2-002: Cardio note sanitized above
           return;
         }
 
@@ -538,7 +542,9 @@
       let html = "";
       lib.forEach((item, i) => {
         const dStr = DT.formatDate(new Date(item.date));
-        html += `<div class="glass-card p-2 rounded border border-white/10 flex justify-between items-center"><div><div class="text-xs text-white font-bold">${item.name}</div><div class="text-[10px] text-slate-500">${dStr}</div></div><div class="flex gap-2"><button onclick="APP.data.loadFromLibrary(${i})" class="bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded text-[10px] hover:bg-emerald-900/50 border border-emerald-900">Load</button><button onclick="APP.data.deleteFromLibrary(${i})" class="text-red-500 hover:text-white px-2 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
+        // V29.5 P2-004: Sanitize library names (user-created)
+        const safeName = window.APP.validation.sanitizeHTML(item.name || 'Untitled');
+        html += `<div class="glass-card p-2 rounded border border-white/10 flex justify-between items-center"><div><div class="text-xs text-white font-bold">${safeName}</div><div class="text-[10px] text-slate-500">${dStr}</div></div><div class="flex gap-2"><button onclick="APP.data.loadFromLibrary(${i})" class="bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded text-[10px] hover:bg-emerald-900/50 border border-emerald-900">Load</button><button onclick="APP.data.deleteFromLibrary(${i})" class="text-red-500 hover:text-white px-2 text-[10px]"><i class="fa-solid fa-trash"></i></button></div></div>`;
       });
       el.innerHTML = html;
     },
@@ -638,9 +644,11 @@
         ? '<span class="px-2 py-0.5 bg-purple-600 text-white text-[9px] font-bold rounded uppercase ml-2">SPONTANEOUS</span>'
         : '';
 
-      const sessionTitle =
+      // V29.5 P2-003: Sanitize session title from logs
+      const rawTitle =
         logs[0].title ||
         (logs[0].src === "spontaneous" ? "Spontaneous" : logs[0].src);
+      const sessionTitle = window.APP.validation.sanitizeHTML(rawTitle);
       const duration = logs[0].dur || 0;
       const totalVol = logs
         .reduce((acc, curr) => {
@@ -997,6 +1005,12 @@
             return;
           }
 
+          // V29.5 P2-011: Guard session.exercises access
+          if (!session.exercises || !Array.isArray(session.exercises)) {
+            console.error("[UI] selectExercise: Invalid exercises array");
+            session.exercises = []; // Auto-fix: Initialize empty array
+          }
+
           let targetWeight = 0;
 
           if (typeof EXERCISES_LIBRARY !== "undefined") {
@@ -1051,6 +1065,17 @@
         } else if (mode === "new") {
           const sessionId = APP.state.currentSessionId;
 
+          // V29.5 P2-011: Guard session.exercises access in "new" mode
+          const currentSession = APP.state.workoutData[sessionId];
+          if (!currentSession) {
+            alert("Session not found!");
+            return;
+          }
+          if (!currentSession.exercises || !Array.isArray(currentSession.exercises)) {
+            console.error("[UI] selectExercise (new): Invalid exercises array");
+            currentSession.exercises = []; // Auto-fix
+          }
+
           const isCardio =
             name.includes("[Cardio]") ||
             APP.ui.exercisePicker.allExercises.find(
@@ -1062,7 +1087,7 @@
               (ex) => ex.n === name
             );
 
-            APP.state.workoutData[sessionId].exercises.push({
+            currentSession.exercises.push({
               type: "cardio",
               target_duration: parseInt(targetReps) || 30,
               target_hr_zone: "Zone 2",
@@ -1084,7 +1109,7 @@
               ],
             });
           } else {
-            APP.state.workoutData[sessionId].exercises.push({
+            currentSession.exercises.push({
               sets: 3,
               rest: 90,
               note: note || "Library",

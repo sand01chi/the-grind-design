@@ -676,7 +676,8 @@
       APP.state.workoutData["spontaneous"] = emptySession;
       APP.ui.closeModal("spontaneous");
       APP.nav.loadWorkout("spontaneous");
-      setTimeout(() => APP.data.addNewExerciseCard(), 500);
+      // V29.5 P1-012: Use window.APP for closure safety
+      setTimeout(() => window.APP.data.addNewExerciseCard(), 500);
     },
     loadFromJSON: () => {
       try {
@@ -795,6 +796,8 @@
       if (savedPresets.length > 0) {
         bpHtml += `<div class="text-[10px] text-purple-400 font-bold uppercase mb-2 border-b border-purple-500/30 pb-1">📚 Saved Presets</div>`;
         savedPresets.forEach((p, i) => {
+          // V29.5 P2-006: Sanitize saved preset names (user-created)
+          const safePresetName = window.APP.validation.sanitizeHTML(p.name || 'Preset ' + (i + 1));
           bpHtml += `
             <div class="w-full bg-purple-900/40 border border-purple-500/30 p-2 rounded flex items-center gap-1 mb-2 overflow-hidden">
               <button
@@ -805,7 +808,7 @@
                   <i class="fa-solid fa-bookmark"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-xs font-bold text-white truncate">${p.name || 'Preset ' + (i + 1)}</div>
+                  <div class="text-xs font-bold text-white truncate">${safePresetName}</div>
                   <div class="text-[10px] text-purple-300">Custom preset</div>
                 </div>
               </button>
@@ -833,6 +836,8 @@
         bpHtml += `<div class="text-[10px] text-indigo-400 font-bold uppercase mb-2 border-b border-indigo-500/30 pb-1 ${savedPresets.length > 0 ? 'mt-3' : ''}">⚡ Built-in Blueprints</div>`;
         Object.keys(PRESETS).forEach((k) => {
           const p = PRESETS[k];
+          // V29.5 P2-006: Sanitize blueprint titles (defense-in-depth)
+          const safeBlueprintTitle = window.APP.validation.sanitizeHTML(p.title || 'Blueprint');
           bpHtml += `
             <button
               onclick="APP.session.spontaneous.loadPreset('${k}', 'blueprint')"
@@ -842,7 +847,7 @@
                 <i class="fa-solid fa-dumbbell"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-xs font-bold text-white truncate">${p.title}</div>
+                <div class="text-xs font-bold text-white truncate">${safeBlueprintTitle}</div>
                 <div class="text-[10px] text-indigo-300">${p.exercises.length} Exercises</div>
               </div>
             </button>

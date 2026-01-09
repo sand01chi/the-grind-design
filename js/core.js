@@ -203,6 +203,26 @@
             totalSets = 0;
           const sessId = APP.state.currentSessionId;
           const d = APP.state.workoutData[sessId];
+
+          // V29.5 P2-009: Guard d.exercises access
+          if (!d) {
+            console.error("[CORE] finishSession: Session data not found for", sessId);
+            window.APP.ui.showToast("Error: Session data missing", "error");
+            return;
+          }
+
+          if (!d.exercises || !Array.isArray(d.exercises)) {
+            console.error("[CORE] finishSession: Invalid exercises array for", sessId);
+            window.APP.ui.showToast("Error: Session has no valid exercises", "error");
+            return;
+          }
+
+          if (d.exercises.length === 0) {
+            console.warn("[CORE] finishSession: Empty exercises array");
+            window.APP.ui.showToast("Cannot finish session with no exercises", "warning");
+            return;
+          }
+
           d.exercises.forEach((ex, i) => {
             for (let j = 1; j <= ex.sets; j++) {
               const s = `${sessId}_ex${i}_s${j}`;
