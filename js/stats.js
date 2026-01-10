@@ -1666,7 +1666,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             </button>
           </div>
           <div class="flex items-baseline mb-3">
-            <span class="text-4xl font-bold text-white">${pushPull.ratio}</span>
+            <span class="text-4xl font-bold text-white">${pushPull.totalRatio}</span>
             <span class="ml-2 text-xs text-app-subtext">:1</span>
           </div>
           <div class="mb-4">
@@ -1699,6 +1699,9 @@ renderAdvancedAnalytics: function(daysBack = 30) {
   // === SECTION 3: CLINICAL INSIGHTS ===
   const insightsContainer = document.getElementById('klinik-advanced-insights');
   if (insightsContainer) {
+    // Store insights for tooltip access
+    window.APP._currentInsights = insights;
+    
     if (insights.length === 0) {
       insightsContainer.innerHTML = `
         <div class="text-center text-slate-500 py-6">
