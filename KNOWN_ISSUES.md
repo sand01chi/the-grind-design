@@ -1,8 +1,42 @@
 # 🐛 KNOWN ISSUES - THE GRIND DESIGN
 
-**Version:** V29.5
-**Last Updated:** January 9, 2026
+**Version:** V30.0
+**Last Updated:** January 10, 2026
 **Purpose:** Active bugs, edge cases, and documented workarounds
+
+---
+
+## V30.0 Known Issues & Gotchas
+
+### Navigation Pattern (Phase 3.5)
+**Issue:** Views must have `-view` suffix in ID
+**Gotcha:** `switchView('klinik')` looks for `id="klinik-view"`, not `id="klinik"`
+**Solution:** Always suffix view IDs with `-view` (dashboard-view, klinik-view, ai-view, settings-view)
+
+### Bottom Nav Active State
+**Issue:** Active state doesn't update if view name doesn't match data-view attribute
+**Gotcha:** View name aliases (e.g., 'stats' → 'klinik', 'profile' → 'settings') must be mapped in `updateBottomNav()`
+**Solution:** Use viewMap object to handle aliases
+
+### Chart.js Dark Theme
+**Issue:** Charts may flash with default theme before dark theme applies
+**Gotcha:** Chart.js defaults must be set BEFORE creating charts
+**Solution:** Set Chart.defaults at module load, before any chart instances
+
+### Mobile Container Boundaries
+**Issue:** Modals and tooltips may render outside mobile container
+**Gotcha:** Fixed/absolute elements use viewport coordinates, not container coordinates
+**Solution:** Use viewport-aware positioning logic (see tooltip fix in Phase 1)
+
+### TDEE Calculation
+**Issue:** TDEE shows default values if profile incomplete
+**Gotcha:** Uses fallback values (weight: 70kg, height: 170cm, age: 25, activity: 1.55)
+**Solution:** Prompt user to complete profile for accurate TDEE
+
+### View Re-rendering
+**Issue:** Switching back to analytics doesn't always refresh data
+**Gotcha:** Analytics rendering may need to be re-triggered in switchView()
+**Solution:** Call rendering functions (renderAdvancedRatios, renderInsightCards) in switchView for 'klinik'
 
 ---
 

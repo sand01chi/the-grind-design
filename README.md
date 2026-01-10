@@ -1,14 +1,26 @@
 # 🏋️ THE GRIND DESIGN
 
-**Version:** V29.0 (Advanced Analytics)
+**Version:** V30.0 (Mobile UI Redesign)
 **Status:** Production Ready
-**Last Updated:** January 3, 2026
+**Last Updated:** January 10, 2026
 
 A clinical-grade Progressive Web App for evidence-based strength training management. Built with vanilla JavaScript, designed for both personal training and professional analytics.
 
 ---
 
 ## ✨ Key Features
+
+### **V30.0: Mobile-First UI Redesign** 🆕
+- 🎨 **Modern Dark Theme** - OLED-friendly pure black background with teal accents
+- 📱 **Mobile-First Design** - Optimized for 375px-428px viewports
+- 🎯 **Bottom Navigation** - Thumb-zone optimized navigation bar
+- 📊 **Enhanced Analytics** - Dark-themed Chart.js visualizations
+- 💎 **Teal Accent System** - Medical/tech aesthetic with consistent color palette
+- ⚡ **Unified Navigation** - Smooth view transitions (no modal overlays)
+- 📈 **Interactive Charts** - Clinical-grade data visualization
+- 🎨 **Status-Coded Cards** - Green/yellow/red ratio indicators
+- 🩺 **Clinical Insights** - Severity-based styling for recommendations
+- 💪 **Stats Cards** - Interactive weight and TDEE display
 
 ### **Core Training Management**
 - 📅 **Smart Session Rotation** - Auto-suggests next workout based on recovery time

@@ -3629,7 +3629,7 @@
           this.renderBackupMode(contentArea);
           break;
         case 'prompt-manager':
-          this.renderPromptManager(contentArea);
+          this.renderPromptManagerMode(contentArea);
           break;
         default:
           this.renderContextMode(contentArea);
