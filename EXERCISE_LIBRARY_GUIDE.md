@@ -1,14 +1,16 @@
 # 📚 EXERCISE LIBRARY GUIDE - THE GRIND DESIGN
 
-**Version:** V30.1 (Library Polish)  
-**Last Updated:** January 10, 2026  
+**Version:** V30.2 (Library Expansion)  
+**Last Updated:** January 11, 2026  
 **Purpose:** Guide for adding, modifying, and managing exercises in the library
 
 ---
 
 ## 📖 Overview
 
-The Exercise Library is the heart of THE GRIND DESIGN. It contains 100+ exercises with clinical biomechanics notes, execution cues, and safety warnings. This guide explains how to add new exercises or modify existing ones.
+The Exercise Library is the heart of THE GRIND DESIGN. It contains 180+ exercises with clinical biomechanics notes, execution cues, and safety warnings. This guide explains how to add new exercises or modify existing ones.
+
+**V30.2 Update:** Added 29 new cable and machine exercise variants with biomechanically accurate muscle targeting.
 
 **V30.1 Update:** Comprehensive standardization of exercise naming conventions with backwards compatibility support for historical data.
 
@@ -819,4 +821,126 @@ PRIMARY, SECONDARY
 ---
 
 **Last Updated:** January 10, 2026 (V30.1 Library Polish)  
+
+---
+
+## 📋 CHANGELOG - V30.2 LIBRARY EXPANSION
+
+**Date:** January 11, 2026  
+**Branch:** v30.2-library-expansion  
+**Focus:** Cable and machine exercise variants for comprehensive training options
+
+### **What's New - 29 Exercises Added**
+
+#### **Chest Exercises (7 new)**
+**Cable Variants:**
+- `[Cable] Fly (Low-to-Mid)` - Lower-to-mid pec emphasis with upward arc
+- `[Cable] Single Arm Fly` - Unilateral chest fly with anti-rotation core demand
+- `[Cable] Incline Fly` - Upper pec cable fly with constant tension advantage
+- `[Cable] Press (Standing)` - Functional standing cable press with core stability
+- `[Cable] Single Arm Press` - Maximum anti-rotation demand unilateral press
+
+**Machine Variants:**
+- `[Machine] Vertical Press` - Unique vertical pressing angle for upper pec
+- `[Machine] Seated Dip Machine` - Lower pec/tricep emphasis with reduced shoulder stress
+
+#### **Back Exercises (9 new)**
+**Machine Row Variants:**
+- `[Machine] Wide Grip Row` - Outer lat width emphasis with wide elbow path
+- `[Machine] Underhand Row` - Lower lat focus with high bicep involvement
+- `[Machine] Hammer Grip Row` - Neutral grip for mid-back thickness, joint-friendly
+
+**Cable Pulldown Variants:**
+- `[Cable] Lat Pulldown (Close Grip)` - Enhanced lat thickness with deeper stretch
+- `[Cable] Single Arm Pulldown` - Unilateral lat work exposing imbalances
+- `[Cable] Straight Arm Pulldown` - Pure lat isolation, zero bicep involvement
+
+**Cable Row Variants:**
+- `[Cable] High Row` - Upper back (traps, rhomboids) emphasis with standing position
+- `[Cable] Low Row` - Mid-to-lower lat emphasis with core anti-extension demand
+- `[Cable] Underhand Row` - Natural supinated grip reduces shoulder strain
+
+#### **Shoulder Exercises (4 new)**
+**Cable Variants:**
+- `[Cable] Front Raise` - Anterior deltoid isolation with constant tension
+- `[Cable] Rear Delt Fly` - Posterior deltoid fly for posture correction
+- `[Cable] Upright Row` - Compound trap/medial delt with vertical pull
+- `[Cable] Single Arm Lateral Raise` - Unilateral medial delt exposing imbalances
+
+#### **Arm Exercises (7 new)**
+**Cable Bicep Variants:**
+- `[Cable] Hammer Curl` - Brachialis/brachioradialis emphasis, neutral grip
+- `[Cable] Preacher Curl` - Cable preacher with constant tension advantage
+- `[Cable] Concentration Curl` - Single arm bicep peak emphasis
+
+**Cable Tricep Variants:**
+- `[Cable] Tricep Pushdown (Bar)` - Straight bar overhand for medial/lateral head
+- `[Cable] Tricep Pushdown (V-Bar)` - Angled V-bar for wrist comfort
+- `[Cable] Single Arm Pushdown` - Unilateral tricep with enhanced ROM
+- `[Cable] Kickback` - Cable kickback with constant tension vs dumbbell
+
+#### **Leg Exercises (2 new)**
+**Machine Variants:**
+- `[Machine] Glute Kickback Machine` - Pure glute isolation with knee flexed
+- `[Machine] Donkey Calf Raise` - Maximum gastrocnemius stretch, horizontal load
+
+### **Muscle Targeting Principles Applied**
+
+All new exercises follow biomechanically accurate muscle targeting:
+- **PRIMARY role:** Main working muscles based on joint actions
+- **SECONDARY role:** Supporting/synergist muscles
+- **Scientific basis:** Proper SECONDARY designation (e.g., core for unilateral work, opposite muscle groups for compound movements)
+
+**Examples:**
+```javascript
+// Unilateral exercises add core SECONDARY
+"[Cable] Single Arm Fly": [
+  { muscle: "chest", role: "PRIMARY" },
+  { muscle: "core", role: "SECONDARY" }  // Anti-rotation demand
+]
+
+// Compound pulling adds arms SECONDARY
+"[Cable] High Row": [
+  { muscle: "back", role: "PRIMARY" },
+  { muscle: "arms", role: "SECONDARY" }  // Elbow flexion involvement
+]
+
+// Pure isolation = PRIMARY only
+"[Cable] Straight Arm Pulldown": [
+  { muscle: "back", role: "PRIMARY" }  // Locked elbow, zero bicep
+]
+```
+
+### **Exercise Metadata Quality**
+
+All V30.2 exercises include:
+- ✅ **`t_r`** - Target rep range (10-12, 12-15, or 15-20 based on exercise type)
+- ✅ **`bio`** - Biomechanics explanation (movement science, muscle fiber recruitment)
+- ✅ **`note`** - Execution cues + clinical warnings (with ⚠️ CLINICAL: sections)
+- ✅ **`vid`** - Video URL field (empty "" for now, can be populated later)
+
+**Clinical Warning Format:**
+```
+note: "Setup and execution cues. Form points.<br><br>⚠️ CLINICAL: Safety considerations. Contraindications. Modifications for special populations."
+```
+
+### **V30.2 Testing Checklist**
+
+- [x] All EXERCISE_TARGETS entries have matching EXERCISES_LIBRARY entries
+- [x] No JavaScript errors in exercises-library.js
+- [x] Proper muscle targeting (PRIMARY/SECONDARY) based on biomechanics
+- [x] All exercises follow V30.1 naming conventions
+- [ ] Exercise picker UI displays new exercises correctly
+- [ ] Volume analytics calculate correctly with new exercises
+- [ ] No console errors when selecting new exercises
+- [ ] Exercise search finds new variants
+
+### **Files Modified**
+
+- `exercises-library.js` - Added 29 new exercises to EXERCISE_TARGETS and EXERCISES_LIBRARY
+- `EXERCISE_LIBRARY_GUIDE.md` - Updated version to V30.2, added changelog
+
+---
+
+**Last Updated:** January 11, 2026 (V30.2 Library Expansion)  
 **Maintainer:** THE GRIND DESIGN Team

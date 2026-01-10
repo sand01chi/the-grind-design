@@ -60,15 +60,39 @@ const EXERCISE_TARGETS = {
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "core", role: "SECONDARY" },
   ],
+  "[Machine] Vertical Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Seated Dip Machine": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
   "[Machine] Pec Deck Fly": [{ muscle: "chest", role: "PRIMARY" }],
   
   // Cable Chest
   "[Cable] Fly": [{ muscle: "chest", role: "PRIMARY" }],
   "[Cable] Fly (High to Low)": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Fly (Low-to-Mid)": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Single Arm Fly": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Incline Fly": [{ muscle: "chest", role: "PRIMARY" }],
   "[Cable] Crossover (High-to-Low)": [{ muscle: "chest", role: "PRIMARY" }],
   "[Cable] Crossover (Low-to-High)": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "shoulders", role: "SECONDARY" },
+  ],
+  "[Cable] Press (Standing)": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   
   // Bodyweight Chest
@@ -121,6 +145,18 @@ const EXERCISE_TARGETS = {
     { muscle: "arms", role: "SECONDARY" },
   ],
   "[Machine] Converging Row": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Wide Grip Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Underhand Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Hammer Grip Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
   "[Machine] Reverse Grip Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
@@ -145,10 +181,19 @@ const EXERCISE_TARGETS = {
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  "[Cable] Lat Pulldown (Close Grip)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
   "[Cable] Neutral Grip Pulldown": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  "[Cable] Single Arm Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Straight Arm Pulldown": [{ muscle: "back", role: "PRIMARY" }],
   
   // Specialized Back Machines
   "[Machine] Pullover Machine (Nautilus)": [{ muscle: "back", role: "PRIMARY" }],
@@ -159,6 +204,18 @@ const EXERCISE_TARGETS = {
   
   // Cable Back
   "[Cable] Seated Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] High Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Low Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Underhand Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
@@ -206,6 +263,13 @@ const EXERCISE_TARGETS = {
   
   // Cable Shoulders
   "[Cable] Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Cable] Front Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Cable] Rear Delt Fly": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Cable] Upright Row": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
 
   // ========================================
   // ARM EXERCISES
@@ -229,9 +293,16 @@ const EXERCISE_TARGETS = {
   
   // Arms - Cable
   "[Cable] Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Preacher Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Concentration Curl": [{ muscle: "arms", role: "PRIMARY" }],
   "[Cable] Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
   "[Cable] Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
   "[Cable] Tricep Pushdown (Rope)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Tricep Pushdown (Bar)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Tricep Pushdown (V-Bar)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Single Arm Pushdown": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Kickback": [{ muscle: "arms", role: "PRIMARY" }],
   
   // Compound Triceps
   "[Barbell] Close-Grip Bench Press": [
@@ -290,6 +361,7 @@ const EXERCISE_TARGETS = {
   
   // Machine Hip/Glute
   "[Machine] Hip Thrust Machine (Glute Drive)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Glute Kickback Machine": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Hip Abduction Machine": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Hip Adduction Machine": [{ muscle: "legs", role: "PRIMARY" }],
   
@@ -304,6 +376,7 @@ const EXERCISE_TARGETS = {
   // Machine Calves
   "[Machine] Seated Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Standing Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Donkey Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Leg Press Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Smith Machine Seated Calf": [{ muscle: "legs", role: "PRIMARY" }],
   
@@ -588,6 +661,59 @@ const EXERCISES_LIBRARY = {
       note: "Cables setinggi lutut atau lebih rendah. Step forward, torso upright. Pull handles up dan together ke face level. Squeeze upper pec, control return.<br><br>⚠️ CLINICAL: Target upper chest yang biasanya undertrained. Light weight - focus contraction quality. Anterior deltoid will assist - normal.",
       vid: ""
     },
+    
+    // ========================================
+    // V30.2 EXPANSION - CABLE CHEST VARIANTS
+    // ========================================
+    {
+      n: "[Cable] Fly (Low-to-Mid)",
+      t_r: "12-15",
+      bio: "Low cable angle with upward arc targets lower-to-mid pectoralis major. Fill gap between standard flat fly and extreme low-to-high crossover.",
+      note: "Cables di hip height. Step forward, slight forward lean. Arc handles up ke chest level dengan natural converging path. Squeeze peak contraction.<br><br>⚠️ CLINICAL: Lower pec emphasis tanpa extreme ROM. Safer alternative untuk shoulder-sensitive clients. Control eccentric - don't bounce.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Fly",
+      t_r: "12-15",
+      bio: "Unilateral cable fly expose imbalances dan increase anti-rotation core demand. Enhanced pec stretch vs bilateral version.",
+      note: "Satu cable per set. Stand perpendicular, brace core. Pull across body ke midline, control return tanpa torso rotation. Match reps both sides.<br><br>⚠️ CLINICAL: High core stability demand. Assess bilateral imbalances - adjust volume if >15% gap. Start light untuk build unilateral control.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Incline Fly",
+      t_r: "12-15",
+      bio: "Incline bench (30-45°) dengan cables emphasize upper pec fibers. Constant tension advantage vs dumbbell incline fly.",
+      note: "Set incline bench between cables. Lie back, cables setinggi bench level. Arc handles up dan together overhead. Deep stretch, control eccentric.<br><br>⚠️ CLINICAL: Superior untuk upper chest isolation. Cables maintain tension di top (vs DB yang lose tension). Monitor shoulder comfort di deep stretch.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Press (Standing)",
+      t_r: "10-12",
+      bio: "Standing cable press add core anti-extension demand vs machine press. Functional strength transfer untuk pushing patterns.",
+      note: "Cables setinggi chest. Step forward stagger stance. Press forward dengan core braced, control return. Avoid excessive torso lean. Match reps both stances.<br><br>⚠️ CLINICAL: Sport-specific pressing (athletes). Higher core demand vs seated. Reduce load vs machine - focus stability. Not for pure hypertrophy.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Press",
+      t_r: "12-15",
+      bio: "Unilateral cable press maximum anti-rotation demand. Expose bilateral strength deficits dan improve single-arm pressing control.",
+      note: "Satu cable chest height. Stagger stance, brace core hard. Press forward strict, resist rotation. Control return. Start weak side.<br><br>⚠️ CLINICAL: Extreme core demand - proper bracing essential. Excellent untuk rotational sport athletes. Start very light untuk assess stability. May expose significant imbalances.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Vertical Press",
+      t_r: "10-12",
+      bio: "Unique vertical pressing angle target upper pec dan anterior deltoid. Machine stability allow heavier loading vs free weight vertical press.",
+      note: "Sit dengan back support, grip handles overhead position. Press straight up dengan slight inward arc. Control eccentric, no bounce di bottom.<br><br>⚠️ CLINICAL: Unique stimulus untuk upper chest. Not common equipment - use if available. Alternative: low incline press (20-30°). Watch untuk shoulder impingement di overhead position.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Seated Dip Machine",
+      t_r: "10-12",
+      bio: "Machine dip emphasize lower pec dan triceps dengan reduced shoulder stress vs free dips. Locked path reduce stabilizer demand.",
+      note: "Sit, grip handles, press down dengan elbows tucked. Focus pada lower pec contraction dan tricep lockout. Control return, maintain tension.<br><br>⚠️ CLINICAL: Safer alternative untuk shoulder-sensitive vs free dips. Good compound finisher. High tricep involvement - count sebagai arm volume. Avoid jika anterior shoulder pain.",
+      vid: ""
+    },
   ],
 
   back: [
@@ -740,6 +866,73 @@ const EXERCISES_LIBRARY = {
       note: "Kneel pada platform, grip pull-up bar. Assistance settings support sebagian bodyweight. Pull dengan lat initiation hingga chin clears bar. Control descent.<br><br>⚠️ CLINICAL: Excellent untuk building pull-up strength progressively. Reduce assistance incrementally. Core bracing critical - avoid swinging.",
       vid: ""
     },
+    
+    // ========================================
+    // V30.2 EXPANSION - BACK CABLE & MACHINE VARIANTS
+    // ========================================
+    {
+      n: "[Machine] Wide Grip Row",
+      t_r: "10-12",
+      bio: "Wide grip maximize outer lat activation dan increase upper back width stimulus. Reduced range of motion vs narrow grip but superior lateral fiber recruitment.",
+      note: "Grip wide handles (1.5x shoulder width). Chest support engaged. Pull dengan wide elbow path. Retract scapula, squeeze peak contraction. Control eccentric.<br><br>⚠️ CLINICAL: Reduced ROM normal dengan wide grip. Focus pada quality contraction bukan heavy load. Good untuk lat width lagging.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Underhand Row",
+      t_r: "10-12",
+      bio: "Underhand grip shift load distribution ke lower lat dan significantly increase bicep involvement. Natural pulling pattern dengan reduced shoulder stress.",
+      note: "Grip underhand shoulder-width. Chest support. Pull dengan elbows tucked, lead dengan lat. Bicep assists heavily. Control tempo 2-1-2.<br><br>⚠️ CLINICAL: Wrist-friendly grip position. High bicep demand - may limit lat training. Consider arm fatigue dalam programming. Good variation untuk joint health.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Hammer Grip Row",
+      t_r: "10-12",
+      bio: "Neutral hammer grip optimize elbow path untuk mid-back thickness. Balance antara lat activation dan rhomboid/mid-trap recruitment. Joint-friendly grip.",
+      note: "Grip neutral handles. Chest support. Pull dengan elbows close, natural arc. Equal emphasis lat dan mid-back. Squeeze hard di contraction. Control return.<br><br>⚠️ CLINICAL: Most joint-friendly row grip. Excellent untuk high-volume back work. Balanced muscle recruitment - good main row variant.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Lat Pulldown (Close Grip)",
+      t_r: "10-12",
+      bio: "Close grip enhance lat thickness emphasis dan allow deeper stretch di top position. Increased ROM vs wide grip permit heavier loading dengan better MMC.",
+      note: "Grip attachment close (6-12 inches). Sit secure, pull ke sternum. Lead dengan lat, drive elbows down dan back. Full stretch overhead, deep contraction bottom.<br><br>⚠️ CLINICAL: Superior ROM untuk lat development vs wide grip. Safer shoulder position untuk impingement history. Bicep involvement moderate.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Pulldown",
+      t_r: "12-15",
+      bio: "Unilateral pulldown expose bilateral strength imbalances dan increase anti-lateral flexion core demand. Enhanced lat stretch vs bilateral version.",
+      note: "Satu handle per set. Sit atau kneel. Pull dengan strict form, resist torso rotation. Full stretch overhead, complete contraction ke chest. Match reps both sides.<br><br>⚠️ CLINICAL: Assess imbalances - adjust volume if >15% gap. High core demand. Start light untuk control. Excellent rehab tool (unilateral weakness).",
+      vid: ""
+    },
+    {
+      n: "[Cable] Straight Arm Pulldown",
+      t_r: "12-15",
+      bio: "Pure lat isolation dengan locked elbow position eliminate bicep involvement. Focus pada lat stretch-to-contract tanpa arm fatigue limiting factor.",
+      note: "Grip bar straight arms. Slight forward lean. Pull bar ke thighs dengan locked elbows, lead dengan lats only. Full stretch overhead, squeeze contraction.<br><br>⚠️ CLINICAL: Zero bicep - true lat isolation. Light weight necessary. Excellent lat activation primer pre-compound pulls. Don't bend elbows - defeats purpose.",
+      vid: ""
+    },
+    {
+      n: "[Cable] High Row",
+      t_r: "10-12",
+      bio: "High cable angle maximize upper back (traps, rhomboids, posterior delt) activation. Standing version add core stability demand vs machine high row.",
+      note: "Cable setinggi face. Stand atau slight lean back. Pull handles ke upper chest dengan high elbow position. Retract scapula hard, squeeze 1 sec.<br><br>⚠️ CLINICAL: Excellent posture correction exercise. Avoid shrugging - depress scapula first. Can replace machine high row if unavailable.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Low Row",
+      t_r: "10-12",
+      bio: "Low cable angle shift emphasis ke mid-to-lower lat. Standing cable row add core anti-extension demand vs seated machine version.",
+      note: "Cable setinggi lower chest/abdomen. Stand dengan slight hinge. Pull handles ke lower chest, elbows close. Lead dengan lat, squeeze contraction. Core braced.<br><br>⚠️ CLINICAL: Core stability critical - maintain neutral spine. Functional pulling pattern. May fatigue lower back - monitor form.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Underhand Row",
+      t_r: "10-12",
+      bio: "Underhand cable row combine lat emphasis dengan significant bicep involvement. Natural supinated grip reduce shoulder strain vs pronated grips.",
+      note: "Cable chest height. Grip underhand. Pull ke lower chest dengan elbows tucked forward. Bicep assists lat heavily. Control tempo, squeeze peak.<br><br>⚠️ CLINICAL: Wrist-friendly grip. High bicep demand - factor into arm volume. Good variation untuk joint health. Alternative untuk barbell underhand row.",
+      vid: ""
+    },
   ],
 
   shoulders: [
@@ -782,6 +975,37 @@ const EXERCISES_LIBRARY = {
       vid: "https://www.youtube.com/watch?v=PzmHZSqw4H4",
       bio: "Memberikan tegangan konstan (Constant Tension) di seluruh rentang gerak, terutama di posisi otot memanjang.",
       note: "Kabel setinggi lutut atau bawah. Silangkan kabel di belakang badan untuk stretch maksimal. Kontrol fase negatif (saat tangan turun) secara perlahan.",
+    },
+    // ========================================
+    // V30.2 EXPANSION - SHOULDER CABLE VARIANTS
+    // ========================================
+    {
+      n: "[Cable] Front Raise",
+      t_r: "12-15",
+      bio: "Anterior deltoid isolation dengan constant cable tension. Superior untuk front delt hypertrophy vs dumbbell due to maintained tension throughout ROM.",
+      note: "Cable setinggi hip, grip handle atau rope. Raise straight arm ke shoulder level (90°), pause 1 sec. Control descent, maintain tension bottom. No momentum.<br><br>⚠️ CLINICAL: Anterior delt often overtrained - assess need. Good untuk pressing strength carryover. Don't raise past 90° - unnecessary stress.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Rear Delt Fly",
+      t_r: "12-15",
+      bio: "Cable rear delt fly provide constant tension advantage vs dumbbell bent-over fly. Posterior deltoid isolation critical untuk shoulder health dan balanced development.",
+      note: "Cables cross-body, grip opposite handles. Bend forward 45°. Pull handles apart dengan slight elbow bend, squeeze rear delts. Control return, no momentum.<br><br>⚠️ CLINICAL: Essential untuk posture correction. Undertrained muscle - prioritize. Light weight, focus contraction quality. Breathe - don't hold breath.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Upright Row",
+      t_r: "10-12",
+      bio: "Compound trap dan medial deltoid exercise dengan constant cable tension. Vertical pull pattern recruit upper trap, mid-trap, dan medial delt synergistically.",
+      note: "Cable low, grip rope atau bar narrow. Pull vertical ke chin level, elbows drive up dan out. Pause peak, control descent. Lead dengan elbows.<br><br>⚠️ CLINICAL: May aggravate shoulder impingement - stop jika pain. Wide grip safer. Alternative: cable lateral raise for medial delt. Monitor shoulder comfort.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Lateral Raise",
+      t_r: "12-15",
+      bio: "Unilateral cable lateral raise expose bilateral imbalances dan allow focused medial deltoid isolation. Enhanced ROM vs bilateral version due to no opposite arm interference.",
+      note: "Cable low opposite side. Cross body, brace core. Raise arm ke shoulder level strict. Resist torso lean. Control descent. Match reps both sides.<br><br>⚠️ CLINICAL: Assess imbalances - common di overhead athletes. Core stability critical. Start light. Don't lean away - defeats isolation purpose.",
+      vid: ""
     },
     {
       n: "[Machine] Shoulder Press",
@@ -922,6 +1146,62 @@ const EXERCISES_LIBRARY = {
       vid: "https://www.youtube.com/watch?v=4sW5W7h_jG0",
       bio: "Tegangan maksimal saat stretch.",
       note: "Membelakangi kabel. Biarkan tangan tertarik ke belakang, lalu curl.",
+    },
+    // ========================================
+    // V30.2 EXPANSION - CABLE ARM VARIANTS
+    // ========================================
+    
+    // BICEP CABLE VARIANTS
+    {
+      n: "[Cable] Hammer Curl",
+      t_r: "12-15",
+      bio: "Neutral grip cable curl emphasize brachialis dan brachioradialis dengan constant tension. Superior untuk forearm dan bicep thickness vs dumbbell hammer curl.",
+      note: "Cable low, grip rope neutral (palms facing). Curl ke shoulder dengan strict form, elbows pinned. Squeeze peak, control descent. No momentum.<br><br>⚠️ CLINICAL: Joint-friendly grip. Build elbow flexor strength across multiple muscles. Good untuk grip strength carryover. Lighter than standard curl.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Preacher Curl",
+      t_r: "12-15",
+      bio: "Preacher bench dengan cable provide constant tension advantage vs barbell/dumbbell. Isolate biceps dengan arm pad elimination body momentum totally.",
+      note: "Preacher bench facing cable. Arms di pad, grip bar/rope. Curl dengan strict bicep contraction only. Control eccentric, maintain tension bottom. No full extension lockout.<br><br>⚠️ CLINICAL: True isolation - can't cheat. May trigger bicep cramps - pace sets. Elbow safety: don't hyperextend bottom. Superior MMC vs free weight.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Concentration Curl",
+      t_r: "12-15",
+      bio: "Single arm cable curl dengan seated position enhance bicep peak contraction. Constant tension dan isolation advantage vs dumbbell concentration curl.",
+      note: "Sit atau lean, cable low. Single handle, brace elbow di inner thigh. Curl strict dengan supination emphasis di peak. Squeeze hard, control descent. Match reps.<br><br>⚠️ CLINICAL: Maximum bicep isolation. Light weight necessary. Focus contraction quality, not load. May trigger cramps - proper pacing.",
+      vid: ""
+    },
+    
+    // TRICEP CABLE VARIANTS
+    {
+      n: "[Cable] Tricep Pushdown (Bar)",
+      t_r: "12-15",
+      bio: "Straight bar pushdown with overhand grip emphasize medial dan lateral tricep head. Wrist-neutral position reduce strain vs rope attachment.",
+      note: "Cable high, grip straight bar overhand shoulder-width. Elbows pinned sides. Push down dengan full extension, squeeze tricep. Control return 90°. No elbow flare.<br><br>⚠️ CLINICAL: Classic tricep isolation. May stress wrists - switch to EZ bar if discomfort. Full lockout safe here unlike pressing. Light weight for volume.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Tricep Pushdown (V-Bar)",
+      t_r: "12-15",
+      bio: "Angled V-bar grip optimize wrist comfort dan allow natural elbow path. Balanced tricep head recruitment dengan joint-friendly positioning.",
+      note: "Cable high, grip V-bar. Elbows pinned, push down dengan full extension. Squeeze lockout, control return. Slight inward angle natural dengan V-grip.<br><br>⚠️ CLINICAL: Most wrist-friendly pushdown variant. Good untuk high-volume tricep work. Balance antara rope dan straight bar. Recommended main pushdown variant.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Pushdown",
+      t_r: "12-15",
+      bio: "Unilateral tricep pushdown expose bilateral imbalances dan allow enhanced ROM. Single arm focus improve mind-muscle connection vs bilateral version.",
+      note: "Cable high, single handle. One arm per set. Elbow pinned side, push down full extension. Squeeze lockout, control return. Match reps both arms. Start weak side.<br><br>⚠️ CLINICAL: Assess imbalances - adjust volume accordingly. Enhanced ROM vs bilateral. Core stability moderate. Good finisher for tricep work.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Kickback",
+      t_r: "15-20",
+      bio: "Cable kickback provide constant tension advantage vs dumbbell kickback. Tricep long head emphasis dengan full elbow extension di horizontal plane.",
+      note: "Cable low, single handle. Hinge forward 45°. Upper arm parallel floor, kickback dengan elbow extension. Squeeze peak lockout, control return. No shoulder movement.<br><br>⚠️ CLINICAL: Light weight necessary. Superior tension vs dumbbell (gravity issue). Good finisher. Core bracing required untuk maintain hinge. Focus contraction quality.",
+      vid: ""
     },
     // ========================================
     // V26.5 EXPANSION - ARM MACHINES
@@ -1156,6 +1436,24 @@ const EXERCISES_LIBRARY = {
       t_r: "15-20",
       bio: "Isolated hip adduction menargetkan adductor group (magnus, longus, brevis). Penting untuk pelvic stability dan athletic movement.",
       note: "Duduk tegak, buka leg pads maksimal untuk pre-stretch. Squeeze knee pads bersama dengan kontrol. Pause di peak contraction.<br><br>⚠️ CLINICAL: Start light - adductors prone to strain. Excellent untuk groin injury prevention. Warm up properly.",
+      vid: ""
+    },
+    
+    // ========================================
+    // V30.2 EXPANSION - LEG MACHINE VARIANTS
+    // ========================================
+    {
+      n: "[Machine] Glute Kickback Machine",
+      t_r: "12-15",
+      bio: "Isolated hip extension dengan knee flexed 90°, pure glute activation dengan hamstring minimized. Resistance curve peak di full extension for maximum glute contraction.",
+      note: "Berdiri one leg, working leg di platform dengan knee bent. Kick back hingga full hip extension. Squeeze glute peak contraction, hold 1 sec. Control return.<br><br>⚠️ CLINICAL: True glute isolation - hamstring contribution minimal karena knee flexed. Excellent untuk glute activation dan hypertrophy. Avoid lumbar hyperextension di kickback.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Donkey Calf Raise",
+      t_r: "15-20",
+      bio: "Bent-over position dengan hip flexed ~90° maximize gastrocnemius stretch dan activation. Horizontal load path unique stimulus vs vertical calf raise variations.",
+      note: "Hinge forward 90°, pad di lower back/hips. Balls of feet di platform edge. Rise onto toes maksimal, hold peak 1-2 sec. Lower untuk deep stretch di bottom.<br><br>⚠️ CLINICAL: Superior gastrocnemius stretch vs standing calf raise. May aggravate lower back - brace core properly. Old-school exercise - rare equipment, highly effective.",
       vid: ""
     },
     
