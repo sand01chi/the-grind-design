@@ -2559,12 +2559,12 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <span class="text-xs text-app-subtext">Vertical (OHP/Pulldown)</span>
             <span class="text-lg font-bold text-white">${hvRatios.verticalRatio}</span>
           </div>
-          <div class="relative h-2 bg-white/5 rounded-full mb-2">
-            <div class="absolute h-2 bg-red-500/60 rounded-l-full overflow-hidden" style="width: 20%; left: 0;"></div>
-            <div class="absolute h-2 bg-yellow-500/60 overflow-hidden" style="width: 10%; left: 20%;"></div>
-            <div class="absolute h-2 bg-emerald-500/60 overflow-hidden" style="width: 20%; left: 30%;"></div>
-            <div class="absolute h-2 bg-yellow-500/60 overflow-hidden" style="width: 20%; left: 50%;"></div>
-            <div class="absolute h-2 bg-red-500/60 rounded-r-full overflow-hidden" style="width: 30%; left: 70%;"></div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 20%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 30%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 50%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 30%; left: 70%;"></div>
             <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max((hvRatios.verticalRatio / 1.4) * 100, 0), 100)}%;"></div>
           </div>
           <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
