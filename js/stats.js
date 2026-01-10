@@ -1775,6 +1775,195 @@
       }
 
       // ========================================
+      // RULE 7: HORIZONTAL/VERTICAL IMBALANCE (V30.4)
+      // ========================================
+      const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+      
+      // 7A: Horizontal Plane Imbalance
+      if (hvRatios.horizontalStatus === 'imbalance') {
+        if (hvRatios.horizontalRatio < 0.6) {
+          insights.push({
+            id: "horizontal-weak-pull",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Insufficient Horizontal Pulling",
+            metrics: `Horizontal Pull:Push = ${hvRatios.horizontalRatio} (Target: 0.7-1.0)`,
+            risk: "Shoulder Internal Rotation, Postural Issues",
+            action: "Increase rows, face pulls, and horizontal pulling volume",
+            evidence: {
+              source: "Cressey & Robertson (2019)",
+              citation: "Horizontal pull:push ratio critical for scapular stability",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        } else if (hvRatios.horizontalRatio > 1.2) {
+          insights.push({
+            id: "horizontal-weak-push",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Excessive Horizontal Pulling",
+            metrics: `Horizontal Pull:Push = ${hvRatios.horizontalRatio} (Target: 0.7-1.0)`,
+            risk: "Anterior Shoulder Weakness",
+            action: "Balance with more horizontal pressing volume (bench press, push-ups)",
+            evidence: {
+              source: "Cressey & Robertson (2019)",
+              citation: "Balanced horizontal plane work prevents shoulder dysfunction",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        }
+      }
+
+      // 7B: Vertical Plane Imbalance
+      if (hvRatios.verticalStatus === 'imbalance') {
+        if (hvRatios.verticalRatio < 0.4) {
+          insights.push({
+            id: "vertical-weak-pull",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Insufficient Vertical Pulling",
+            metrics: `Vertical Pull:Push = ${hvRatios.verticalRatio} (Target: 0.5-0.7)`,
+            risk: "Shoulder Impingement Risk, Upper Cross Syndrome",
+            action: "Prioritize vertical pulling (lat pulldowns, pull-ups, chin-ups)",
+            evidence: {
+              source: "Saeterbakken et al. (2011)",
+              citation: "Vertical pulling essential for shoulder health and posture",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        } else if (hvRatios.verticalRatio > 0.9) {
+          insights.push({
+            id: "vertical-weak-push",
+            type: "warning",
+            category: "balance",
+            priority: 3,
+            title: "⚠️ Low Vertical Pressing Volume",
+            metrics: `Vertical Pull:Push = ${hvRatios.verticalRatio} (Target: 0.5-0.7)`,
+            risk: "Deltoid Underdevelopment",
+            action: "Add overhead pressing volume (OHP, dumbbell press, push press)",
+            evidence: {
+              source: "Saeterbakken et al. (2011)",
+              citation: "Vertical pressing develops deltoids and stabilizers",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        }
+      }
+
+      // ========================================
+      // RULE 8: TRAINING FREQUENCY (V30.4)
+      // ========================================
+      const frequency = this.calculateTrainingFrequency(daysBack);
+      const lowFreqMuscles = [];
+      const highFreqMuscles = [];
+
+      Object.entries(frequency.frequency).forEach(([muscle, freq]) => {
+        if (freq < 2) lowFreqMuscles.push(`${muscle} (${freq}x)`);
+        if (freq > 3) highFreqMuscles.push(`${muscle} (${freq}x)`);
+      });
+
+      // 8A: Low Frequency
+      if (lowFreqMuscles.length > 0) {
+        insights.push({
+          id: "frequency-low",
+          type: "warning",
+          category: "program-design",
+          priority: 2,
+          title: "⚠️ Suboptimal Training Frequency",
+          metrics: `${lowFreqMuscles.join(', ')} trained <2x per week`,
+          risk: "Suboptimal Hypertrophy Stimulus",
+          action: "Increase to 2-3x per week per muscle group for optimal growth",
+          evidence: {
+            source: "Schoenfeld et al. (2016)",
+            citation: "2-3x per week frequency superior for hypertrophy vs 1x",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+
+      // 8B: High Frequency
+      if (highFreqMuscles.length > 0) {
+        insights.push({
+          id: "frequency-high",
+          type: "warning",
+          category: "recovery",
+          priority: 3,
+          title: "⚠️ High Training Frequency",
+          metrics: `${highFreqMuscles.join(', ')} trained >3x per week`,
+          risk: "Potential Overreaching",
+          action: "Monitor recovery. Consider reducing frequency or volume per session",
+          evidence: {
+            source: "ACSM Guidelines (2021)",
+            citation: "Frequency >3x beneficial only if volume and recovery are managed",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+
+      // ========================================
+      // RULE 9: UNILATERAL VOLUME (V30.4)
+      // ========================================
+      const unilateral = this.calculateUnilateralVolume(daysBack);
+
+      if (unilateral.status === 'insufficient') {
+        insights.push({
+          id: "unilateral-insufficient",
+          type: "warning",
+          category: "injury-prevention",
+          priority: 2,
+          title: "⚠️ Insufficient Unilateral Training",
+          metrics: `${unilateral.unilateralPercent}% of volume is unilateral (Target: ≥20%)`,
+          risk: "Bilateral Deficit, Asymmetry Development",
+          action: "Add unilateral exercises: Bulgarian split squats, single-arm rows, lunges",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Unilateral training addresses asymmetries and prevents injury",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      } else if (unilateral.status === 'low') {
+        insights.push({
+          id: "unilateral-low",
+          type: "info",
+          category: "optimization",
+          priority: 3,
+          title: "ℹ️ Low Unilateral Volume",
+          metrics: `${unilateral.unilateralPercent}% unilateral volume (Target: ≥20%)`,
+          action: "Consider adding more single-leg/arm exercises for asymmetry prevention",
+          evidence: {
+            source: "Myer et al. (2005)",
+            citation: "Unilateral training reduces ACL injury risk in athletes",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+
+      // ========================================
+      // NOTE: NO RULE FOR COMPOUND/ISOLATION
+      // Per user request: "just give information about current training goal alignment, no need for warning"
+      // This is handled in UI only (Exercise Selection card shows training style classification)
+      // ========================================
+
+      // ========================================
       // POST-PROCESSING
       // ========================================
 

@@ -3543,6 +3543,26 @@
           title: 'Bodyweight Contribution',
           text: 'Shows percentage of training volume from bodyweight exercises. Load estimated using biomechanics research (e.g., push-up = 64% bodyweight).',
           source: 'Ebben et al. (2011)'
+        },
+        'hv-info': {
+          title: 'Horizontal/Vertical Balance (V30.4)',
+          text: 'Horizontal (bench/row) optimal: 0.7-1.0 pull:push. Vertical (OHP/pulldown) optimal: 0.5-0.7. Different ratios due to biomechanics and injury risk profiles.',
+          source: 'Cressey (2019), Saeterbakken (2011)'
+        },
+        'freq-info': {
+          title: 'Training Frequency (V30.4)',
+          text: 'Optimal: 2-3x per week per muscle group for hypertrophy. Higher frequency allows better volume distribution and recovery. <2x suboptimal, >3x requires careful management.',
+          source: 'Schoenfeld et al. (2016), ACSM (2021)'
+        },
+        'uni-info': {
+          title: 'Unilateral Volume (V30.4)',
+          text: 'Target: ≥20% of total volume from unilateral exercises (single-leg, single-arm). Addresses bilateral deficit, corrects asymmetries, prevents injury.',
+          source: 'Boyle (2016), Myer et al. (2005)'
+        },
+        'comp-info': {
+          title: 'Compound/Isolation Ratio (V30.4)',
+          text: 'No universal optimal ratio - varies by goal. Strength: >70% compound. Hypertrophy: 50-70% balanced. Bodybuilding: 30-50% isolation-heavy. Informational only.',
+          source: 'Schoenfeld (2021), Gentil (2017)'
         }
       };
 
