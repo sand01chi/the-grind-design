@@ -1283,7 +1283,93 @@
       }
 
       // ========================================
-      // RULE 4: BODYWEIGHT CONTRIBUTION
+      // RULE 4: CORE STABILITY DEMAND (V30.2)
+      // ========================================
+      const stability = this.analyzeCoreStability(daysBack);
+      
+      // 4A: No Stability Work
+      if (stability.weeklySets === 0) {
+        insights.push({
+          id: "stability-none",
+          type: "warning",
+          category: "program-design",
+          priority: 3,
+          title: "⚠️ No Core Stability Demand",
+          metrics: `0 sets/week from unilateral or cable exercises`,
+          risk: "Missing functional stability development from compound movements",
+          action: "Include unilateral exercises (Bulgarian split squats, single-leg RDLs) and standing cable work to challenge core stability",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Unilateral exercises provide anti-rotation demands that complement dedicated core work",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+      
+      // 4B: Low Stability Work
+      else if (stability.weeklySets < 10) {
+        insights.push({
+          id: "stability-low",
+          type: "info",
+          category: "optimization",
+          priority: 4,
+          title: "ℹ️ Low Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "Consider adding more unilateral lower body exercises or standing cable work to increase stability demands",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Compound exercises with stability demands complement but don't replace dedicated core training",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+      
+      // 4C: Adequate Stability Work
+      else if (stability.weeklySets >= 10 && stability.weeklySets <= 20) {
+        insights.push({
+          id: "stability-adequate",
+          type: "success",
+          category: "program-design",
+          priority: 4,
+          title: "✅ Adequate Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "Current stability demand is appropriate. Ensure you're still meeting 15-25 sets/week of DEDICATED core training",
+          evidence: {
+            source: "McGill & Boyle",
+            citation: "Stability work from compounds complements dedicated anti-movement training",
+            url: null
+          },
+          icon: "✅",
+          color: "green"
+        });
+      }
+      
+      // 4D: High Stability Work
+      else if (stability.weeklySets > 20) {
+        insights.push({
+          id: "stability-high",
+          type: "info",
+          category: "optimization",
+          priority: 4,
+          title: "ℹ️ High Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "High stability demand is fine, but ensure recovery is adequate. This does NOT replace dedicated core training volume",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Stability demands are supplementary to, not a substitute for, dedicated core work",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+
+      // ========================================
+      // RULE 5: BODYWEIGHT CONTRIBUTION
       // ========================================
       if (bodyweight.bodyweightPercentage > 30) {
         insights.push({
@@ -1306,7 +1392,7 @@
       }
 
       // ========================================
-      // RULE 5: INSUFFICIENT DATA WARNING
+      // RULE 6: INSUFFICIENT DATA WARNING
       // ========================================
       if (uniqueDays < 3 || (quadHams.quadVolume + quadHams.hamsVolume) < 1000) {
         insights.push({
@@ -1365,6 +1451,260 @@
 
       return finalInsights;
     },
+
+// ============================================
+// V30.3: ADVANCED ANALYTICS TAB RENDERER
+// ============================================
+
+/**
+ * V30.3: Render Advanced Analytics Tab
+ * Consolidates Core metrics, Balance ratios, and Clinical insights
+ * @param {number} daysBack - Number of days to analyze (default: 30)
+ */
+renderAdvancedAnalytics: function(daysBack = 30) {
+  console.log("[STATS] Rendering Advanced Analytics tab");
+
+  // Get all analytics data
+  const quadHams = this.calculateQuadHamsRatio(daysBack);
+  const pushPull = this.calculatePushPullRatio(daysBack);
+  const core = this.analyzeCoreTraining(daysBack);
+  const stability = this.analyzeCoreStability(daysBack);
+  const insights = this.generateClinicalInsights(daysBack);
+
+  // === SECTION 1: CORE METRICS ===
+  const coreContainer = document.getElementById('klinik-advanced-core-metrics');
+  if (coreContainer) {
+    let coreHTML = '';
+
+    // Core Training Card
+    const coreBadgeClass = core.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           core.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+    const coreIcon = core.color === 'green' ? '✅' : core.color === 'yellow' ? '⚠️' : '🚨';
+    const coreProgress = Math.min((core.weeklySets / 25) * 100, 100);
+    const coreProgressColor = core.color === 'green' ? 'bg-emerald-500' :
+                              core.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500';
+
+    coreHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">💪 Core Training</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('core-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${core.weeklySets}</span>
+          <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${coreBadgeClass}">
+            ${coreIcon} ${core.status.charAt(0).toUpperCase() + core.status.slice(1)}
+          </span>
+        </div>
+        <div class="mb-4">
+          <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+            <span>Target: 15-25 sets/week (McGill Guidelines)</span>
+            <span class="font-semibold text-white">${core.weeklySets}/25</span>
+          </div>
+          <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div class="h-2 ${coreProgressColor} transition-all" style="width: ${coreProgress}%;"></div>
+          </div>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Weekly Sets:</span>
+            <span class="font-semibold text-white">${core.weeklySets} sets</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Weekly Frequency:</span>
+            <span class="font-semibold text-white">${core.frequency}x per week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Exercise Variety:</span>
+            <span class="font-semibold text-white">${core.variety} movements</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Core Stability Card
+    const stabilityBadgeClass = stability.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                                stability.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+                                stability.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-white/5 text-app-subtext';
+    const stabilityIcon = stability.color === 'green' ? '✅' :
+                          stability.color === 'purple' ? '🔄' :
+                          stability.color === 'yellow' ? '⚠️' : '➖';
+    const stabilityProgress = Math.min((stability.weeklySets / 20) * 100, 100);
+    const stabilityProgressColor = stability.color === 'green' ? 'bg-emerald-500' :
+                                    stability.color === 'purple' ? 'bg-purple-500' :
+                                    stability.color === 'yellow' ? 'bg-yellow-500' : 'bg-white/20';
+
+    coreHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🔄 Core Stability Demand</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('stability-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${stability.weeklySets}</span>
+          <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${stabilityBadgeClass}">
+            ${stabilityIcon} ${stability.status.charAt(0).toUpperCase() + stability.status.slice(1)}
+          </span>
+        </div>
+        <div class="mb-4">
+          <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+            <span>Target: 10-20 sets/week (from compounds)</span>
+            <span class="font-semibold text-white">${stability.weeklySets}/20</span>
+          </div>
+          <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div class="h-2 ${stabilityProgressColor} transition-all" style="width: ${stabilityProgress}%;"></div>
+          </div>
+        </div>
+        <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-3">
+          <p class="text-[10px] text-purple-300 leading-relaxed">
+            <strong>Note:</strong> Stability work from unilateral/cable exercises complements but does NOT replace dedicated core training (planks, dead bugs).
+          </p>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>From Compound Work:</span>
+            <span class="font-semibold text-white">${stability.weeklySets} sets/week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Weekly Frequency:</span>
+            <span class="font-semibold text-white">${stability.frequency}x per week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Exercise Variety:</span>
+            <span class="font-semibold text-white">${stability.variety} movements</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    coreContainer.innerHTML = coreHTML;
+  }
+
+  // === SECTION 2: BALANCE RATIOS ===
+  const ratiosContainer = document.getElementById('klinik-advanced-ratios');
+  if (ratiosContainer) {
+    let ratiosHTML = '';
+
+    // Quad/Hams Ratio Card
+    if (quadHams.quadVolume > 0 || quadHams.hamsVolume > 0) {
+      const qhBadgeClass = quadHams.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           quadHams.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+      const qhIcon = quadHams.color === 'green' ? '✅' : quadHams.color === 'yellow' ? '⚠️' : '🚨';
+
+      ratiosHTML += `
+        <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-semibold text-white">🦵 Quad/Hams Ratio</h4>
+            <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                    onclick="window.APP.ui.showTooltip('quadhams-info', event)"
+                    onmouseleave="window.APP.ui.hideTooltip()">
+              ℹ️
+            </button>
+          </div>
+          <div class="flex items-baseline mb-3">
+            <span class="text-4xl font-bold text-white">${quadHams.ratio}</span>
+            <span class="ml-2 text-xs text-app-subtext">:1</span>
+          </div>
+          <div class="mb-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${qhBadgeClass}">
+              ${qhIcon} ${quadHams.status.charAt(0).toUpperCase() + quadHams.status.slice(1)}
+            </span>
+          </div>
+          <div class="h-px bg-white/10 my-3"></div>
+          <div class="text-xs text-app-subtext space-y-2">
+            <div class="flex justify-between">
+              <span>Quad Volume:</span>
+              <span class="font-semibold text-white">${quadHams.quadVolume.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Hamstring Volume:</span>
+              <span class="font-semibold text-white">${quadHams.hamsVolume.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Target Ratio:</span>
+              <span class="font-semibold text-white">0.8-1.2:1</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Push/Pull Ratio Card
+    if (pushPull.totalPush > 0 || pushPull.totalPull > 0) {
+      const ppBadgeClass = pushPull.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           pushPull.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+      const ppIcon = pushPull.color === 'green' ? '✅' : pushPull.color === 'yellow' ? '⚠️' : '🚨';
+
+      ratiosHTML += `
+        <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-semibold text-white">⚖️ Push/Pull Ratio</h4>
+            <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                    onclick="window.APP.ui.showTooltip('pushpull-info', event)"
+                    onmouseleave="window.APP.ui.hideTooltip()">
+              ℹ️
+            </button>
+          </div>
+          <div class="flex items-baseline mb-3">
+            <span class="text-4xl font-bold text-white">${pushPull.ratio}</span>
+            <span class="ml-2 text-xs text-app-subtext">:1</span>
+          </div>
+          <div class="mb-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${ppBadgeClass}">
+              ${ppIcon} ${pushPull.status.charAt(0).toUpperCase() + pushPull.status.slice(1)}
+            </span>
+          </div>
+          <div class="h-px bg-white/10 my-3"></div>
+          <div class="text-xs text-app-subtext space-y-2">
+            <div class="flex justify-between">
+              <span>Total Push Volume:</span>
+              <span class="font-semibold text-white">${pushPull.totalPush.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Total Pull Volume:</span>
+              <span class="font-semibold text-white">${pushPull.totalPull.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Target Ratio:</span>
+              <span class="font-semibold text-white">0.7-1.0:1</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    ratiosContainer.innerHTML = ratiosHTML;
+  }
+
+  // === SECTION 3: CLINICAL INSIGHTS ===
+  const insightsContainer = document.getElementById('klinik-advanced-insights');
+  if (insightsContainer) {
+    this.renderInsightCards(insights, insightsContainer);
+  }
+
+  console.log("[STATS] Advanced Analytics tab rendered");
+},
+
 // V29.0 PHASE 3: UI RENDERING FUNCTIONS
 // Temporary file - will be merged into stats.js
 
@@ -1616,6 +1956,12 @@ renderAdvancedRatios: function(daysBack = 30) {
                         stability.color === 'purple' ? '🔄' :
                         stability.color === 'yellow' ? '⚠️' : '➖';
 
+  // Progress bar for stability (0-30 scale, show 0-20 target range)
+  const stabilityProgress = Math.min((stability.weeklySets / 20) * 100, 100);
+  const stabilityProgressColor = stability.color === 'green' ? 'bg-emerald-500' :
+                                  stability.color === 'purple' ? 'bg-purple-500' :
+                                  stability.color === 'yellow' ? 'bg-yellow-500' : 'bg-white/20';
+
   html += `
     <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
       <div class="flex justify-between items-center mb-3">
@@ -1638,11 +1984,24 @@ renderAdvancedRatios: function(daysBack = 30) {
         </span>
       </div>
 
+      <div class="mb-4">
+        <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+          <span>Target: 10-20 sets/week (from compounds)</span>
+          <span class="font-semibold text-white">${stability.weeklySets}/20</span>
+        </div>
+        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-2 ${stabilityProgressColor} transition-all"
+               style="width: ${stabilityProgress}%;"></div>
+        </div>
+      </div>
+
       <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-3">
         <p class="text-[10px] text-purple-300 leading-relaxed">
           <strong>Note:</strong> Stability work from unilateral/cable exercises complements but does NOT replace dedicated core training (planks, dead bugs).
         </p>
       </div>
+
+      <div class="h-px bg-white/10 my-3"></div>
 
       <div class="text-xs text-app-subtext space-y-2">
         <div class="flex justify-between">
@@ -1790,12 +2149,13 @@ renderAdvancedRatios: function(daysBack = 30) {
       const prefix = isKlinikView ? 'klinik' : 'stats';
       const contentSuffix = isKlinikView ? '-content' : '-view';
 
-      // Hide all tab content views
+      // V30.3: Added 'advanced' to views array
       const views = [
         `${prefix}-dashboard${contentSuffix}`,
         `${prefix}-chart${contentSuffix}`,
         `${prefix}-table${contentSuffix}`,
         `${prefix}-bodyparts${contentSuffix}`,
+        `${prefix}-advanced${contentSuffix}`,
       ];
       views.forEach((id) => {
         const el = document.getElementById(id);
@@ -1804,7 +2164,7 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       // Also hide modal views if they exist (for backward compatibility)
       if (isKlinikView) {
-        ["stats-dashboard-view", "stats-chart-view", "stats-table-view", "stats-bodyparts-view"].forEach(id => {
+        ["stats-dashboard-view", "stats-chart-view", "stats-table-view", "stats-bodyparts-view", "stats-advanced-view"].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add("hidden");
         });
@@ -1830,8 +2190,8 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
       }
 
-      // Update tab button states
-      ["dashboard", "chart", "table", "bodyparts"].forEach((tab) => {
+      // V30.3: Update tab button states (added 'advanced')
+      ["dashboard", "chart", "table", "bodyparts", "advanced"].forEach((tab) => {
         // Try klinik tabs first, then modal tabs
         const btn = document.getElementById(`${prefix}-tab-${tab}`) || document.getElementById(`tab-${tab}`);
         if (btn) {
@@ -1847,6 +2207,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         chart: "Grafik Tren",
         table: "Tabel Klinis",
         bodyparts: "Body Parts",
+        advanced: "Advanced Analytics",
       };
 
       const labelEl = document.getElementById(isKlinikView ? "klinik-active-tab-label" : "active-tab-label");
@@ -1902,6 +2263,21 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (el) el.classList.remove("hidden");
 
         APP.stats.updateBodyParts();
+
+        if (vitalEl) {
+          vitalEl.classList.add("hidden");
+          vitalEl.style.display = "none";
+        }
+        if (exerciseSelector) {
+          exerciseSelector.classList.add("hidden");
+          exerciseSelector.style.display = "none";
+        }
+      } else if (t === "advanced") {
+        // V30.3: Advanced Analytics Tab
+        const el = document.getElementById(`${prefix}-advanced${contentSuffix}`);
+        if (el) el.classList.remove("hidden");
+
+        APP.stats.renderAdvancedAnalytics();
 
         if (vitalEl) {
           vitalEl.classList.add("hidden");
@@ -3791,15 +4167,8 @@ renderAdvancedRatios: function(daysBack = 30) {
       // Render dashboard data (This Week vs Last Week)
       this.renderKlinikDashboard();
 
-      // V30.0 Phase 3.5: Initialize advanced ratios (function auto-detects klinik context)
-      if (window.APP.stats.renderAdvancedRatios) {
-        window.APP.stats.renderAdvancedRatios(30);
-      }
-
-      // V30.0 Phase 3.5: Render insights (function auto-detects klinik context)
-      if (window.APP.ui && window.APP.ui.renderInsightCards) {
-        window.APP.ui.renderInsightCards(30);
-      }
+      // V30.3: Advanced ratios moved to dedicated "Advanced Analytics" tab
+      // No longer rendered here - they're now in renderAdvancedAnalytics()
 
       console.log("[STATS] Klinik View initialized");
     },
