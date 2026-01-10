@@ -2955,6 +2955,32 @@ renderAdvancedAnalytics: function(daysBack = 30) {
       
       insightsContainer.innerHTML = insightsHTML;
     }
+    
+    // V30.5: Add AI Consultation CTA below Clinical Insights (only if insights exist)
+    if (insights.length > 0) {
+      const consultationCTA = `
+        <div class="mt-4 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 rounded-2xl border border-purple-500/20 p-4">
+          <div class="flex items-start gap-3">
+            <div class="text-3xl">🤖</div>
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-white mb-2">
+                AI Consultation Available
+              </h4>
+              <p class="text-xs text-app-subtext mb-3">
+                Get personalized advice from AI about these insights. Includes your current exercise plan and volume breakdown.
+              </p>
+              <button 
+                onclick="APP.stats.consultAIAboutInsights()"
+                class="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                <i class="fa-solid fa-sparkles mr-2"></i>Consult AI About These Insights
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      insightsContainer.insertAdjacentHTML('afterend', consultationCTA);
+    }
   }
 
   console.log("[STATS] Advanced Analytics tab rendered");
@@ -4519,6 +4545,195 @@ renderAdvancedRatios: function(daysBack = 30) {
         "📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.",
         "success"
       );
+    },
+
+    /**
+     * V30.5: Prepare AI consultation prompt for training analytics insights
+     * @param {Array} insights - Array of insight objects from interpretWorkoutData()
+     * @returns {string} - Formatted consultation prompt
+     */
+    prepareAnalyticsConsultation: (insights) => {
+      const p = LS_SAFE.getJSON("profile", {});
+      const h = LS_SAFE.getJSON("gym_hist", []);
+      const workoutData = LS_SAFE.getJSON("cscs_program_v10", {});
+      
+      const weeks = parseInt(
+        document.getElementById("advanced-analytics-period")?.value || 4
+      );
+
+      // Filter recent logs (exclude spontaneous)
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - weeks * 7);
+      const recentLogs = h.filter(
+        (log) => new Date(log.ts) >= cutoffDate && log.src !== "spontaneous"
+      );
+
+      // Build current exercise plan (excluding spontaneous session)
+      const exercisePlan = [];
+      Object.keys(workoutData).forEach((sessionId) => {
+        if (sessionId === "spontaneous") return; // Skip spontaneous session
+        
+        const session = workoutData[sessionId];
+        if (session && session.exercises) {
+          session.exercises.forEach((ex) => {
+            if (ex.options && ex.options[0] && ex.options[0].n) {
+              const exerciseName = ex.options[0].n;
+              if (!exercisePlan.includes(exerciseName)) {
+                exercisePlan.push(exerciseName);
+              }
+            }
+          });
+        }
+      });
+
+      // Calculate volume breakdown by body part
+      const bodyPartMap = {
+        chest: { vol: 0, exercises: [] },
+        back: { vol: 0, exercises: [] },
+        legs: { vol: 0, exercises: [] },
+        shoulders: { vol: 0, exercises: [] },
+        arms: { vol: 0, exercises: [] },
+        core: { vol: 0, exercises: [] }
+      };
+
+      recentLogs.forEach((log) => {
+        const targets = APP.stats.getTargets(log.ex);
+        const volume = log.vol || 0;
+        const realName = log.ex || "Unknown";
+
+        if (targets.length > 0) {
+          targets.forEach((target) => {
+            const factor =
+              (window.VOLUME_DISTRIBUTION &&
+                window.VOLUME_DISTRIBUTION[target.role]) ||
+              1.0;
+            const weightedVol = volume * factor;
+
+            if (bodyPartMap[target.muscle]) {
+              bodyPartMap[target.muscle].vol += weightedVol;
+
+              if (!bodyPartMap[target.muscle].exercises.includes(realName)) {
+                bodyPartMap[target.muscle].exercises.push(realName);
+              }
+            }
+          });
+        }
+      });
+
+      // Group insights by severity
+      const dangerInsights = insights.filter((i) => i.severity === "danger");
+      const warningInsights = insights.filter((i) => i.severity === "warning");
+      const infoInsights = insights.filter((i) => i.severity === "info");
+
+      // Build consultation prompt
+      let promptText = `[TRAINING ANALYTICS CONSULTATION]\n\n`;
+
+      // Section 1: Detected Insights
+      promptText += `DETECTED INSIGHTS:\n`;
+      if (dangerInsights.length > 0) {
+        promptText += `\n🔴 HIGH PRIORITY:\n`;
+        dangerInsights.forEach((insight, idx) => {
+          promptText += `${idx + 1}. ${insight.message}\n`;
+        });
+      }
+      if (warningInsights.length > 0) {
+        promptText += `\n🟡 WARNINGS:\n`;
+        warningInsights.forEach((insight, idx) => {
+          promptText += `${idx + 1}. ${insight.message}\n`;
+        });
+      }
+      if (infoInsights.length > 0) {
+        promptText += `\n🔵 OBSERVATIONS:\n`;
+        infoInsights.forEach((insight, idx) => {
+          promptText += `${idx + 1}. ${insight.message}\n`;
+        });
+      }
+      promptText += `\n`;
+
+      // Section 2: User Profile
+      promptText += `USER PROFILE:\n`;
+      promptText += `- Name: ${p.name || "Unknown"}\n`;
+      promptText += `- Age: ${p.a || "N/A"}\n`;
+      promptText += `- Height: ${p.h || "N/A"}cm\n`;
+      promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
+
+      // Section 3: Current Exercise Plan
+      promptText += `CURRENT EXERCISE PLAN (Active Sessions):\n`;
+      if (exercisePlan.length > 0) {
+        exercisePlan.forEach((ex, idx) => {
+          promptText += `${idx + 1}. ${ex}\n`;
+        });
+      } else {
+        promptText += `- No active exercises in program\n`;
+      }
+      promptText += `\n`;
+
+      // Section 4: Volume Breakdown
+      promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
+      promptText += `\nVOLUME METHODOLOGY:\n`;
+      promptText += `- Primary Work (1.0x): Direct muscle targeting\n`;
+      promptText += `- Secondary Work (0.5x): Synergist contribution\n`;
+      promptText += `- Total includes weighted distribution from compound lifts\n\n`;
+
+      Object.keys(bodyPartMap).forEach((part) => {
+        const data = bodyPartMap[part];
+        promptText += `- ${part.toUpperCase()}: ${Math.round(
+          data.vol
+        ).toLocaleString()}kg`;
+        if (data.exercises.length > 0) {
+          promptText += ` (${
+            data.exercises.length
+          } exercises: ${data.exercises.slice(0, 3).join(", ")}${
+            data.exercises.length > 3 ? "..." : ""
+          })`;
+        }
+        promptText += `\n`;
+      });
+
+      // Section 5: Consultation Request
+      promptText += `\nQUESTION:\n`;
+      promptText += `Berdasarkan insights dan data analytics di atas, berikan:\n`;
+      promptText += `1. Analisis root cause dari insights yang terdeteksi\n`;
+      promptText += `2. Apakah perlu modifikasi exercise plan? Jika perlu, rekomendasi spesifik (3-4 gerakan)\n`;
+      promptText += `3. Target volume optimal untuk ${weeks} minggu ke depan per muscle group\n`;
+      promptText += `4. Action plan konkret untuk address insights (timeline & milestones)\n\n`;
+      promptText += `-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.\n`;
+      promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
+      promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes), Tri-Option System, Full Metadata.`;
+
+      return promptText;
+    },
+
+    /**
+     * V30.5: Trigger AI consultation for analytics insights
+     * Prepares consultation prompt and navigates to AI view
+     */
+    consultAIAboutInsights: () => {
+      // Get current insights
+      const insights = APP.stats.interpretWorkoutData();
+      
+      if (!insights || insights.length === 0) {
+        APP.ui.showToast("ℹ️ No insights to consult about", "info");
+        return;
+      }
+
+      // Prepare consultation prompt
+      const consultationPrompt = APP.stats.prepareAnalyticsConsultation(insights);
+
+      // Store prompt for AI view
+      LS_SAFE.set("ai_autoprompt", consultationPrompt);
+      LS_SAFE.set("ai_autoprompt_source", "analytics_consultation");
+
+      // Show success toast
+      APP.ui.showToast(
+        "📋 Consultation prompt prepared! Navigating to AI...",
+        "success"
+      );
+
+      // Navigate to AI view after short delay
+      setTimeout(() => {
+        APP.nav.switchView("ai");
+      }, 500);
     },
 
     updateChart: () => {

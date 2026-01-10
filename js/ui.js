@@ -1261,20 +1261,53 @@
      * @param {HTMLElement} container - Content area container
      */
     renderContextMode: function(container) {
-      // Generate context using AI Bridge
+      // V30.5: Check for autoprompt first
+      const autoprompt = LS_SAFE.get("ai_autoprompt");
+      const autopromptSource = LS_SAFE.get("ai_autoprompt_source");
+      
       let contextText = "";
-      if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
-        contextText = window.APP.aiBridge.getPromptContext("coach");
+      let isAutoprompt = false;
+      let autopromptLabel = "";
+      
+      if (autoprompt) {
+        // Use autoprompt if available
+        contextText = autoprompt;
+        isAutoprompt = true;
+        
+        // Set label based on source
+        autopromptLabel = autopromptSource === "analytics_consultation" 
+          ? "Analytics Consultation" 
+          : "Auto-Generated";
+        
+        console.log(`[UI] Autoprompt detected: ${autopromptSource}`);
       } else {
-        contextText = "[ERROR] AI Bridge module not loaded";
-        console.error("[UI] AI Bridge not available");
+        // Generate default context using AI Bridge
+        if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
+          contextText = window.APP.aiBridge.getPromptContext("coach");
+        } else {
+          contextText = "[ERROR] AI Bridge module not loaded";
+          console.error("[UI] AI Bridge not available");
+        }
       }
 
       const html = `
         <div class="space-y-3">
+          ${isAutoprompt ? `
+            <div class="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-xl p-3 mb-3">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-sparkles text-purple-400"></i>
+                <span class="text-xs font-semibold text-white">Auto-Generated Prompt: ${autopromptLabel}</span>
+              </div>
+              <p class="text-[10px] text-app-subtext">
+                This prompt was automatically prepared based on your training analytics.
+              </p>
+            </div>
+          ` : ''}
+          
           <p class="text-xs text-slate-400">
-            Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif.
-            Salin teks ini untuk konsultasi AI.
+            ${isAutoprompt 
+              ? 'Review the consultation prompt below and copy it to your AI assistant.' 
+              : 'Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif. Salin teks ini untuk konsultasi AI.'}
           </p>
 
           <textarea
@@ -1286,10 +1319,10 @@
           >${contextText}</textarea>
 
           <button
-            onclick="APP.ui.copyContextToClipboard()"
+            onclick="APP.ui.copyContextToClipboard(${isAutoprompt})"
             class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95"
           >
-            <i class="fa-solid fa-copy"></i> SALIN KONTEKS
+            <i class="fa-solid fa-copy"></i> SALIN ${isAutoprompt ? 'CONSULTATION' : 'KONTEKS'}
           </button>
 
           <p class="text-[10px] text-slate-500 italic text-center">
@@ -1365,7 +1398,7 @@
     /**
      * Copies context to clipboard
      */
-    copyContextToClipboard: async function() {
+    copyContextToClipboard: async function(clearAutoprompt = false) {
       const textarea = document.getElementById("ai-context-textarea");
       if (!textarea) {
         console.error("[UI] Context textarea not found");
@@ -1379,6 +1412,13 @@
         await navigator.clipboard.writeText(text);
         this.showToast("✅ Konteks berhasil dicopy!", "success");
         console.log("[UI] Context copied to clipboard");
+        
+        // V30.5: Clear autoprompt after successful copy
+        if (clearAutoprompt) {
+          LS_SAFE.remove("ai_autoprompt");
+          LS_SAFE.remove("ai_autoprompt_source");
+          console.log("[UI] Autoprompt cleared after copy");
+        }
       } catch (e) {
         // Fallback: select text for manual copy
         console.warn("[UI] Clipboard API failed, using fallback:", e);
@@ -1388,6 +1428,13 @@
         try {
           document.execCommand('copy');
           this.showToast("✅ Teks terpilih - tekan Ctrl+C", "success");
+          
+          // V30.5: Clear autoprompt after copy attempt
+          if (clearAutoprompt) {
+            LS_SAFE.remove("ai_autoprompt");
+            LS_SAFE.remove("ai_autoprompt_source");
+            console.log("[UI] Autoprompt cleared after copy");
+          }
         } catch (err) {
           console.error("[UI] Copy failed:", err);
           this.showToast("❌ Gagal copy - pilih manual", "error");
