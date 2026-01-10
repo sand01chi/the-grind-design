@@ -1193,6 +1193,16 @@
         core: new Set()
       };
 
+      // Track exercises per muscle group with session count
+      const muscleExercises = {
+        chest: new Map(),
+        back: new Map(),
+        shoulders: new Map(),
+        arms: new Map(),
+        legs: new Map(),
+        core: new Map()
+      };
+
       recentLogs.forEach(log => {
         const targets = EXERCISE_TARGETS[log.ex] || [];
         const date = log.date;
@@ -1200,6 +1210,11 @@
         targets.forEach(target => {
           if (target.role === "PRIMARY" && muscleTrainingDays[target.muscle]) {
             muscleTrainingDays[target.muscle].add(date);
+            // Track exercise session count
+            muscleExercises[target.muscle].set(
+              log.ex, 
+              (muscleExercises[target.muscle].get(log.ex) || 0) + 1
+            );
           }
         });
       });
@@ -1209,6 +1224,7 @@
       const frequency = {};
       const status = {};
       const color = {};
+      const exercises = {};
 
       Object.keys(muscleTrainingDays).forEach(muscle => {
         const sessions = muscleTrainingDays[muscle].size;
@@ -1227,12 +1243,17 @@
           status[muscle] = "concern";
           color[muscle] = "red";
         }
+
+        // Convert exercise map to sorted array
+        exercises[muscle] = Array.from(muscleExercises[muscle].entries())
+          .sort((a, b) => b[1] - a[1]);
       });
 
       return {
         frequency: frequency,
         status: status,
         color: color,
+        exercises: exercises,
         daysAnalyzed: daysBack,
         scientificBasis: "Schoenfeld et al. (2016) - Training frequency for hypertrophy"
       };
@@ -2643,19 +2664,54 @@ renderAdvancedAnalytics: function(daysBack = 30) {
         </div>
         <div class="grid grid-cols-3 gap-2 mb-3">
           ${Object.entries(frequency.frequency).map(([muscle, freq]) => {
-            const badge = frequency.color[muscle] === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
-                         frequency.color[muscle] === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
-                         'bg-red-500/20 text-red-400';
+            const exercisesList = frequency.exercises[muscle]
+              .map(([ex, sessions]) => `<div class="text-[9px] text-white mb-1">• ${ex} <span class="text-app-accent">(${sessions}x)</span></div>`)
+              .join('');
+            const tooltipHtml = exercisesList || '<div class="text-[9px] text-app-subtext">No exercises logged</div>';
+            
             return `
-              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2">
+              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors relative group">
                 <span class="text-[10px] text-app-subtext uppercase mb-1">${muscle}</span>
                 <span class="text-lg font-bold ${frequency.color[muscle] === 'green' ? 'text-emerald-400' : frequency.color[muscle] === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${freq}x</span>
+                
+                <!-- Hover Tooltip -->
+                <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-64">
+                  <div class="bg-slate-900 border border-app-accent/30 rounded-lg p-3 shadow-xl">
+                    <div class="text-[10px] font-bold text-app-accent mb-2 uppercase">${muscle} Exercises:</div>
+                    <div class="max-h-48 overflow-y-auto">
+                      ${tooltipHtml}
+                    </div>
+                  </div>
+                </div>
               </div>
             `;
           }).join('')}
         </div>
         <div class="h-px bg-white/10 my-3"></div>
-        <p class="text-[10px] text-app-subtext">Target: 2-3x per week per muscle (Schoenfeld 2016)</p>
+        <p class="text-[10px] text-app-subtext mb-2">Target: 2-3x per week per muscle (Schoenfeld 2016)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View All Exercises by Muscle
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total sessions over ${frequency.daysAnalyzed} days</div>
+          ${Object.entries(frequency.exercises).map(([muscle, exercises]) => `
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold uppercase">${muscle} (${frequency.frequency[muscle]}x/week):</span>
+              </div>
+              ${exercises.map(([ex, sessions]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${sessions} sessions</span>
+                </div>
+              `).join('')}
+              ${exercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+          `).join('')}
+        </div>
       </div>
     `;
 
