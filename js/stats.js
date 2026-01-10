@@ -2663,19 +2663,23 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           </button>
         </div>
         <div class="grid grid-cols-3 gap-2 mb-3">
-          ${Object.entries(frequency.frequency).map(([muscle, freq]) => {
+          ${Object.entries(frequency.frequency).map(([muscle, freq], index) => {
             const exercisesList = frequency.exercises[muscle]
               .map(([ex, sessions]) => `<div class="text-[9px] text-white mb-1">• ${ex} <span class="text-app-accent">(${sessions}x)</span></div>`)
               .join('');
             const tooltipHtml = exercisesList || '<div class="text-[9px] text-app-subtext">No exercises logged</div>';
             
+            // Smart positioning: left column = left-0, middle = center, right = right-0
+            const col = index % 3;
+            const positionClass = col === 0 ? 'left-0' : col === 2 ? 'right-0' : 'left-1/2 -translate-x-1/2';
+            
             return `
-              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors relative group">
+              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors relative group overflow-visible">
                 <span class="text-[10px] text-app-subtext uppercase mb-1">${muscle}</span>
                 <span class="text-lg font-bold ${frequency.color[muscle] === 'green' ? 'text-emerald-400' : frequency.color[muscle] === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${freq}x</span>
                 
-                <!-- Hover Tooltip - Mobile Optimized -->
-                <div class="hidden group-hover:block absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-[90vw] max-w-xs">
+                <!-- Hover Tooltip - Column-Aware Positioning -->
+                <div class="hidden group-hover:block absolute top-full ${positionClass} mt-2 z-50 w-[85vw] max-w-[280px]">
                   <div class="bg-slate-900 border border-app-accent/30 rounded-lg p-3 shadow-xl">
                     <div class="text-[10px] font-bold text-app-accent mb-2 uppercase">${muscle} Exercises:</div>
                     <div class="max-h-48 overflow-y-auto">
