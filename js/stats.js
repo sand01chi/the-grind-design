@@ -2097,6 +2097,197 @@ renderAdvancedAnalytics: function(daysBack = 30) {
     ratiosContainer.innerHTML = ratiosHTML;
   }
 
+  // === SECTION 2.5: TRAINING ANALYSIS (V30.4) ===
+  const trainingContainer = document.getElementById('klinik-training-analysis');
+  if (trainingContainer) {
+    const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+    const frequency = this.calculateTrainingFrequency(daysBack);
+    const unilateral = this.calculateUnilateralVolume(daysBack);
+    const compound = this.calculateCompoundIsolationRatio(daysBack);
+
+    let trainingHTML = '';
+
+    // Horizontal/Vertical Ratios Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🎯 Horizontal/Vertical Balance</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('hv-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+
+        <!-- Horizontal Plane -->
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-app-subtext">Horizontal (Bench/Row)</span>
+            <span class="text-lg font-bold text-white">${hvRatios.horizontalRatio}</span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 25%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 25%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 30%; left: 35%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 65%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${Math.min(Math.max(hvRatios.horizontalRatio * 50, 0), 100)}%;"></div>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+            hvRatios.horizontalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            hvRatios.horizontalColor === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${hvRatios.horizontalColor === 'green' ? '✅' : hvRatios.horizontalColor === 'yellow' ? '⚠️' : '🚨'} ${hvRatios.horizontalStatus}
+          </span>
+        </div>
+
+        <!-- Vertical Plane -->
+        <div class="mb-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-app-subtext">Vertical (OHP/Pulldown)</span>
+            <span class="text-lg font-bold text-white">${hvRatios.verticalRatio}</span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 20%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 30%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 50%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 30%; left: 70%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${Math.min(Math.max(hvRatios.verticalRatio * 50, 0), 100)}%;"></div>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+            hvRatios.verticalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            hvRatios.verticalColor === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${hvRatios.verticalColor === 'green' ? '✅' : hvRatios.verticalColor === 'yellow' ? '⚠️' : '🚨'} ${hvRatios.verticalStatus}
+          </span>
+        </div>
+
+        <div class="h-px bg-white/10 my-3"></div>
+        <p class="text-[10px] text-app-subtext">Target: H 0.7-1.0 | V 0.5-0.7 (Pull:Push)</p>
+      </div>
+    `;
+
+    // Training Frequency Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">📅 Training Frequency</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('freq-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          ${Object.entries(frequency.frequency).map(([muscle, freq]) => {
+            const badge = frequency.color[muscle] === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                         frequency.color[muscle] === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                         'bg-red-500/20 text-red-400';
+            return `
+              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2">
+                <span class="text-[10px] text-app-subtext uppercase mb-1">${muscle}</span>
+                <span class="text-lg font-bold ${frequency.color[muscle] === 'green' ? 'text-emerald-400' : frequency.color[muscle] === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${freq}x</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <p class="text-[10px] text-app-subtext">Target: 2-3x per week per muscle (Schoenfeld 2016)</p>
+      </div>
+    `;
+
+    // Unilateral Volume Card
+    const uniMarkerPos = Math.min(Math.max(unilateral.unilateralPercent * 3.33, 0), 100); // 30% = 100%
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🔄 Unilateral Volume</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('uni-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${unilateral.unilateralPercent}%</span>
+          <span class="ml-2 text-xs text-app-subtext">of total volume</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${
+            unilateral.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            unilateral.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${unilateral.color === 'green' ? '✅' : unilateral.color === 'yellow' ? '⚠️' : '🚨'} ${unilateral.status}
+          </span>
+        </div>
+        <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+          <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 66.6%; left: 0;"></div>
+          <div class="absolute h-2 bg-emerald-500/60 rounded-r-full" style="width: 33.4%; left: 66.6%;"></div>
+          <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${uniMarkerPos}%;"></div>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Unilateral:</span>
+            <span class="font-semibold text-white">${unilateral.unilateralVolume.toLocaleString()} kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Bilateral:</span>
+            <span class="font-semibold text-white">${unilateral.bilateralVolume.toLocaleString()} kg</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-app-subtext mt-2">Target: ≥20% for injury prevention (Boyle 2016)</p>
+      </div>
+    `;
+
+    // Compound/Isolation Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">⚙️ Exercise Selection</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('comp-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="mb-3">
+          <div class="flex items-baseline mb-1">
+            <span class="text-2xl font-bold text-app-accent">${compound.compoundPercent}%</span>
+            <span class="ml-2 text-xs text-app-subtext">Compound</span>
+          </div>
+          <div class="flex items-baseline">
+            <span class="text-2xl font-bold text-purple-400">${compound.isolationPercent}%</span>
+            <span class="ml-2 text-xs text-app-subtext">Isolation</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400">
+            ℹ️ ${compound.trainingStyle}
+          </span>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Compound:</span>
+            <span class="font-semibold text-white">${compound.compoundVolume.toLocaleString()} kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Isolation:</span>
+            <span class="font-semibold text-white">${compound.isolationVolume.toLocaleString()} kg</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-app-subtext mt-2">${compound.note}</p>
+      </div>
+    `;
+
+    trainingContainer.innerHTML = trainingHTML;
+  }
+
   // === SECTION 3: CLINICAL INSIGHTS ===
   const insightsContainer = document.getElementById('klinik-advanced-insights');
   if (insightsContainer) {
