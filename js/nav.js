@@ -458,7 +458,7 @@
               const statsContainer = document.getElementById('stats-cards-container');
               if (statsContainer) {
                 statsContainer.innerHTML = `
-                  <section aria-label="Stats" class="grid grid-cols-2 gap-4 mb-4">
+                  <section aria-label="Stats" class="grid grid-cols-2 mt-2 gap-4 mb-4">
 
                     <!-- Weight Card (Interactive) -->
                     <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5 cursor-pointer hover:border-app-accent/30 active:scale-[0.98] transition-all group"
