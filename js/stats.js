@@ -508,6 +508,8 @@
 
       let quadVolume = 0;
       let hamsVolume = 0;
+      const quadExercises = new Map(); // Track exercises
+      const hamsExercises = new Map();
 
       // Iterate through filtered log objects
       recentLogs.forEach(log => {
@@ -548,8 +550,10 @@
 
             if (classification === "quad_dominant") {
               quadVolume += adjustedVolume;
+              quadExercises.set(log.ex, (quadExercises.get(log.ex) || 0) + adjustedVolume);
             } else if (classification === "hams_dominant") {
               hamsVolume += adjustedVolume;
+              hamsExercises.set(log.ex, (hamsExercises.get(log.ex) || 0) + adjustedVolume);
             }
           });
         });
@@ -577,6 +581,8 @@
         ratio: parseFloat(ratio.toFixed(2)),
         status: status,
         color: color,
+        quadExercises: Array.from(quadExercises.entries()).sort((a, b) => b[1] - a[1]),
+        hamsExercises: Array.from(hamsExercises.entries()).sort((a, b) => b[1] - a[1]),
         daysAnalyzed: daysBack,
         scientific_basis: "Croisier et al. (2008) - ACL injury prevention"
       };
@@ -603,6 +609,10 @@
       let upperPull = 0;
       let lowerPush = 0;  // Quad-dominant
       let lowerPull = 0;  // Hams-dominant
+      const upperPushExercises = new Map(); // Track exercises
+      const upperPullExercises = new Map();
+      const lowerPushExercises = new Map();
+      const lowerPullExercises = new Map();
 
       // Iterate through filtered log objects
       recentLogs.forEach(log => {
@@ -644,23 +654,27 @@
               case "upper_push":
                 if (["chest", "shoulders", "arms"].includes(target.muscle)) {
                   upperPush += adjustedVolume;
+                  upperPushExercises.set(log.ex, (upperPushExercises.get(log.ex) || 0) + adjustedVolume);
                 }
                 break;
 
               case "upper_pull":
                 if (["back", "arms"].includes(target.muscle)) {
                   upperPull += adjustedVolume;
+                  upperPullExercises.set(log.ex, (upperPullExercises.get(log.ex) || 0) + adjustedVolume);
                 }
                 break;
 
               case "quad_dominant":
                 // Trust classification (mitigation applied)
                 lowerPush += adjustedVolume;
+                lowerPushExercises.set(log.ex, (lowerPushExercises.get(log.ex) || 0) + adjustedVolume);
                 break;
 
               case "hams_dominant":
                 // Trust classification (mitigation applied)
                 lowerPull += adjustedVolume;
+                lowerPullExercises.set(log.ex, (lowerPullExercises.get(log.ex) || 0) + adjustedVolume);
                 break;
             }
           });
@@ -697,6 +711,10 @@
         lowerPush: Math.round(lowerPush),
         lowerPull: Math.round(lowerPull),
         lowerRatio: parseFloat(lowerRatio.toFixed(2)),
+        upperPushExercises: Array.from(upperPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        upperPullExercises: Array.from(upperPullExercises.entries()).sort((a, b) => b[1] - a[1]),
+        lowerPushExercises: Array.from(lowerPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        lowerPullExercises: Array.from(lowerPullExercises.entries()).sort((a, b) => b[1] - a[1]),
         status: status,
         color: color,
         daysAnalyzed: daysBack,
@@ -2240,6 +2258,38 @@ renderAdvancedAnalytics: function(daysBack = 30) {
               <span class="font-semibold text-white">${quadHams.hamsVolume.toLocaleString()} kg</span>
             </div>
           </div>
+          
+          <!-- Dropdown Breakdown -->
+          <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                  onclick="this.nextElementSibling.classList.toggle('hidden')">
+            ▼ View Exercise Breakdown
+          </button>
+          <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold">Quad-Dominant (${quadHams.quadVolume.toLocaleString()} kg):</span>
+              </div>
+              ${quadHams.quadExercises.map(([ex, vol]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${Math.round(vol).toLocaleString()} kg</span>
+                </div>
+              `).join('')}
+              ${quadHams.quadExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold">Hams-Dominant (${quadHams.hamsVolume.toLocaleString()} kg):</span>
+              </div>
+              ${quadHams.hamsExercises.map(([ex, vol]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${Math.round(vol).toLocaleString()} kg</span>
+                </div>
+              `).join('')}
+              ${quadHams.hamsExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+          </div>
         </div>
       `;
     }
@@ -2295,22 +2345,67 @@ renderAdvancedAnalytics: function(daysBack = 30) {
                     onclick="this.nextElementSibling.classList.toggle('hidden')">
               ▼ View Upper/Lower Breakdown
             </button>
-            <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-2">
-              <div class="flex justify-between text-[10px]">
-                <span>Upper Push:</span>
-                <span class="font-semibold text-white">${pushPull.upperPush.toLocaleString()} kg</span>
+            <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+              <!-- Upper Body -->
+              <div>
+                <div class="text-[10px] font-bold text-app-accent mb-2">UPPER BODY</div>
+                <div class="space-y-2">
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Push (${pushPull.upperPush.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.upperPushExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.upperPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Pull (${pushPull.upperPull.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.upperPullExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.upperPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                </div>
               </div>
-              <div class="flex justify-between text-[10px]">
-                <span>Upper Pull:</span>
-                <span class="font-semibold text-white">${pushPull.upperPull.toLocaleString()} kg</span>
-              </div>
-              <div class="flex justify-between text-[10px]">
-                <span>Lower Push:</span>
-                <span class="font-semibold text-white">${pushPull.lowerPush.toLocaleString()} kg</span>
-              </div>
-              <div class="flex justify-between text-[10px]">
-                <span>Lower Pull:</span>
-                <span class="font-semibold text-white">${pushPull.lowerPull.toLocaleString()} kg</span>
+              
+              <!-- Lower Body -->
+              <div>
+                <div class="text-[10px] font-bold text-app-accent mb-2">LOWER BODY</div>
+                <div class="space-y-2">
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Push/Quad-Dom (${pushPull.lowerPush.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.lowerPushExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.lowerPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Pull/Hams-Dom (${pushPull.lowerPull.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.lowerPullExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.lowerPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
