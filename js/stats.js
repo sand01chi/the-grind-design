@@ -971,6 +971,371 @@
     },
 
     // ============================================================================
+    // V30.4: ADVANCED TRAINING ANALYSIS
+    // ============================================================================
+
+    /**
+     * V30.4: Calculate horizontal vs vertical push/pull ratios
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Horizontal and vertical push:pull ratios
+     * 
+     * Evidence: Cressey & Robertson (2019), Saeterbakken et al. (2011)
+     * Target: Horizontal 0.7-1.0:1, Vertical 0.5-0.7:1
+     */
+    calculateHorizontalVerticalRatios: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let horizontalPush = 0, horizontalPull = 0;
+      let verticalPush = 0, verticalPull = 0;
+
+      // Horizontal push exercises
+      const horizontalPushPatterns = [
+        "Bench Press", "Chest Press", "Push Up", "Fly", "Dip",
+        "Incline Press", "Decline Press", "Pec Deck"
+      ];
+
+      // Horizontal pull exercises
+      const horizontalPullPatterns = [
+        "Row", "Face Pull", "Shrug"
+      ];
+
+      // Vertical push exercises
+      const verticalPushPatterns = [
+        "Overhead Press", "Shoulder Press", "Military Press",
+        "Arnold Press", "Lateral Raise", "Front Raise"
+      ];
+
+      // Vertical pull exercises
+      const verticalPullPatterns = [
+        "Pull", "Lat Pulldown", "Chin", "Pull-Up"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            // Classify by movement pattern
+            const exName = log.ex.toUpperCase();
+
+            // Horizontal Push
+            if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+              horizontalPush += adjustedVolume;
+            }
+            // Horizontal Pull
+            else if (horizontalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+              horizontalPull += adjustedVolume;
+            }
+            // Vertical Push
+            else if (verticalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+              verticalPush += adjustedVolume;
+            }
+            // Vertical Pull
+            else if (verticalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+              verticalPull += adjustedVolume;
+            }
+          });
+        });
+      });
+
+      // Calculate ratios (pull / push)
+      const horizontalRatio = horizontalPush > 0 ? horizontalPull / horizontalPush : 0;
+      const verticalRatio = verticalPush > 0 ? verticalPull / verticalPush : 0;
+
+      // Determine status for each plane
+      let hStatus, hColor;
+      if (horizontalRatio >= 0.7 && horizontalRatio <= 1.0) {
+        hStatus = "balanced";
+        hColor = "green";
+      } else if ((horizontalRatio >= 0.6 && horizontalRatio < 0.7) || (horizontalRatio > 1.0 && horizontalRatio <= 1.2)) {
+        hStatus = "monitor";
+        hColor = "yellow";
+      } else {
+        hStatus = "imbalance";
+        hColor = "red";
+      }
+
+      let vStatus, vColor;
+      if (verticalRatio >= 0.5 && verticalRatio <= 0.7) {
+        vStatus = "balanced";
+        vColor = "green";
+      } else if ((verticalRatio >= 0.4 && verticalRatio < 0.5) || (verticalRatio > 0.7 && verticalRatio <= 0.9)) {
+        vStatus = "monitor";
+        vColor = "yellow";
+      } else {
+        vStatus = "imbalance";
+        vColor = "red";
+      }
+
+      return {
+        horizontalPush: Math.round(horizontalPush),
+        horizontalPull: Math.round(horizontalPull),
+        horizontalRatio: parseFloat(horizontalRatio.toFixed(2)),
+        horizontalStatus: hStatus,
+        horizontalColor: hColor,
+        verticalPush: Math.round(verticalPush),
+        verticalPull: Math.round(verticalPull),
+        verticalRatio: parseFloat(verticalRatio.toFixed(2)),
+        verticalStatus: vStatus,
+        verticalColor: vColor,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Cressey (2019) - Vertical pull:push ratio for shoulder health"
+      };
+    },
+
+    /**
+     * V30.4: Calculate training frequency per muscle group
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Frequency data per muscle group
+     * 
+     * Evidence: Schoenfeld et al. (2016), ACSM Guidelines (2021)
+     * Target: 2-3x per week per muscle group
+     */
+    calculateTrainingFrequency: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      // Track which days each muscle was trained
+      const muscleTrainingDays = {
+        chest: new Set(),
+        back: new Set(),
+        shoulders: new Set(),
+        arms: new Set(),
+        legs: new Set(),
+        core: new Set()
+      };
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        const date = log.date;
+
+        targets.forEach(target => {
+          if (target.role === "PRIMARY" && muscleTrainingDays[target.muscle]) {
+            muscleTrainingDays[target.muscle].add(date);
+          }
+        });
+      });
+
+      // Calculate weekly frequency
+      const weeks = daysBack / 7;
+      const frequency = {};
+      const status = {};
+      const color = {};
+
+      Object.keys(muscleTrainingDays).forEach(muscle => {
+        const sessions = muscleTrainingDays[muscle].size;
+        const weeklyFreq = Math.round((sessions / weeks) * 10) / 10; // Round to 1 decimal
+
+        frequency[muscle] = weeklyFreq;
+
+        // Determine status based on Schoenfeld (2016) recommendations
+        if (weeklyFreq >= 2 && weeklyFreq <= 3) {
+          status[muscle] = "optimal";
+          color[muscle] = "green";
+        } else if ((weeklyFreq >= 1 && weeklyFreq < 2) || (weeklyFreq > 3 && weeklyFreq <= 4)) {
+          status[muscle] = "monitor";
+          color[muscle] = "yellow";
+        } else {
+          status[muscle] = "concern";
+          color[muscle] = "red";
+        }
+      });
+
+      return {
+        frequency: frequency,
+        status: status,
+        color: color,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Schoenfeld et al. (2016) - Training frequency for hypertrophy"
+      };
+    },
+
+    /**
+     * V30.4: Calculate unilateral vs bilateral training volume
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Unilateral volume percentage and status
+     * 
+     * Evidence: Boyle (2016), Myer et al. (2005)
+     * Target: ≥20% of total volume from unilateral exercises
+     */
+    calculateUnilateralVolume: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let unilateralVolume = 0;
+      let bilateralVolume = 0;
+
+      // Unilateral exercise patterns
+      const unilateralPatterns = [
+        "Single", "One Arm", "One Leg", "Bulgarian", "Lunge",
+        "Split Squat", "Step Up", "Pistol", "Single-Arm", "Single-Leg"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        const isUnilateral = unilateralPatterns.some(p => log.ex.includes(p));
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule for accurate volume
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            if (isUnilateral) {
+              unilateralVolume += adjustedVolume;
+            } else {
+              bilateralVolume += adjustedVolume;
+            }
+          });
+        });
+      });
+
+      const totalVolume = unilateralVolume + bilateralVolume;
+      const unilateralPercent = totalVolume > 0 ? (unilateralVolume / totalVolume) * 100 : 0;
+
+      // Determine status based on Boyle (2016) recommendations
+      let status, color;
+      if (unilateralPercent >= 20) {
+        status = "adequate";
+        color = "green";
+      } else if (unilateralPercent >= 15 && unilateralPercent < 20) {
+        status = "low";
+        color = "yellow";
+      } else {
+        status = "insufficient";
+        color = "red";
+      }
+
+      return {
+        unilateralVolume: Math.round(unilateralVolume),
+        bilateralVolume: Math.round(bilateralVolume),
+        totalVolume: Math.round(totalVolume),
+        unilateralPercent: parseFloat(unilateralPercent.toFixed(1)),
+        status: status,
+        color: color,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Boyle (2016) - Unilateral training for injury prevention"
+      };
+    },
+
+    /**
+     * V30.4: Calculate compound vs isolation exercise ratio
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Compound/isolation breakdown (informational only)
+     * 
+     * Evidence: Schoenfeld (2021), Gentil et al. (2017), ACSM (2009)
+     * Note: No warnings - different goals have different optimal ratios
+     */
+    calculateCompoundIsolationRatio: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let compoundVolume = 0;
+      let isolationVolume = 0;
+
+      // Compound exercises (multi-joint movements)
+      const compoundPatterns = [
+        "Squat", "Deadlift", "Press", "Row", "Pull", "Chin",
+        "Dip", "Lunge", "RDL", "Hip Thrust", "Good Morning"
+      ];
+
+      // Isolation exercises (single-joint movements)
+      const isolationPatterns = [
+        "Curl", "Extension", "Fly", "Raise", "Kickback",
+        "Pullover", "Calf", "Shrug", "Crunch", "Plank"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        const exName = log.ex.toUpperCase();
+        const isCompound = compoundPatterns.some(p => exName.includes(p.toUpperCase()));
+        const isIsolation = isolationPatterns.some(p => exName.includes(p.toUpperCase()));
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            if (isCompound) {
+              compoundVolume += adjustedVolume;
+            } else if (isIsolation) {
+              isolationVolume += adjustedVolume;
+            }
+          });
+        });
+      });
+
+      const totalVolume = compoundVolume + isolationVolume;
+      const compoundPercent = totalVolume > 0 ? (compoundVolume / totalVolume) * 100 : 0;
+      const isolationPercent = totalVolume > 0 ? (isolationVolume / totalVolume) * 100 : 0;
+
+      // Determine training style (informational only, no warnings)
+      let trainingStyle;
+      if (compoundPercent >= 70) {
+        trainingStyle = "Strength/Athletic Focus";
+      } else if (compoundPercent >= 50 && compoundPercent < 70) {
+        trainingStyle = "Balanced Hypertrophy";
+      } else if (compoundPercent >= 30 && compoundPercent < 50) {
+        trainingStyle = "Bodybuilding/Aesthetic Focus";
+      } else {
+        trainingStyle = "Isolation-Heavy Program";
+      }
+
+      return {
+        compoundVolume: Math.round(compoundVolume),
+        isolationVolume: Math.round(isolationVolume),
+        totalVolume: Math.round(totalVolume),
+        compoundPercent: parseFloat(compoundPercent.toFixed(1)),
+        isolationPercent: parseFloat(isolationPercent.toFixed(1)),
+        trainingStyle: trainingStyle,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Schoenfeld (2021) - Compound vs isolation for muscle development",
+        note: "No optimal ratio - varies by training goal (strength/hypertrophy/bodybuilding)"
+      };
+    },
+
+    // ============================================================================
     // V29.0: INTERPRETATION ENGINE
     // ============================================================================
 
