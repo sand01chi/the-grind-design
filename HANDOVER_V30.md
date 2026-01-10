@@ -1,11 +1,59 @@
 # THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION
 
 **Project:** THE GRIND DESIGN - Clinical Gym Training PWA  
-**Version:** V30.4 Training Analysis Expansion (Update to V30.3)  
+**Version:** V30.4 Training Analysis Expansion (COMPLETE)  
 **Date:** 2026-01-11  
 **Lead PM:** sand01chi  
 **Design Architect:** Claude.ai  
 **Lead Coder:** Claude Code (VS Code Extension)
+
+---
+
+## 🎉 V30.4 COMPLETION - TRAINING ANALYSIS WITH EXERCISE BREAKDOWNS
+
+### Final Summary
+**Version:** V30.4 Training Analysis Expansion (COMPLETE)  
+**Date:** January 11, 2026  
+**Branch:** `v30.4-training-analysis`  
+**Total Commits:** 21 commits
+**Status:** ✅ Production Ready
+
+**Major Features Delivered:**
+1. ✅ 4 Evidence-Based Training Analysis Metrics
+2. ✅ Exercise Breakdown Dropdowns (ALL 7 analytics cards)
+3. ✅ Training Frequency Interactive Tooltips
+4. ✅ Mobile-Optimized Tooltip Positioning
+5. ✅ Exercise Classification Improvements
+6. ✅ Clinical Insights Integration (RULE 7, 8, 9)
+
+### Complete Commit History
+
+```bash
+# Phase 1: Core Implementation
+8ced2e5 - V30.4 Phase 1: Add training analysis calculation functions
+7458508 - V30.4 Phase 2: Add Training Analysis UI rendering  
+cf27c3d - V30.4 Phase 3: Add clinical insights for training analysis metrics
+
+# Phase 2: Bug Fixes & Refinements
+[commit] - fix: Exclude leg exercises from vertical pull classification
+[commit] - fix: Improve machine shoulder press pattern matching
+[commit] - fix: Add missing coreExercises property to analyzeCoreTraining
+[commit] - fix: Add missing stabilityExercisesMap variable declaration
+
+# Phase 3: Exercise Breakdown Features
+[commit] - feat: Add exercise breakdown dropdowns to all analytics cards
+[commit] - fix: Improve exercise classification accuracy and UI clarity
+[commit] - fix: Give isolation patterns priority in compound/isolation classification
+
+# Phase 4: Training Frequency Enhancements  
+1017ed0 - feat: Add exercise breakdown tooltips and dropdown to Training Frequency card
+31fdc5e - fix: Optimize Training Frequency tooltip positioning for mobile
+b72e7b1 - fix: Implement column-aware tooltip positioning to prevent overflow
+
+# Phase 5: Visual Polish
+8dd6bfb - fix: Match vertical bar indicator style to horizontal bar
+1b2841a - fix: Cap indicator position at 98% to keep visible when ratio exceeds maximum
+```
 
 ---
 
@@ -300,6 +348,182 @@ Source: Schoenfeld (2021), Gentil (2017)
 **Phase 3 Testing (Clinical Insights):**
 - ✅ No syntax errors in [stats.js](js/stats.js) or [ui.js](ui.js)
 - ✅ Insights correctly filtered by priority (1=highest)
+- ✅ Maximum 7 insights displayed (V30.0 rule maintained)
+- ✅ Tooltips functional with evidence citations
+- ✅ No warnings for Compound/Isolation (per user request)
+
+**Phase 4 Testing (Exercise Breakdowns & Bug Fixes):**
+- ✅ Exercise classification accuracy verified across all cards
+- ✅ Tricep Pushdown correctly classified as upper_push
+- ✅ Compound/Isolation patterns refined (Calf Raise, Leg Curl, etc.)
+- ✅ All analytics cards have functional dropdowns
+- ✅ Training Frequency tooltips render correctly on mobile
+- ✅ Bar indicators visible at all ratio values
+
+---
+
+## 🔧 V30.4 BUG FIXES & ENHANCEMENTS
+
+### Exercise Classification Improvements
+
+**Issue 1: Vertical Pull Misclassification**
+- **Problem:** Leg exercises (Leg Press, Hack Squat) being counted as vertical pull
+- **Root Cause:** Pattern "Press" matched "Leg Press", classified as upper_push → pull calculation included it
+- **Solution:** Added leg exercise exclusion in vertical plane calculation
+- **Commit:** `fix: Exclude leg exercises from vertical pull classification`
+
+**Issue 2: Machine Shoulder Press Not Recognized**
+- **Problem:** "Machine Shoulder Press" not matching overhead press patterns
+- **Root Cause:** Pattern `/\bpress\b/i` too generic, "Machine Shoulder Press" needs specific matching
+- **Solution:** Improved pattern to `/\b(shoulder|overhead).*press\b/i` for better detection
+- **Commit:** `fix: Improve machine shoulder press pattern matching`
+
+**Issue 3: Tricep Pushdown Misclassified as Pull**
+- **Problem:** "[Cable] Tricep Pushdown (Rope)" appearing in Pull volume breakdown
+- **Root Cause:** 
+  - Exercise has "arms" as primary muscle in EXERCISE_TARGETS
+  - `classifyExercise()` defaulted all "arms" to upper_pull
+  - Tricep exercises are push movements (elbow extension)
+- **Solution:**
+  - Added `/\bpushdown\b/i` and `/\bkickback\b/i` patterns to upper_push in BIOMECHANICS_MAP
+  - Improved arms classification logic to detect tricep keywords → upper_push
+- **Impact:** Tricep Pushdown, Kickback now correctly classified as push movements
+- **Commit:** `fix: Improve exercise classification accuracy and UI clarity`
+
+**Issue 4: Compound/Isolation Pattern Conflicts**
+- **Problem:** Isolation exercises (Calf Raise, Leg Curl, Pec Deck Fly) appearing in Compound list
+- **Root Cause:**
+  - Generic patterns ("Extension", "Raise", "Calf") in isolation array
+  - Compound patterns checked FIRST with if/else if logic
+  - "Leg Extension" matched compound "Press" pattern before isolation
+- **Solution:**
+  - Reordered: Check isolation patterns FIRST
+  - Changed logic: `isCompound = !isIsolation && matches compound`
+  - Made patterns more specific:
+    - Removed: Generic "Extension", "Raise", "Calf"
+    - Added: "Leg Extension", "Tricep Extension", "Lateral Raise", "Calf Raise", "Pec Deck"
+  - Converted patterns to uppercase in array (optimization)
+- **Impact:** All single-joint exercises now correctly classified as isolation
+- **Commit:** `fix: Give isolation patterns priority in compound/isolation classification`
+
+### Exercise Breakdown Features
+
+**Feature 1: Dropdown Breakdowns for All Analytics Cards**
+- **User Request:** "add similar exercise breakdown in these sections: core training, core stability, unilateral volume, and compound/isolation exercise selection"
+- **Implementation:**
+  - Added exercise tracking Maps to 7 calculation functions:
+    - `analyzeCoreTraining()` → coreExercises Map
+    - `analyzeCoreStability()` → stabilityExercisesMap
+    - `calculateQuadHamsRatio()` → quadExercises, hamsExercises Maps
+    - `calculatePushPullRatio()` → 4 exercise Maps (upperPush/Pull, lowerPush/Pull)
+    - `calculateHorizontalVerticalRatios()` → 4 exercise Maps (H/V push/pull)
+    - `calculateUnilateralVolume()` → unilateral/bilateral exercise Maps
+    - `calculateCompoundIsolationRatio()` → compound/isolation exercise Maps
+  - Added "▼ View Exercise Breakdown" button to all 7 cards
+  - Dropdown shows exercises sorted by volume/set count (descending)
+  - Added clarification text: "Total volume/sets over X days"
+- **UI Pattern:**
+  ```html
+  <button onclick="this.nextElementSibling.classList.toggle('hidden')">
+    ▼ View Exercise Breakdown
+  </button>
+  <div class="hidden mt-3 pt-3 border-t border-white/10">
+    <!-- Exercise list with volume/set counts -->
+  </div>
+  ```
+- **Commits:**
+  - `feat: Add exercise breakdown dropdowns to all analytics cards`
+  - `fix: Add missing coreExercises property to analyzeCoreTraining`
+  - `fix: Add missing stabilityExercisesMap variable declaration`
+
+**Feature 2: Training Frequency Interactive Tooltips**
+- **User Request:** "for the training frequency, i want the specific exercise breakdown shown as tooltip when i click on each muscle type"
+- **Implementation:**
+  - Modified `calculateTrainingFrequency()` to track exercises per muscle
+  - Added `muscleExercises` Map to count sessions per exercise
+  - Returns `exercises` object: `{chest: [["Bench Press", 4], ...], ...}`
+  - UI shows hover tooltips on each muscle tile with exercise list
+  - Added full dropdown breakdown below card
+- **Tooltip Features:**
+  - Appears on hover (CSS `group-hover`)
+  - Shows exercise name with session count (e.g., "Bench Press (4x)")
+  - Dark styled popover with teal accent header
+  - Max height with scroll for many exercises
+- **Commit:** `feat: Add exercise breakdown tooltips and dropdown to Training Frequency card`
+
+### Mobile Optimization
+
+**Issue 5: Tooltip Overflow on Mobile**
+- **Problem:** Training Frequency tooltips overflowing screen edges on mobile
+- **Evolution of Fixes:**
+  1. **First Attempt:** Changed position from `bottom-full` to `top-full`, width to `w-[90vw]`
+     - Tooltip appeared below tile instead of above
+     - Still overflowing on left/right edges
+  2. **Second Attempt:** Column-aware positioning
+     - Left column (Chest, Arms): `left-0` (align to left edge)
+     - Middle column (Back, Legs): `left-1/2 -translate-x-1/2` (centered)
+     - Right column (Shoulders, Core): `right-0` (align to right edge)
+     - Detects column using `index % 3`
+- **Final Solution:**
+  ```javascript
+  const col = index % 3;
+  const positionClass = col === 0 ? 'left-0' : 
+                       col === 2 ? 'right-0' : 
+                       'left-1/2 -translate-x-1/2';
+  ```
+- **Commits:**
+  - `fix: Optimize Training Frequency tooltip positioning for mobile`
+  - `fix: Implement column-aware tooltip positioning to prevent overflow`
+
+### Visual Polish
+
+**Issue 6: Vertical Bar Indicator Not Visible**
+- **Problem:** White indicator marker not rendering on Vertical plane progress bar
+- **Root Cause:** `overflow-hidden` on parent container clipping the indicator
+  - Indicator height: h-4 (16px)
+  - Bar height: h-2 (8px)
+  - Indicator extends above/below bar for visibility
+  - Parent `overflow-hidden` was cutting it off
+- **Solution 1 (Incorrect):** Removed `overflow-hidden` from parent, added to segments
+  - Indicator visible but inconsistent with horizontal bar
+- **Solution 2 (Correct):** Match horizontal bar structure exactly
+  - Added `overflow-hidden` back to parent
+  - Removed from individual segments
+  - Both bars now have identical structure
+- **Commit:** `fix: Match vertical bar indicator style to horizontal bar`
+
+**Issue 7: Indicator Disappears at High Ratios**
+- **Problem:** When ratio >100% of scale, indicator positioned outside visible area
+- **Example:** Vertical ratio 1.6 → `(1.6/1.4)*100 = 114%` → capped at 100% → invisible
+- **Root Cause:**
+  - `left: 100%` places LEFT edge at boundary
+  - Indicator width (w-1 = 4px) extends beyond boundary
+  - `overflow-hidden` clips entire indicator
+- **Solution:** Changed maximum cap from 100% to 98% for both bars
+  ```javascript
+  // Before: Math.min(..., 100)
+  // After:  Math.min(..., 98)
+  ```
+- **Result:** Indicator stays visible at right edge when ratios exceed scale
+- **Commit:** `fix: Cap indicator position at 98% to keep visible when ratio exceeds maximum`
+
+### UI Clarity Improvements
+
+**Enhancement 1: Exercise Breakdown Labels**
+- **Issue:** Users confused about total vs per-session counts
+- **Solution:** Added clarification text to all dropdowns
+  - Core Training: "Total sets over 30 days"
+  - Quad/Hams, Push/Pull, etc.: "Total volume over 30 days"
+  - Training Frequency: "Total sessions over 30 days"
+- **Commit:** `fix: Improve exercise classification accuracy and UI clarity`
+
+**Enhancement 2: User Guidance for Unilateral Exercises**
+- **Issue:** User doing "[Cable] Lateral Raise" with one hand but app counted as bilateral
+- **Explanation:** Exercise name determines classification (not execution method)
+- **Solution:** App behavior is correct - user should use "[Cable] Single Arm Lateral Raise"
+- **Documentation:** Added to handover for user education
+
+### Testing Summary
 - ✅ Maximum 7 insights displayed (V30.0 rule maintained)
 - ✅ Tooltips functional with evidence citations
 - ✅ No warnings for Compound/Isolation (per user request)
