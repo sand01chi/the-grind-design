@@ -2953,33 +2953,29 @@ renderAdvancedAnalytics: function(daysBack = 30) {
         `;
       });
       
-      insightsContainer.innerHTML = insightsHTML;
-    }
-    
-    // V30.5: Add AI Consultation CTA below Clinical Insights (only if insights exist)
-    if (insights.length > 0) {
-      const consultationCTA = `
-        <div class="mt-4 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 rounded-2xl border border-purple-500/20 p-4">
-          <div class="flex items-start gap-3">
-            <div class="text-3xl">🤖</div>
-            <div class="flex-1">
-              <h4 class="text-sm font-semibold text-white mb-2">
-                AI Consultation Available
-              </h4>
-              <p class="text-xs text-app-subtext mb-3">
-                Get personalized advice from AI about these insights. Includes your current exercise plan and volume breakdown.
-              </p>
-              <button 
-                onclick="APP.stats.consultAIAboutInsights()"
-                class="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]">
-                <i class="fa-solid fa-sparkles mr-2"></i>Consult AI About These Insights
-              </button>
-            </div>
-          </div>
+      // V30.5: Add AI Consultation button below insights
+      const consultButton = `
+        <div class="mt-4 pt-4 border-t border-white/10">
+          <button 
+            onclick="window.APP.stats.consultAIAboutInsights()" 
+            class="w-full px-4 py-3 rounded-xl font-semibold text-sm 
+                   bg-gradient-to-r from-blue-600 to-purple-600 
+                   hover:from-blue-500 hover:to-purple-500 
+                   text-white shadow-lg shadow-blue-900/50 
+                   transition-all duration-300 
+                   flex items-center justify-center gap-2
+                   active:scale-95">
+            <i class="fas fa-brain"></i>
+            <span>Konsultasi AI Tentang Insights</span>
+            <i class="fas fa-arrow-right text-xs"></i>
+          </button>
+          <p class="text-[10px] text-app-subtext text-center mt-2">
+            Auto-generate comprehensive prompt with active program context
+          </p>
         </div>
       `;
       
-      insightsContainer.insertAdjacentHTML('afterend', consultationCTA);
+      insightsContainer.innerHTML = insightsHTML + consultButton;
     }
   }
 
@@ -4548,192 +4544,159 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     /**
-     * V30.5: Prepare AI consultation prompt for training analytics insights
+     * V30.5: Prepare comprehensive AI consultation from analytics insights
+     * Includes all clinical insights + current active program context
      * @param {Array} insights - Array of insight objects from interpretWorkoutData()
-     * @returns {string} - Formatted consultation prompt
+     * @returns {String} Formatted consultation prompt for AI
      */
-    prepareAnalyticsConsultation: (insights) => {
-      const p = LS_SAFE.getJSON("profile", {});
-      const h = LS_SAFE.getJSON("gym_hist", []);
-      const workoutData = LS_SAFE.getJSON("cscs_program_v10", {});
+    prepareAnalyticsConsultation: function(insights) {
+      if (!insights || insights.length === 0) {
+        console.warn("[STATS] No insights available for consultation");
+        return null;
+      }
+
+      // Get current active program (exclude spontaneous)
+      const program = window.APP.state?.workoutData || {};
+      const sessionIds = Object.keys(program).filter(id => id !== "spontaneous");
       
-      const weeks = parseInt(
-        document.getElementById("advanced-analytics-period")?.value || 4
-      );
-
-      // Filter recent logs (exclude spontaneous)
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - weeks * 7);
-      const recentLogs = h.filter(
-        (log) => new Date(log.ts) >= cutoffDate && log.src !== "spontaneous"
-      );
-
-      // Build current exercise plan (excluding spontaneous session)
-      const exercisePlan = [];
-      Object.keys(workoutData).forEach((sessionId) => {
-        if (sessionId === "spontaneous") return; // Skip spontaneous session
-        
-        const session = workoutData[sessionId];
-        if (session && session.exercises) {
-          session.exercises.forEach((ex) => {
-            if (ex.options && ex.options[0] && ex.options[0].n) {
-              const exerciseName = ex.options[0].n;
-              if (!exercisePlan.includes(exerciseName)) {
-                exercisePlan.push(exerciseName);
-              }
-            }
-          });
-        }
-      });
-
-      // Calculate volume breakdown by body part
-      const bodyPartMap = {
-        chest: { vol: 0, exercises: [] },
-        back: { vol: 0, exercises: [] },
-        legs: { vol: 0, exercises: [] },
-        shoulders: { vol: 0, exercises: [] },
-        arms: { vol: 0, exercises: [] },
-        core: { vol: 0, exercises: [] }
-      };
-
-      recentLogs.forEach((log) => {
-        const targets = APP.stats.getTargets(log.ex);
-        const volume = log.vol || 0;
-        const realName = log.ex || "Unknown";
-
-        if (targets.length > 0) {
-          targets.forEach((target) => {
-            const factor =
-              (window.VOLUME_DISTRIBUTION &&
-                window.VOLUME_DISTRIBUTION[target.role]) ||
-              1.0;
-            const weightedVol = volume * factor;
-
-            if (bodyPartMap[target.muscle]) {
-              bodyPartMap[target.muscle].vol += weightedVol;
-
-              if (!bodyPartMap[target.muscle].exercises.includes(realName)) {
-                bodyPartMap[target.muscle].exercises.push(realName);
-              }
-            }
-          });
-        }
-      });
-
       // Group insights by severity
-      const dangerInsights = insights.filter((i) => i.severity === "danger");
-      const warningInsights = insights.filter((i) => i.severity === "warning");
-      const infoInsights = insights.filter((i) => i.severity === "info");
+      const dangers = insights.filter(i => i.type === 'danger');
+      const warnings = insights.filter(i => i.type === 'warning');
+      const infos = insights.filter(i => i.type === 'info' || i.type === 'success');
 
       // Build consultation prompt
-      let promptText = `[TRAINING ANALYTICS CONSULTATION]\n\n`;
+      let prompt = "Saya mendapat hasil analisis dari Advanced Analytics dan butuh bantuan Anda:\n\n";
 
-      // Section 1: Detected Insights
-      promptText += `DETECTED INSIGHTS:\n`;
-      if (dangerInsights.length > 0) {
-        promptText += `\n🔴 HIGH PRIORITY:\n`;
-        dangerInsights.forEach((insight, idx) => {
-          promptText += `${idx + 1}. ${insight.message}\n`;
-        });
-      }
-      if (warningInsights.length > 0) {
-        promptText += `\n🟡 WARNINGS:\n`;
-        warningInsights.forEach((insight, idx) => {
-          promptText += `${idx + 1}. ${insight.message}\n`;
-        });
-      }
-      if (infoInsights.length > 0) {
-        promptText += `\n🔵 OBSERVATIONS:\n`;
-        infoInsights.forEach((insight, idx) => {
-          promptText += `${idx + 1}. ${insight.message}\n`;
-        });
-      }
-      promptText += `\n`;
+      // Section 1: Clinical Insights
+      prompt += "=== CLINICAL INSIGHTS DETECTED ===\n\n";
 
-      // Section 2: User Profile
-      promptText += `USER PROFILE:\n`;
-      promptText += `- Name: ${p.name || "Unknown"}\n`;
-      promptText += `- Age: ${p.a || "N/A"}\n`;
-      promptText += `- Height: ${p.h || "N/A"}cm\n`;
-      promptText += `- Training Period Analyzed: Last ${weeks} weeks\n\n`;
+      if (dangers.length > 0) {
+        prompt += "🚨 CRITICAL ISSUES:\n";
+        dangers.forEach(d => {
+          prompt += `\n• ${d.title}\n`;
+          if (d.metrics) prompt += `  Metrics: ${d.metrics}\n`;
+          if (d.risk) prompt += `  Risk: ${d.risk}\n`;
+          if (d.action) prompt += `  Suggested Action: ${d.action}\n`;
+          if (d.evidence && d.evidence.source) prompt += `  Evidence: ${d.evidence.source}\n`;
+        });
+        prompt += "\n";
+      }
 
-      // Section 3: Current Exercise Plan
-      promptText += `CURRENT EXERCISE PLAN (Active Sessions):\n`;
-      if (exercisePlan.length > 0) {
-        exercisePlan.forEach((ex, idx) => {
-          promptText += `${idx + 1}. ${ex}\n`;
+      if (warnings.length > 0) {
+        prompt += "⚠️ WARNINGS:\n";
+        warnings.forEach(w => {
+          prompt += `\n• ${w.title}\n`;
+          if (w.metrics) prompt += `  Metrics: ${w.metrics}\n`;
+          if (w.risk) prompt += `  Risk: ${w.risk}\n`;
+          if (w.action) prompt += `  Suggested Action: ${w.action}\n`;
+          if (w.evidence && w.evidence.source) prompt += `  Evidence: ${w.evidence.source}\n`;
+        });
+        prompt += "\n";
+      }
+
+      if (infos.length > 0) {
+        prompt += "ℹ️ INFORMATIONAL:\n";
+        infos.forEach(info => {
+          prompt += `\n• ${info.title}\n`;
+          if (info.metrics) prompt += `  ${info.metrics}\n`;
+        });
+        prompt += "\n";
+      }
+
+      // Section 2: Current Active Program Context
+      prompt += "=== PROGRAM AKTIF SAAT INI ===\n\n";
+      
+      if (sessionIds.length > 0) {
+        sessionIds.forEach(id => {
+          const session = program[id];
+          prompt += `${session.label || id}: "${session.title || 'Untitled'}"\n`;
+          prompt += `- Total Exercises: ${session.exercises?.length || 0}\n`;
+          
+          // List exercises (first 5 per session)
+          if (session.exercises && session.exercises.length > 0) {
+            const exerciseList = session.exercises.slice(0, 5).map((ex, idx) => {
+              if (ex.type === "cardio") {
+                return `  ${idx + 1}. CARDIO: ${ex.target_duration || 30}min @ ${ex.target_hr_zone || 'Zone 2'}`;
+              } else {
+                const firstOption = ex.options?.[0]?.n || "Unknown";
+                return `  ${idx + 1}. ${firstOption} (${ex.sets || 3} sets)`;
+              }
+            }).join('\n');
+            prompt += exerciseList;
+            
+            if (session.exercises.length > 5) {
+              prompt += `\n  ... +${session.exercises.length - 5} more exercises`;
+            }
+          }
+          prompt += "\n\n";
         });
       } else {
-        promptText += `- No active exercises in program\n`;
+        prompt += "Tidak ada program aktif terdeteksi (semua workout spontaneous)\n\n";
       }
-      promptText += `\n`;
 
-      // Section 4: Volume Breakdown
-      promptText += `VOLUME BREAKDOWN (Last ${weeks} weeks):\n`;
-      promptText += `\nVOLUME METHODOLOGY:\n`;
-      promptText += `- Primary Work (1.0x): Direct muscle targeting\n`;
-      promptText += `- Secondary Work (0.5x): Synergist contribution\n`;
-      promptText += `- Total includes weighted distribution from compound lifts\n\n`;
+      // Section 3: Questions for AI
+      prompt += "=== PERTANYAAN ===\n\n";
+      prompt += "Berdasarkan insights dan program aktif di atas, saya mohon bantuan Anda untuk:\n\n";
+      prompt += "1. **Analisis Prioritas:** Masalah mana yang harus ditangani PERTAMA dan mengapa?\n\n";
+      prompt += "2. **Modifikasi Program:** Exercise apa yang perlu:\n";
+      prompt += "   - Ditambahkan (sebutkan 3-5 exercise spesifik)\n";
+      prompt += "   - Dikurangi volume/frequency-nya\n";
+      prompt += "   - Dirotasi keluar dari program\n\n";
+      prompt += "3. **Split Training Optimal:** Berdasarkan imbalances yang ada, apakah struktur program saya (";
+      prompt += `${sessionIds.map(id => program[id].label || id).join(', ')}`;
+      prompt += ") sudah optimal? Atau perlu reorganisasi?\n\n";
+      prompt += "4. **Timeline Perbaikan:** Berapa lama (dalam minggu) untuk melihat improvement signifikan?\n\n";
+      prompt += "5. **Rekomendasi Exercise:** Jika perlu tambahan exercise, berikan dalam format JSON (program_import schema) ";
+      prompt += "yang bisa saya import langsung ke program.\n\n";
 
-      Object.keys(bodyPartMap).forEach((part) => {
-        const data = bodyPartMap[part];
-        promptText += `- ${part.toUpperCase()}: ${Math.round(
-          data.vol
-        ).toLocaleString()}kg`;
-        if (data.exercises.length > 0) {
-          promptText += ` (${
-            data.exercises.length
-          } exercises: ${data.exercises.slice(0, 3).join(", ")}${
-            data.exercises.length > 3 ? "..." : ""
-          })`;
-        }
-        promptText += `\n`;
-      });
+      // Footer
+      prompt += "--- \n";
+      prompt += "Format response: Bahasa Indonesia, analisis evidence-based, actionable recommendations.\n";
+      prompt += "Prioritaskan SAFETY dan PROGRESSION yang sustainable.\n";
 
-      // Section 5: Consultation Request
-      promptText += `\nQUESTION:\n`;
-      promptText += `Berdasarkan insights dan data analytics di atas, berikan:\n`;
-      promptText += `1. Analisis root cause dari insights yang terdeteksi\n`;
-      promptText += `2. Apakah perlu modifikasi exercise plan? Jika perlu, rekomendasi spesifik (3-4 gerakan)\n`;
-      promptText += `3. Target volume optimal untuk ${weeks} minggu ke depan per muscle group\n`;
-      promptText += `4. Action plan konkret untuk address insights (timeline & milestones)\n\n`;
-      promptText += `-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.\n`;
-      promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
-      promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes), Tri-Option System, Full Metadata.`;
-
-      return promptText;
+      return prompt;
     },
 
     /**
-     * V30.5: Trigger AI consultation for analytics insights
-     * Prepares consultation prompt and navigates to AI view
+     * V30.5: Trigger AI consultation with analytics insights
+     * Navigates to AI view with auto-populated consultation prompt
      */
-    consultAIAboutInsights: () => {
-      // Get current insights
-      const insights = APP.stats.interpretWorkoutData();
-      
+    consultAIAboutInsights: function() {
+      console.log("[STATS] Initiating AI consultation from analytics insights");
+
+      // Get current insights (use cached if available, otherwise recalculate)
+      const insights = window.APP._currentInsights || this.interpretWorkoutData(30);
+
       if (!insights || insights.length === 0) {
-        APP.ui.showToast("ℹ️ No insights to consult about", "info");
+        window.APP.ui.showToast("Tidak ada insights untuk konsultasi", "warning");
         return;
       }
 
       // Prepare consultation prompt
-      const consultationPrompt = APP.stats.prepareAnalyticsConsultation(insights);
+      const consultationPrompt = this.prepareAnalyticsConsultation(insights);
 
-      // Store prompt for AI view
-      LS_SAFE.set("ai_autoprompt", consultationPrompt);
-      LS_SAFE.set("ai_autoprompt_source", "analytics_consultation");
+      if (!consultationPrompt) {
+        window.APP.ui.showToast("Gagal menyiapkan konsultasi", "error");
+        return;
+      }
 
-      // Show success toast
-      APP.ui.showToast(
-        "📋 Consultation prompt prepared! Navigating to AI...",
-        "success"
-      );
+      // Store prompt for AI view to pickup
+      localStorage.setItem('ai_autoprompt', consultationPrompt);
+      localStorage.setItem('ai_autoprompt_source', 'analytics_consultation');
+      localStorage.setItem('ai_autoprompt_timestamp', Date.now().toString());
 
-      // Navigate to AI view after short delay
+      // Show loading feedback
+      window.APP.ui.showToast("Menyiapkan konsultasi AI...", "info");
+
+      // Navigate to AI view after brief delay (smooth UX)
       setTimeout(() => {
-        APP.nav.switchView("ai");
-      }, 500);
+        if (window.APP.nav && window.APP.nav.switchView) {
+          window.APP.nav.switchView('ai');
+        } else {
+          console.error("[STATS] Navigation function not available");
+          window.APP.ui.showToast("AI view tidak tersedia", "error");
+        }
+      }, 300);
     },
 
     updateChart: () => {
