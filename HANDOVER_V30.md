@@ -1,15 +1,160 @@
 # THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION
 
 **Project:** THE GRIND DESIGN - Clinical Gym Training PWA  
-**Version:** V30.0 Mobile UI Redesign  
-**Date:** 2026-01-10  
+**Version:** V30.1 Library Polish (Update to V30.0)  
+**Date:** 2026-01-11  
 **Lead PM:** sand01chi  
 **Design Architect:** Claude.ai  
 **Lead Coder:** Claude Code (VS Code Extension)
 
 ---
 
-## 🎯 PROJECT SUMMARY
+## 🔄 V30.1 UPDATE - EXERCISE LIBRARY STANDARDIZATION
+
+### Update Summary
+**Version:** V30.1 Library Polish  
+**Date:** January 11, 2026  
+**Branch:** `v30.1-library-polish`  
+**Commits:** 3 commits (216a1c4, 4521c63, 476bd6b)
+
+Comprehensive standardization of 150+ exercise names with full backwards compatibility for historical workout data.
+
+### What Changed
+
+#### 1. **Exercise Naming Standardization**
+- ✅ **Removed Redundancy:** Eliminated duplicate equipment names
+  - `[Barbell] Barbell Bench Press` → `[Barbell] Bench Press`
+  - `[DB] Flat Dumbbell Press` → `[DB] Flat Press`
+  - `[Cable] Cable Fly` → `[Cable] Fly`
+  - ~50 exercises cleaned up across all categories
+
+#### 2. **Unified Equipment Tag Abbreviations**
+- ✅ **Standardized [DB] Tag:** All dumbbell exercises now use `[DB]` only
+  - Removed mixed usage of `[Dumbbell]` and `[BW]` tags
+  - `[DB] Dumbbell Curl` → `[DB] Curl`
+  - `[BW] Push Up` → `[Bodyweight] Push Up`
+
+#### 3. **Smith Machine Consolidation**
+- ✅ **[Machine] Tag:** Smith machines consolidated under `[Machine]` tag
+  - `[Machine] Smith Machine Squat`
+  - `[Machine] Smith Machine Shoulder Press`
+  - Consistent with other machine equipment
+
+#### 4. **Biomechanical Descriptors**
+- ✅ **Machine Exercise Variants:** Added descriptors for targeting clarity
+  - `[Machine] Leg Press (Quad Bias)` - Low foot placement, quad emphasis
+  - `[Machine] Leg Press (Glute Bias)` - High foot placement, glute emphasis
+  - `[Machine] High Row (Upper Back Bias)` - Trap-focused pulling
+  - `[Machine] Low Row (Lat Bias)` - Lat-focused pulling
+  - ~20 machine exercises now include specific descriptors
+
+#### 5. **Backwards Compatibility System**
+- ✅ **Legacy Name Mapping:** 150+ legacy names automatically resolve
+  - Comprehensive mapping in `js/validation.js`
+  - Performance-optimized caching system
+  - Zero impact on historical workout data
+  - **No data migration required**
+
+### Technical Implementation
+
+#### Files Modified
+1. **`exercises-library.js`** (624 insertions, 295 deletions)
+   - Restructured EXERCISE_TARGETS with organized sections
+   - Updated all EXERCISES_LIBRARY exercise names
+   - Added V26.5+ expansion section for advanced machine variations
+
+2. **`js/validation.js`** (Enhanced fuzzy matching system)
+   - Added `_fuzzyMatchCache` Map for improved lookup performance
+   - Implemented `_legacyNameMap` object with 150+ mappings
+   - Enhanced pattern matching with additional common variations
+   - Added `clearFuzzyMatchCache()` method for cache management
+
+3. **`js/constants.js`** (STARTER_PACK exercise updates)
+   - Updated 8 exercise references to match standardized names
+   - Fixed validation errors in pre-built workout templates
+
+4. **`js/stats.js`** (Console warning suppression)
+   - Added non-resistance exercise filtering
+   - Prevents console spam from cardio/mobility exercises
+   - Only resistance training exercises trigger classification warnings
+
+5. **`EXERCISE_LIBRARY_GUIDE.md`** (Documentation update)
+   - Updated to V30.1 naming conventions
+   - Added backwards compatibility section
+   - Documented legacy name mapping system
+   - Added comprehensive V30.1 changelog
+
+### Legacy Name Mapping Examples
+
+**Chest Exercises:**
+```javascript
+"Flat Dumbbell Press"          → "[DB] Flat Press"
+"[DB] Flat Dumbbell Press"     → "[DB] Flat Press"
+"Smith Machine Incline Press"  → "[Machine] Smith Machine Incline Press"
+```
+
+**Back Exercises:**
+```javascript
+"[Barbell] Barbell Row"        → "[Barbell] Row"
+"One Arm DB Row"               → "[DB] One Arm Row"
+"Seated Cable Row"             → "[Cable] Seated Row"
+```
+
+**Leg Exercises:**
+```javascript
+"[Barbell] Barbell Squat"      → "[Barbell] Squat"
+"RDL (Barbell)"                → "[Barbell] RDL"
+"Leg Press"                    → "[Machine] Leg Press (Quad Bias)" // Default
+"Machine Leg Press"            → "[Machine] Leg Press (Quad Bias)"
+```
+
+### System Compatibility
+
+| Component | Status | Notes |
+|-----------|---------|-------|
+| **EXERCISE_TARGETS** | ✅ Updated | 150+ exercises renamed |
+| **EXERCISES_LIBRARY** | ✅ Updated | All `n` properties match EXERCISE_TARGETS |
+| **Fuzzy Matching** | ✅ Enhanced | Legacy mapping + caching |
+| **Plate Calculator** | ✅ Compatible | Tag detection logic unchanged |
+| **Historical Data** | ✅ Compatible | Auto-resolves via fuzzy matching |
+| **Volume Analytics** | ✅ Compatible | Uses canonical names automatically |
+| **Exercise Picker UI** | ✅ Updated | Displays standardized names |
+| **STARTER_PACK** | ✅ Fixed | Validation errors resolved |
+
+### Benefits
+
+1. **Consistency:** Unified naming convention across entire codebase
+2. **Clarity:** Biomechanical descriptors improve exercise selection
+3. **Performance:** Caching system reduces lookup overhead
+4. **Compatibility:** Zero breaking changes for historical data
+5. **Maintainability:** Easier to add new exercises following clear patterns
+
+### Migration Path
+
+**For Users:** No action required
+- Historical workout logs automatically resolve to new names
+- Old exercise names work seamlessly via fuzzy matching
+- UI displays standardized names going forward
+
+**For Developers:** 
+- New exercises must follow V30.1 naming conventions (see EXERCISE_LIBRARY_GUIDE.md)
+- Add legacy mappings to `_legacyNameMap` if creating aliases
+- Test fuzzy matching with common name variations
+
+### Breaking Changes
+
+**None.** V30.1 is fully backwards compatible.
+
+### Known Issues
+
+**None.** All validation errors resolved:
+- ✅ STARTER_PACK exercises updated
+- ✅ Console warnings for non-resistance exercises suppressed
+- ✅ No errors in EXERCISE_TARGETS lookup
+
+---
+
+## 🎯 PROJECT SUMMARY (V30.0 Base)
 
 ### What Was Built
 Complete mobile-first UI transformation of THE GRIND DESIGN with modern dark theme aesthetic, optimized navigation, and enhanced clinical analytics visualization.
@@ -617,7 +762,7 @@ APP.ui.showToast("Success", "success");
 - ARCHITECTURE.md - V27 module structure
 - CODING_GUIDELINES.md - Development standards
 - DEBUGGING_PLAYBOOK.md - Troubleshooting
-- EXERCISE_LIBRARY_GUIDE.md - Exercise management
+- EXERCISE_LIBRARY_GUIDE.md - Exercise management (updated V30.1)
 
 **Repository:** [Link to GitHub repo if applicable]
 
@@ -629,6 +774,9 @@ THE GRIND DESIGN is a personal project by sand01chi.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-01-10  
-**Status:** Production Ready ✅
+**Document Version:** 1.1 (V30.1 Library Polish)  
+**Last Updated:** 2026-01-11  
+**Status:** Production Ready ✅  
+**Recent Updates:**
+- V30.1 (2026-01-11): Exercise Library Standardization - 150+ exercises renamed with backwards compatibility
+- V30.0 (2026-01-10): Mobile UI Redesign with bottom navigation and stats dashboard
