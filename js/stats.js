@@ -377,7 +377,24 @@
       }
 
       // STEP 4: No match found
-      console.warn(`[STATS] classifyExercise: No classification for "${exerciseName}"`);
+      // V30.1: Skip warning for non-resistance exercises (cardio, mobility, activation, stretching)
+      const nonResistancePatterns = [
+        /^Cardio\s/i,           // "Cardio LISS Session", "Cardio Warmup"
+        /^Mobility\s/i,         // "Mobility Cat-Cow Stretch"
+        /^Activation\s/i,       // "Activation Glute Bridge"
+        /^Stretch\s/i,          // "Stretch Cat-Cow"
+        /\[Cardio\]/i,          // "[Cardio] LISS Session"
+        /\[Stretch\]/i,         // "[Stretch] Child Pose"
+        /LISS/i,                // "LISS Cardio", "LISS Session"
+        /Warmup.*Cardio/i,      // "Warmup Cardio"
+      ];
+      
+      const isNonResistance = nonResistancePatterns.some(pattern => pattern.test(exerciseName));
+      
+      if (!isNonResistance) {
+        console.warn(`[STATS] classifyExercise: No classification for "${exerciseName}"`);
+      }
+      
       return "unclassified";
     },
 
