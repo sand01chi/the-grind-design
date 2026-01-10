@@ -933,6 +933,7 @@
       let totalStabilitySets = 0;
       const daysWithStability = new Set();
       const exercisesUsed = new Set();
+      const stabilityExercisesMap = new Map(); // Track exercises with set count
 
       recentLogs.forEach(log => {
         const targets = window.EXERCISE_TARGETS?.[log.ex];
@@ -951,6 +952,9 @@
           totalStabilitySets += sets;
           daysWithStability.add(log.date);
           exercisesUsed.add(log.ex);
+          
+          // Track exercise set count
+          stabilityExercisesMap.set(log.ex, (stabilityExercisesMap.get(log.ex) || 0) + sets);
         }
       });
 
