@@ -891,6 +891,86 @@
     },
 
     // ============================================================================
+    // V30.2: CORE STABILITY ANALYSIS (SECONDARY)
+    // ============================================================================
+
+    /**
+     * V30.2: Analyze core stability demand from compound exercises
+     * Tracks exercises where core has SECONDARY role (stabilization, not primary work)
+     * @param {number} daysBack - Number of days to analyze (default: 30)
+     * @returns {Object} Core stability metrics
+     *
+     * Scientific Basis: Stability work is NOT a substitute for dedicated core training
+     * - PRIMARY core work = anti-movement patterns (planks, dead bugs)
+     * - SECONDARY core work = reactive stabilization (unilateral exercises, standing cables)
+     */
+    analyzeCoreStability: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let totalStabilitySets = 0;
+      const daysWithStability = new Set();
+      const exercisesUsed = new Set();
+
+      recentLogs.forEach(log => {
+        const targets = window.EXERCISE_TARGETS?.[log.ex];
+        if (!targets) return;
+
+        // Check if exercise has core as SECONDARY (not PRIMARY)
+        const hasCoreSecondary = targets.some(
+          t => t.muscle === "core" && t.role === "SECONDARY"
+        );
+        const hasCorePrimary = targets.some(
+          t => t.muscle === "core" && t.role === "PRIMARY"
+        );
+
+        if (hasCoreSecondary && !hasCorePrimary) {
+          const sets = log.d ? log.d.length : 0;
+          totalStabilitySets += sets;
+          daysWithStability.add(log.date);
+          exercisesUsed.add(log.ex);
+        }
+      });
+
+      const weeksAnalyzed = daysBack / 7;
+      const weeklySets = Math.round(totalStabilitySets / weeksAnalyzed);
+      const frequency = daysWithStability.size;
+      const variety = exercisesUsed.size;
+
+      // Status based on stability demand
+      let status, color, message;
+      if (weeklySets === 0) {
+        status = "none";
+        color = "gray";
+        message = "No stability work detected";
+      } else if (weeklySets < 10) {
+        status = "low";
+        color = "yellow";
+        message = "Limited stability demand";
+      } else if (weeklySets >= 10 && weeklySets <= 30) {
+        status = "adequate";
+        color = "green";
+        message = "Good stability volume from compounds";
+      } else {
+        status = "high";
+        color = "purple";
+        message = "High stability demand";
+      }
+
+      return {
+        totalSets: totalStabilitySets,
+        weeklySets: weeklySets,
+        frequency: frequency,
+        variety: variety,
+        status: status,
+        color: color,
+        message: message,
+        daysAnalyzed: daysBack,
+        note: "Stability work complements but does NOT replace dedicated core training"
+      };
+    },
+
+    // ============================================================================
     // V29.0: INTERPRETATION ENGINE
     // ============================================================================
 
@@ -1517,6 +1597,65 @@ renderAdvancedRatios: function(daysBack = 30) {
         <div class="flex justify-between">
           <span>Exercise Variety:</span>
           <span class="font-semibold text-white">${core.variety} exercises</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // ========================================
+  // V30.2: CORE STABILITY DEMAND CARD (SECONDARY)
+  // ========================================
+  const stability = this.analyzeCoreStability(daysBack);
+  
+  const stabilityBadgeClass = stability.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                              stability.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+                              stability.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-white/5 text-app-subtext';
+
+  const stabilityIcon = stability.color === 'green' ? '✅' :
+                        stability.color === 'purple' ? '🔄' :
+                        stability.color === 'yellow' ? '⚠️' : '➖';
+
+  html += `
+    <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-sm font-semibold text-white">🔄 Core Stability Demand</h4>
+        <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                onclick="window.APP.ui.showTooltip('stability-info', event)"
+                onmouseleave="window.APP.ui.hideTooltip()">
+          ℹ️
+        </button>
+      </div>
+
+      <div class="flex items-baseline mb-3">
+        <span class="text-4xl font-bold text-white">${stability.weeklySets}</span>
+        <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+      </div>
+
+      <div class="mb-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${stabilityBadgeClass}">
+          ${stabilityIcon} ${stability.status.charAt(0).toUpperCase() + stability.status.slice(1)}
+        </span>
+      </div>
+
+      <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-3">
+        <p class="text-[10px] text-purple-300 leading-relaxed">
+          <strong>Note:</strong> Stability work from unilateral/cable exercises complements but does NOT replace dedicated core training (planks, dead bugs).
+        </p>
+      </div>
+
+      <div class="text-xs text-app-subtext space-y-2">
+        <div class="flex justify-between">
+          <span>From Compound Work:</span>
+          <span class="font-semibold text-white">${stability.weeklySets} sets/week</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Exercise Variety:</span>
+          <span class="font-semibold text-white">${stability.variety} exercises</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Frequency:</span>
+          <span class="font-semibold text-white">${stability.frequency} days/month</span>
         </div>
       </div>
     </div>

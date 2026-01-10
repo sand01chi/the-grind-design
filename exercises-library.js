@@ -210,14 +210,17 @@ const EXERCISE_TARGETS = {
   "[Cable] High Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[Cable] Low Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[Cable] Underhand Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[Cable] Single Arm Row": [
     { muscle: "back", role: "PRIMARY" },
@@ -236,6 +239,7 @@ const EXERCISE_TARGETS = {
   "[Barbell] Overhead Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[Barbell] Seated Overhead Press": [
     { muscle: "shoulders", role: "PRIMARY" },
@@ -246,8 +250,12 @@ const EXERCISE_TARGETS = {
   "[DB] Shoulder Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
-  "[DB] Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[DB] Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
   
   // Machine Shoulders
   "[Machine] Smith Machine Shoulder Press": [
@@ -262,14 +270,27 @@ const EXERCISE_TARGETS = {
   "[Machine] Reverse Pec Deck (Rear Delt)": [{ muscle: "shoulders", role: "PRIMARY" }],
   
   // Cable Shoulders
-  "[Cable] Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "[Cable] Front Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "[Cable] Rear Delt Fly": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Cable] Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Front Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Rear Delt Fly": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
   "[Cable] Upright Row": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
-  "[Cable] Single Arm Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Cable] Single Arm Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
 
   // ========================================
   // ARM EXERCISES
@@ -325,13 +346,26 @@ const EXERCISE_TARGETS = {
   // Dumbbell Legs
   "[DB] Goblet Squat": [{ muscle: "legs", role: "PRIMARY" }],
   "[DB] Goblet Squat (Heels Elevated)": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Bulgarian Split Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Forward Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Walking Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Split Squat (Static)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[DB] Bulgarian Split Squat": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Forward Lunge": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Walking Lunge": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Split Squat (Static)": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
   "[DB] RDL": [
     { muscle: "legs", role: "PRIMARY" },
     { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[DB] Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   "[DB] Single Leg Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
@@ -384,6 +418,7 @@ const EXERCISE_TARGETS = {
   "[Cable] Pull Through": [
     { muscle: "legs", role: "PRIMARY" },
     { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
   "[Cable] Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
   

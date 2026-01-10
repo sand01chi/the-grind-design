@@ -3531,8 +3531,13 @@
         },
         'core-info': {
           title: 'Core Training Volume',
-          text: 'Optimal range: 15-25 sets/week. Maintains spine health, athletic performance, and force transfer without overtraining.',
+          text: 'Optimal range: 15-25 sets/week. Maintains spine health, athletic performance, and force transfer without overtraining. Dedicated anti-movement work (planks, dead bugs).',
           source: 'Dr. Stuart McGill'
+        },
+        'stability-info': {
+          title: 'Core Stability Demand',
+          text: 'Volume from exercises with core as SECONDARY (unilateral work, standing cables). Complements but does NOT replace dedicated core training. Stability ≠ Strength.',
+          source: 'McGill & Boyle - Stability vs Strength'
         },
         'bw-info': {
           title: 'Bodyweight Contribution',
