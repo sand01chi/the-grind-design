@@ -989,6 +989,12 @@
       let horizontalPush = 0, horizontalPull = 0;
       let verticalPush = 0, verticalPull = 0;
 
+      // Track exercises in each category
+      const horizontalPushExercises = new Map(); // exercise -> volume
+      const horizontalPullExercises = new Map();
+      const verticalPushExercises = new Map();
+      const verticalPullExercises = new Map();
+
       // Horizontal push exercises
       const horizontalPushPatterns = [
         "Bench Press", "Chest Press", "Push Up", "Fly", "Dip",
@@ -1039,18 +1045,22 @@
             // Horizontal Push
             if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
               horizontalPush += adjustedVolume;
+              horizontalPushExercises.set(log.ex, (horizontalPushExercises.get(log.ex) || 0) + adjustedVolume);
             }
             // Horizontal Pull
             else if (horizontalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
               horizontalPull += adjustedVolume;
+              horizontalPullExercises.set(log.ex, (horizontalPullExercises.get(log.ex) || 0) + adjustedVolume);
             }
             // Vertical Push
             else if (verticalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
               verticalPush += adjustedVolume;
+              verticalPushExercises.set(log.ex, (verticalPushExercises.get(log.ex) || 0) + adjustedVolume);
             }
             // Vertical Pull
             else if (verticalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
               verticalPull += adjustedVolume;
+              verticalPullExercises.set(log.ex, (verticalPullExercises.get(log.ex) || 0) + adjustedVolume);
             }
           });
         });
@@ -1091,11 +1101,15 @@
         horizontalRatio: parseFloat(horizontalRatio.toFixed(2)),
         horizontalStatus: hStatus,
         horizontalColor: hColor,
+        horizontalPushExercises: Array.from(horizontalPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        horizontalPullExercises: Array.from(horizontalPullExercises.entries()).sort((a, b) => b[1] - a[1]),
         verticalPush: Math.round(verticalPush),
         verticalPull: Math.round(verticalPull),
         verticalRatio: parseFloat(verticalRatio.toFixed(2)),
         verticalStatus: vStatus,
         verticalColor: vColor,
+        verticalPushExercises: Array.from(verticalPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        verticalPullExercises: Array.from(verticalPullExercises.entries()).sort((a, b) => b[1] - a[1]),
         daysAnalyzed: daysBack,
         scientificBasis: "Cressey (2019) - Vertical pull:push ratio for shoulder health"
       };
@@ -2322,7 +2336,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <div class="absolute h-2 bg-emerald-500/60" style="width: 30%; left: 35%;"></div>
             <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 65%;"></div>
             <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
-            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${Math.min(Math.max(hvRatios.horizontalRatio * 50, 0), 100)}%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max(hvRatios.horizontalRatio / 2 * 100, 0), 100)}%;"></div>
           </div>
           <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
             hvRatios.horizontalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -2345,7 +2359,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 30%;"></div>
             <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 50%;"></div>
             <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 30%; left: 70%;"></div>
-            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max(hvRatios.verticalRatio * 50, 0), 100)}%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min((hvRatios.verticalRatio / 1.4) * 100, 100)}%;"></div>
           </div>
           <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
             hvRatios.verticalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -2357,7 +2371,76 @@ renderAdvancedAnalytics: function(daysBack = 30) {
         </div>
 
         <div class="h-px bg-white/10 my-3"></div>
-        <p class="text-[10px] text-app-subtext">Target: H 0.7-1.0 | V 0.5-0.7 (Pull:Push)</p>
+        <p class="text-[10px] text-app-subtext mb-2">Target: H 0.7-1.0 | V 0.5-0.7 (Pull:Push)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <!-- Horizontal Plane -->
+          <div>
+            <div class="text-[10px] font-bold text-app-accent mb-2">HORIZONTAL PLANE</div>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Push (${hvRatios.horizontalPush.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.horizontalPushExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.horizontalPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Pull (${hvRatios.horizontalPull.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.horizontalPullExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.horizontalPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Vertical Plane -->
+          <div>
+            <div class="text-[10px] font-bold text-app-accent mb-2">VERTICAL PLANE</div>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Push (${hvRatios.verticalPush.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.verticalPushExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.verticalPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Pull (${hvRatios.verticalPull.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.verticalPullExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.verticalPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
