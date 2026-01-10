@@ -1023,6 +1023,24 @@
         const targets = EXERCISE_TARGETS[log.ex] || [];
         if (!log.d || !Array.isArray(log.d)) return;
 
+        // Classify exercise ONCE per log (not per target to avoid duplicate counting)
+        const exName = log.ex.toUpperCase();
+        let category = null;
+
+        // Determine category based on exercise name
+        if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'hPush';
+        } else if (horizontalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'hPull';
+        } else if (verticalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'vPush';
+        } else if (verticalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'vPull';
+        }
+
+        // Only process if exercise matches a category
+        if (!category) return;
+
         log.d.forEach(set => {
           const reps = parseInt(set.r) || 0;
           let volume = 0;
@@ -1034,31 +1052,22 @@
             volume = weight * reps;
           }
 
-          // Apply half-set rule
+          // Apply half-set rule for each target
           targets.forEach(target => {
             const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
             const adjustedVolume = volume * multiplier;
 
-            // Classify by movement pattern
-            const exName = log.ex.toUpperCase();
-
-            // Horizontal Push
-            if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+            // Add to appropriate category
+            if (category === 'hPush') {
               horizontalPush += adjustedVolume;
               horizontalPushExercises.set(log.ex, (horizontalPushExercises.get(log.ex) || 0) + adjustedVolume);
-            }
-            // Horizontal Pull
-            else if (horizontalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+            } else if (category === 'hPull') {
               horizontalPull += adjustedVolume;
               horizontalPullExercises.set(log.ex, (horizontalPullExercises.get(log.ex) || 0) + adjustedVolume);
-            }
-            // Vertical Push
-            else if (verticalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+            } else if (category === 'vPush') {
               verticalPush += adjustedVolume;
               verticalPushExercises.set(log.ex, (verticalPushExercises.get(log.ex) || 0) + adjustedVolume);
-            }
-            // Vertical Pull
-            else if (verticalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+            } else if (category === 'vPull') {
               verticalPull += adjustedVolume;
               verticalPullExercises.set(log.ex, (verticalPullExercises.get(log.ex) || 0) + adjustedVolume);
             }
