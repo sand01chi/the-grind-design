@@ -1,8 +1,10 @@
 # 🏗️ ARCHITECTURE DOCUMENTATION - THE GRIND DESIGN
 
-**Version:** V28.0
-**Last Updated:** January 2, 2026
+**Version:** V30.0
+**Last Updated:** January 10, 2026
 **Purpose:** System design decisions, patterns, and architectural principles
+
+**Note:** V30.0 introduced mobile-first UI redesign with unified view-based navigation. All main views (Dashboard, Analytics, AI, Profile) now use `switchView()` pattern instead of modal overlays. View IDs must follow `{name}-view` pattern (e.g., dashboard-view, klinik-view). See HANDOVER_V30.md for complete UI redesign documentation.
 
 ---
 
