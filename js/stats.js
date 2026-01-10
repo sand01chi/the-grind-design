@@ -1027,6 +1027,16 @@
         const exName = log.ex.toUpperCase();
         let category = null;
 
+        // EXCLUDE leg exercises first (prevent misclassification)
+        const isLegExercise = 
+          exName.includes("SQUAT") || exName.includes("LEG PRESS") || 
+          exName.includes("LEG CURL") || exName.includes("LEG EXTENSION") ||
+          exName.includes("CALF") || exName.includes("LUNGE") ||
+          exName.includes("HIP THRUST") || exName.includes("DEADLIFT") ||
+          exName.includes("RDL") || exName.includes("BULGARIAN");
+
+        if (isLegExercise) return; // Skip leg exercises entirely
+
         // Determine category based on exercise name
         if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
           category = 'hPush';
