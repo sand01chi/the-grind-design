@@ -313,29 +313,99 @@
   // ============================================
 
   APP.nav = {
+    /**
+     * V30.0 Phase 3.5: Unified View Switching
+     * All main views (dashboard, workout, klinik, ai, settings) use this function
+     * @param {string} v - View name without '-view' suffix
+     */
     switchView: (v) => {
-      document.getElementById("dashboard-view").classList.add("hidden");
-      document.getElementById("workout-view").classList.add("hidden");
-      document.getElementById(`${v}-view`).classList.remove("hidden");
-      if (v === "dashboard") APP.nav.renderDashboard();
+      console.log(`[NAV] Switching to view: ${v}`);
+
+      // V30.0 Phase 3.5: All main views
+      const views = [
+        'dashboard-view',
+        'workout-view',
+        'klinik-view',    // Analytics
+        'ai-view',        // AI Command Center
+        'settings-view'   // Profile/Settings
+      ];
+
+      // Hide all views
+      views.forEach(viewId => {
+        const viewEl = document.getElementById(viewId);
+        if (viewEl) {
+          viewEl.classList.add('hidden');
+        }
+      });
+
+      // Show target view
+      const targetView = `${v}-view`;
+      const targetEl = document.getElementById(targetView);
+
+      if (targetEl) {
+        targetEl.classList.remove('hidden');
+
+        // Scroll to top when switching views
+        window.scrollTo(0, 0);
+      } else {
+        console.error(`[NAV] View not found: ${targetView}`);
+        // Fallback to dashboard if view not found
+        const dashboardEl = document.getElementById('dashboard-view');
+        if (dashboardEl) dashboardEl.classList.remove('hidden');
+      }
+
+      // V30.0 Phase 3.5: Hide bottom nav during workout session
+      const bottomNav = document.getElementById('bottom-nav');
+      if (bottomNav) {
+        if (v === 'workout') {
+          bottomNav.classList.add('hidden');
+        } else {
+          bottomNav.classList.remove('hidden');
+        }
+      }
+
+      // View-specific rendering logic
+      if (v === 'dashboard') {
+        // Render dashboard
+        if (window.APP.nav && window.APP.nav.renderDashboard) {
+          window.APP.nav.renderDashboard();
+        }
+      } else if (v === 'klinik') {
+        // V30.0 Phase 3.5: Render analytics view
+        // Initialize the klinik view with data
+        if (window.APP.stats && window.APP.stats.initKlinikView) {
+          window.APP.stats.initKlinikView();
+        }
+      } else if (v === 'ai') {
+        // V30.0 Phase 3.5: Initialize AI view
+        if (window.APP.ui && window.APP.ui.initAIView) {
+          window.APP.ui.initAIView();
+        }
+      } else if (v === 'settings') {
+        // V30.0 Phase 3.5: Load profile data into settings view
+        if (window.APP.data && window.APP.data.loadProfileToSettings) {
+          window.APP.data.loadProfileToSettings();
+        }
+      }
 
       // V30.0: Update bottom nav active state
       window.APP.nav.updateBottomNav(v);
     },
 
     /**
-     * V30.0: Update bottom navigation active state
-     * @param {string} activeView - Current view identifier
+     * V30.0 Phase 3.5: Update bottom navigation active state
+     * @param {string} activeView - Current view identifier (without '-view' suffix)
      */
     updateBottomNav: function(activeView) {
-      // View mapping (some views use different IDs)
+      // View mapping - maps internal view names to nav data-view attributes
       const viewMap = {
         'dashboard': 'dashboard',
-        'klinik': 'stats',
-        'stats': 'stats',
+        'workout': 'dashboard',    // Workout doesn't have nav item, keep dashboard active
+        'klinik': 'klinik',
+        'stats': 'klinik',         // Alias
         'ai': 'ai',
-        'settings': 'profile',
-        'profile': 'profile'
+        'settings': 'settings',
+        'profile': 'settings'      // Alias
       };
 
       const mappedView = viewMap[activeView] || activeView;

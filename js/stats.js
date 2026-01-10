@@ -1276,9 +1276,14 @@
  * @param {number} daysBack - Number of days to analyze (default: 30)
  */
 renderAdvancedRatios: function(daysBack = 30) {
-  const container = document.getElementById('advanced-ratios-container');
+  // V30.0 Phase 3.5: Support both modal and klinik-view contexts
+  const klinikView = document.getElementById("klinik-view");
+  const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+  const containerId = isKlinikView ? 'klinik-advanced-ratios-container' : 'advanced-ratios-container';
+
+  const container = document.getElementById(containerId);
   if (!container) {
-    console.warn("[STATS] Advanced ratios container not found");
+    console.warn("[STATS] Advanced ratios container not found:", containerId);
     return;
   }
 
@@ -1292,12 +1297,13 @@ renderAdvancedRatios: function(daysBack = 30) {
   let html = '';
 
   // ========================================
-  // QUAD/HAMSTRING CARD
+  // V30.0 Phase 4: QUAD/HAMSTRING CARD (Dark Theme)
   // ========================================
   if (quadHams.quadVolume > 0 || quadHams.hamsVolume > 0) {
-    const qhBadgeClass = quadHams.color === 'green' ? 'bg-green-900/40 text-green-300' :
-                         quadHams.color === 'yellow' ? 'bg-yellow-900/40 text-yellow-300' :
-                         'bg-red-900/40 text-red-300';
+    // V30.0: Updated badge classes with proper opacity
+    const qhBadgeClass = quadHams.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                         quadHams.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                         'bg-red-500/20 text-red-400';
 
     const qhIcon = quadHams.color === 'green' ? '✅' :
                    quadHams.color === 'yellow' ? '⚠️' : '🚨';
@@ -1306,44 +1312,46 @@ renderAdvancedRatios: function(daysBack = 30) {
     const markerPos = Math.min(Math.max(quadHams.ratio * 50, 0), 100);
 
     html += `
-      <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3">
-        <div class="flex justify-between items-center mb-2">
-          <h4 class="text-xs font-semibold text-white">🦵 Quad/Hamstring Balance</h4>
-          <button class="text-slate-400 hover:text-slate-300 text-sm"
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🦵 Quad/Hamstring Balance</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
                   onclick="window.APP.ui.showTooltip('qh-info', event)"
                   onmouseleave="window.APP.ui.hideTooltip()">
             ℹ️
           </button>
         </div>
 
-        <div class="flex items-baseline mb-2">
-          <span class="text-3xl font-bold text-white">${quadHams.ratio}</span>
-          <span class="ml-2 text-[10px] text-slate-400">Target: 0.6-0.8</span>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${quadHams.ratio}</span>
+          <span class="ml-2 text-xs text-app-subtext">Target: 0.6-0.8</span>
         </div>
 
-        <div class="mb-2">
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${qhBadgeClass}">
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${qhBadgeClass}">
             ${qhIcon} ${quadHams.status.charAt(0).toUpperCase() + quadHams.status.slice(1)}
           </span>
         </div>
 
-        <div class="relative h-2 bg-slate-700 rounded-full mb-3">
-          <div class="absolute h-2 bg-red-600/60 rounded-l-full" style="width: 25%; left: 0;"></div>
-          <div class="absolute h-2 bg-yellow-600/60" style="width: 10%; left: 25%;"></div>
-          <div class="absolute h-2 bg-green-600/60" style="width: 20%; left: 35%;"></div>
-          <div class="absolute h-2 bg-yellow-600/60" style="width: 20%; left: 55%;"></div>
-          <div class="absolute h-2 bg-red-600/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
-          <div class="absolute h-4 w-0.5 bg-white -mt-1 transition-all" style="left: ${markerPos}%;"></div>
+        <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+          <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 25%; left: 0;"></div>
+          <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 25%;"></div>
+          <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 35%;"></div>
+          <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 55%;"></div>
+          <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
+          <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${markerPos}%;"></div>
         </div>
 
-        <div class="text-[10px] text-slate-400 space-y-1">
+        <div class="h-px bg-white/10 my-3"></div>
+
+        <div class="text-xs text-app-subtext space-y-2">
           <div class="flex justify-between">
             <span>Quad Volume:</span>
-            <span class="font-medium text-slate-300">${quadHams.quadVolume.toLocaleString()} kg</span>
+            <span class="font-semibold text-white">${quadHams.quadVolume.toLocaleString()} kg</span>
           </div>
           <div class="flex justify-between">
             <span>Hams Volume:</span>
-            <span class="font-medium text-slate-300">${quadHams.hamsVolume.toLocaleString()} kg</span>
+            <span class="font-semibold text-white">${quadHams.hamsVolume.toLocaleString()} kg</span>
           </div>
         </div>
       </div>
@@ -1351,12 +1359,13 @@ renderAdvancedRatios: function(daysBack = 30) {
   }
 
   // ========================================
-  // PUSH/PULL CARD
+  // V30.0 Phase 4: PUSH/PULL CARD (Dark Theme)
   // ========================================
   if (pushPull.totalPush > 0 || pushPull.totalPull > 0) {
-    const ppBadgeClass = pushPull.color === 'green' ? 'bg-green-900/40 text-green-300' :
-                         pushPull.color === 'yellow' ? 'bg-yellow-900/40 text-yellow-300' :
-                         'bg-red-900/40 text-red-300';
+    // V30.0: Updated badge classes
+    const ppBadgeClass = pushPull.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                         pushPull.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                         'bg-red-500/20 text-red-400';
 
     const ppIcon = pushPull.color === 'green' ? '✅' :
                    pushPull.color === 'yellow' ? '⚠️' : '🚨';
@@ -1365,65 +1374,67 @@ renderAdvancedRatios: function(daysBack = 30) {
     const ppMarkerPos = Math.min(Math.max((pushPull.totalRatio - 0.8) / 0.6 * 100, 0), 100);
 
     html += `
-      <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3">
-        <div class="flex justify-between items-center mb-2">
-          <h4 class="text-xs font-semibold text-white">⚖️ Push/Pull Balance</h4>
-          <button class="text-slate-400 hover:text-slate-300 text-sm"
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">⚖️ Push/Pull Balance</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
                   onclick="window.APP.ui.showTooltip('pp-info', event)"
                   onmouseleave="window.APP.ui.hideTooltip()">
             ℹ️
           </button>
         </div>
 
-        <div class="flex items-baseline mb-2">
-          <span class="text-3xl font-bold text-white">${pushPull.totalRatio}</span>
-          <span class="ml-2 text-[10px] text-slate-400">Target: 1.0-1.2</span>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${pushPull.totalRatio}</span>
+          <span class="ml-2 text-xs text-app-subtext">Target: 1.0-1.2</span>
         </div>
 
-        <div class="mb-2">
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${ppBadgeClass}">
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${ppBadgeClass}">
             ${ppIcon} ${pushPull.status.charAt(0).toUpperCase() + pushPull.status.slice(1)}
           </span>
         </div>
 
-        <div class="relative h-2 bg-slate-700 rounded-full mb-3">
-          <div class="absolute h-2 bg-red-600/60 rounded-l-full" style="width: 20%; left: 0;"></div>
-          <div class="absolute h-2 bg-yellow-600/60" style="width: 13.3%; left: 20%;"></div>
-          <div class="absolute h-2 bg-green-600/60" style="width: 13.3%; left: 33.3%;"></div>
-          <div class="absolute h-2 bg-yellow-600/60" style="width: 13.3%; left: 46.6%;"></div>
-          <div class="absolute h-2 bg-red-600/60 rounded-r-full" style="width: 40%; left: 60%;"></div>
-          <div class="absolute h-4 w-0.5 bg-white -mt-1 transition-all" style="left: ${ppMarkerPos}%;"></div>
+        <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+          <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+          <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 20%;"></div>
+          <div class="absolute h-2 bg-emerald-500/60" style="width: 13.3%; left: 33.3%;"></div>
+          <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 46.6%;"></div>
+          <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 40%; left: 60%;"></div>
+          <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${ppMarkerPos}%;"></div>
         </div>
 
-        <div class="text-[10px] text-slate-400 space-y-1">
+        <div class="h-px bg-white/10 my-3"></div>
+
+        <div class="text-xs text-app-subtext space-y-2">
           <div class="flex justify-between">
             <span>Total Push:</span>
-            <span class="font-medium text-slate-300">${pushPull.totalPush.toLocaleString()} kg</span>
+            <span class="font-semibold text-white">${pushPull.totalPush.toLocaleString()} kg</span>
           </div>
           <div class="flex justify-between">
             <span>Total Pull:</span>
-            <span class="font-medium text-slate-300">${pushPull.totalPull.toLocaleString()} kg</span>
+            <span class="font-semibold text-white">${pushPull.totalPull.toLocaleString()} kg</span>
           </div>
-          <button class="text-[9px] text-blue-400 hover:text-blue-300 mt-1"
+          <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
                   onclick="this.nextElementSibling.classList.toggle('hidden')">
             ▼ View Upper/Lower Breakdown
           </button>
-          <div class="hidden mt-2 pt-2 border-t border-slate-600 space-y-1">
-            <div class="flex justify-between text-[9px]">
+          <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-2">
+            <div class="flex justify-between text-[10px]">
               <span>Upper Push:</span>
-              <span class="font-medium text-slate-300">${pushPull.upperPush.toLocaleString()} kg</span>
+              <span class="font-semibold text-white">${pushPull.upperPush.toLocaleString()} kg</span>
             </div>
-            <div class="flex justify-between text-[9px]">
+            <div class="flex justify-between text-[10px]">
               <span>Upper Pull:</span>
-              <span class="font-medium text-slate-300">${pushPull.upperPull.toLocaleString()} kg</span>
+              <span class="font-semibold text-white">${pushPull.upperPull.toLocaleString()} kg</span>
             </div>
-            <div class="flex justify-between text-[9px]">
+            <div class="flex justify-between text-[10px]">
               <span>Lower Push:</span>
-              <span class="font-medium text-slate-300">${pushPull.lowerPush.toLocaleString()} kg</span>
+              <span class="font-semibold text-white">${pushPull.lowerPush.toLocaleString()} kg</span>
             </div>
-            <div class="flex justify-between text-[9px]">
+            <div class="flex justify-between text-[10px]">
               <span>Lower Pull:</span>
-              <span class="font-medium text-slate-300">${pushPull.lowerPull.toLocaleString()} kg</span>
+              <span class="font-semibold text-white">${pushPull.lowerPull.toLocaleString()} kg</span>
             </div>
           </div>
         </div>
@@ -1432,122 +1443,127 @@ renderAdvancedRatios: function(daysBack = 30) {
   }
 
   // ========================================
-  // CORE TRAINING CARD
+  // V30.0 Phase 4: CORE TRAINING CARD (Dark Theme)
   // ========================================
-  const coreBadgeClass = core.color === 'green' ? 'bg-green-900/40 text-green-300' :
-                         core.color === 'yellow' ? 'bg-yellow-900/40 text-yellow-300' :
-                         'bg-red-900/40 text-red-300';
+  const coreBadgeClass = core.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                         core.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                         'bg-red-500/20 text-red-400';
 
   const coreIcon = core.color === 'green' ? '✅' :
                    core.color === 'yellow' ? '⚠️' : '🚨';
 
   // Progress bar (0-30 scale, show 0-25 target)
   const coreProgress = Math.min((core.weeklySets / 25) * 100, 100);
+  const coreProgressColor = core.color === 'green' ? 'bg-emerald-500' :
+                            core.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500';
 
   html += `
-    <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3">
-      <div class="flex justify-between items-center mb-2">
-        <h4 class="text-xs font-semibold text-white">💪 Core Training</h4>
-        <button class="text-slate-400 hover:text-slate-300 text-sm"
+    <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-sm font-semibold text-white">💪 Core Training</h4>
+        <button class="text-app-subtext hover:text-white text-sm transition-colors"
                 onclick="window.APP.ui.showTooltip('core-info', event)"
                 onmouseleave="window.APP.ui.hideTooltip()">
           ℹ️
         </button>
       </div>
 
-      <div class="flex items-baseline mb-2">
-        <span class="text-3xl font-bold text-white">${core.weeklySets}</span>
-        <span class="ml-2 text-[10px] text-slate-400">sets/week</span>
+      <div class="flex items-baseline mb-3">
+        <span class="text-4xl font-bold text-white">${core.weeklySets}</span>
+        <span class="ml-2 text-xs text-app-subtext">sets/week</span>
       </div>
 
-      <div class="mb-2">
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${coreBadgeClass}">
+      <div class="mb-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${coreBadgeClass}">
           ${coreIcon} ${core.status.charAt(0).toUpperCase() + core.status.slice(1)}
         </span>
       </div>
 
-      <div class="mb-3">
-        <div class="flex justify-between text-[9px] text-slate-400 mb-1">
+      <div class="mb-4">
+        <div class="flex justify-between text-[10px] text-app-subtext mb-2">
           <span>Target: 15-25 sets/week</span>
-          <span>${core.weeklySets}/25</span>
+          <span class="font-semibold text-white">${core.weeklySets}/25</span>
         </div>
-        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-          <div class="h-2 ${core.color === 'green' ? 'bg-green-500' : core.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'} transition-all"
+        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-2 ${coreProgressColor} transition-all"
                style="width: ${coreProgress}%;"></div>
         </div>
       </div>
 
-      <div class="text-[10px] text-slate-400 space-y-1">
+      <div class="h-px bg-white/10 my-3"></div>
+
+      <div class="text-xs text-app-subtext space-y-2">
         <div class="flex justify-between">
           <span>Frequency:</span>
-          <span class="font-medium text-slate-300">${core.frequency} days/month</span>
+          <span class="font-semibold text-white">${core.frequency} days/month</span>
         </div>
         <div class="flex justify-between">
           <span>Exercise Variety:</span>
-          <span class="font-medium text-slate-300">${core.variety} exercises</span>
+          <span class="font-semibold text-white">${core.variety} exercises</span>
         </div>
       </div>
     </div>
   `;
 
   // ========================================
-  // BODYWEIGHT CONTRIBUTION CARD
+  // V30.0 Phase 4: BODYWEIGHT CONTRIBUTION CARD (Dark Theme)
   // ========================================
   const bwPercentage = bodyweight.bodyweightPercentage || 0;
   const bwMessage = bwPercentage > 30 ? 'High Calisthenics Usage' :
                     bwPercentage > 0 ? 'Hybrid Training' :
                     'Weighted Only';
-  const bwBadgeClass = bwPercentage > 30 ? 'bg-purple-900/40 text-purple-300' :
-                       bwPercentage > 0 ? 'bg-blue-900/40 text-blue-300' :
-                       'bg-slate-700 text-slate-300';
+  const bwBadgeClass = bwPercentage > 30 ? 'bg-purple-500/20 text-purple-400' :
+                       bwPercentage > 0 ? 'bg-app-accent-dim text-app-accent' :
+                       'bg-white/5 text-app-subtext';
   const isUsingDefault = bodyweight.userWeight === 70;
 
   html += `
-    <div class="bg-slate-800/50 rounded-lg border border-slate-700 p-3">
-      <div class="flex justify-between items-center mb-2">
-        <h4 class="text-xs font-semibold text-white">🤸 Bodyweight Contribution</h4>
-        <button class="text-slate-400 hover:text-slate-300 text-sm"
+    <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-sm font-semibold text-white">🤸 Bodyweight Contribution</h4>
+        <button class="text-app-subtext hover:text-white text-sm transition-colors"
                 onclick="window.APP.ui.showTooltip('bw-info', event)"
                 onmouseleave="window.APP.ui.hideTooltip()">
           ℹ️
         </button>
       </div>
 
-      <div class="flex items-baseline mb-2">
-        <span class="text-3xl font-bold text-white">${bwPercentage.toFixed(1)}%</span>
-        <span class="ml-2 text-[10px] text-slate-400">of total volume</span>
+      <div class="flex items-baseline mb-3">
+        <span class="text-4xl font-bold text-white">${bwPercentage.toFixed(1)}%</span>
+        <span class="ml-2 text-xs text-app-subtext">of total volume</span>
       </div>
 
-      <div class="mb-2">
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${bwBadgeClass}">
+      <div class="mb-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${bwBadgeClass}">
           ${bwMessage}
         </span>
       </div>
 
       ${isUsingDefault ? `
-        <div class="mb-2 p-2 bg-yellow-900/20 border border-yellow-900/50 rounded text-[9px] text-yellow-300">
-          ⚠️ Using default 70kg weight. <a href="#" onclick="window.APP.ui.closeModal('stats'); window.APP.ui.openModal('profile'); return false;" class="underline font-medium">Update profile</a> for accuracy.
+        <div class="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-[10px] text-yellow-400">
+          ⚠️ Using default 70kg weight. <a href="#" onclick="window.APP.ui.closeModal('stats'); window.APP.ui.openModal('profile'); return false;" class="underline font-semibold hover:text-yellow-300">Update profile</a> for accuracy.
         </div>
       ` : ''}
 
       ${bodyweight.bodyweightExercises && bodyweight.bodyweightExercises.length > 0 ? `
-        <div class="text-[10px] text-slate-400">
-          <div class="font-medium mb-1">Bodyweight Exercises (${bodyweight.bodyweightExercises.length}):</div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext">
+          <div class="font-semibold text-white mb-2">Bodyweight Exercises (${bodyweight.bodyweightExercises.length}):</div>
           <div class="space-y-1">
             ${bodyweight.bodyweightExercises.slice(0, 5).map(ex => `
-              <div class="text-[9px] text-slate-300">
+              <div class="text-[10px] text-app-subtext">
                 • ${ex}
               </div>
             `).join('')}
             ${bodyweight.bodyweightExercises.length > 5 ? `
-              <div class="text-[9px] text-slate-500 italic">
+              <div class="text-[10px] text-app-subtext/60 italic mt-1">
                 +${bodyweight.bodyweightExercises.length - 5} more
               </div>
             ` : ''}
           </div>
         </div>
       ` : `
-        <div class="text-[10px] text-slate-500 italic">
+        <div class="text-[10px] text-app-subtext/60 italic">
           No bodyweight exercises logged
         </div>
       `}
@@ -1610,20 +1626,37 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     switchTab: (t) => {
+      // V30.0 Phase 3.5: Detect if using klinik-view or stats-modal
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+
+      // V30.0: Element ID prefixes based on context
+      const prefix = isKlinikView ? 'klinik' : 'stats';
+      const contentSuffix = isKlinikView ? '-content' : '-view';
+
+      // Hide all tab content views
       const views = [
-        "stats-dashboard-view",
-        "stats-chart-view",
-        "stats-table-view",
-        "stats-bodyparts-view",
+        `${prefix}-dashboard${contentSuffix}`,
+        `${prefix}-chart${contentSuffix}`,
+        `${prefix}-table${contentSuffix}`,
+        `${prefix}-bodyparts${contentSuffix}`,
       ];
       views.forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.classList.add("hidden");
       });
 
-      const vitalEl = document.getElementById("vital-signs");
+      // Also hide modal views if they exist (for backward compatibility)
+      if (isKlinikView) {
+        ["stats-dashboard-view", "stats-chart-view", "stats-table-view", "stats-bodyparts-view"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add("hidden");
+        });
+      }
+
+      const vitalEl = document.getElementById(isKlinikView ? "klinik-vital-signs" : "vital-signs");
       const exerciseSelector = document.getElementById(
-        "exercise-selector-container"
+        isKlinikView ? "klinik-exercise-selector" : "exercise-selector-container"
       );
 
       if (vitalEl) {
@@ -1641,13 +1674,15 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
       }
 
+      // Update tab button states
       ["dashboard", "chart", "table", "bodyparts"].forEach((tab) => {
-        const btn = document.getElementById(`tab-${tab}`);
+        // Try klinik tabs first, then modal tabs
+        const btn = document.getElementById(`${prefix}-tab-${tab}`) || document.getElementById(`tab-${tab}`);
         if (btn) {
           btn.className =
             tab === t
-              ? "tab-btn active flex-shrink-0"
-              : "tab-btn inactive flex-shrink-0";
+              ? "tab-btn active w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              : "tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all";
         }
       });
 
@@ -1658,7 +1693,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         bodyparts: "Body Parts",
       };
 
-      const labelEl = document.getElementById("active-tab-label");
+      const labelEl = document.getElementById(isKlinikView ? "klinik-active-tab-label" : "active-tab-label");
       if (labelEl) {
         labelEl.innerText = labelMap[t] || "Dashboard";
         labelEl.style.opacity = "0";
@@ -1670,10 +1705,15 @@ renderAdvancedRatios: function(daysBack = 30) {
       APP.stats.currentView = t;
 
       if (t === "dashboard") {
-        const el = document.getElementById("stats-dashboard-view");
+        const el = document.getElementById(`${prefix}-dashboard${contentSuffix}`);
         if (el) el.classList.remove("hidden");
 
-        APP.stats.updateDashboard();
+        // V30.0: Update dashboard for both klinik view and modal
+        if (isKlinikView) {
+          APP.stats.renderKlinikDashboard();
+        } else {
+          APP.stats.updateDashboard();
+        }
 
         if (vitalEl) {
           vitalEl.classList.add("hidden");
@@ -1684,7 +1724,7 @@ renderAdvancedRatios: function(daysBack = 30) {
           exerciseSelector.style.display = "none";
         }
       } else if (t === "chart") {
-        const el = document.getElementById("stats-chart-view");
+        const el = document.getElementById(`${prefix}-chart${contentSuffix}`);
         if (el) el.classList.remove("hidden");
 
         if (vitalEl) {
@@ -1693,7 +1733,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
         APP.stats.updateChart();
       } else if (t === "table") {
-        const el = document.getElementById("stats-table-view");
+        const el = document.getElementById(`${prefix}-table${contentSuffix}`);
         if (el) el.classList.remove("hidden");
 
         if (vitalEl) {
@@ -1702,7 +1742,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
         APP.stats.updateChart();
       } else if (t === "bodyparts") {
-        const el = document.getElementById("stats-bodyparts-view");
+        const el = document.getElementById(`${prefix}-bodyparts${contentSuffix}`);
         if (el) el.classList.remove("hidden");
 
         APP.stats.updateBodyParts();
@@ -1719,6 +1759,11 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     updateDashboard: () => {
+      // V30.0 Phase 3.5: Detect context for correct element IDs
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+      APP.stats._dashboardIsKlinik = isKlinikView; // Store for use by helper functions
+
       const h = LS_SAFE.getJSON("gym_hist", []);
       if (h.length === 0) return;
 
@@ -1793,18 +1838,21 @@ renderAdvancedRatios: function(daysBack = 30) {
       const lastWeekSessions = new Set(lastWeekLogs.map((l) => l.date))
         .size;
 
-      const volCurrentEl = document.getElementById("dash-volume-current");
-      const volDiffEl = document.getElementById("dash-volume-diff");
-      const rpeCurrentEl = document.getElementById("dash-rpe-current");
-      const rpeDiffEl = document.getElementById("dash-rpe-diff");
+      // V30.0 Phase 3.5: Use correct element IDs based on context
+      const prefix = APP.stats._dashboardIsKlinik ? 'klinik-' : '';
+
+      const volCurrentEl = document.getElementById(`${prefix}dash-volume-current`);
+      const volDiffEl = document.getElementById(`${prefix}dash-volume-diff`);
+      const rpeCurrentEl = document.getElementById(`${prefix}dash-rpe-current`);
+      const rpeDiffEl = document.getElementById(`${prefix}dash-rpe-diff`);
       const sessionsCurrentEl = document.getElementById(
-        "dash-sessions-current"
+        `${prefix}dash-sessions-current`
       );
-      const sessionsDiffEl = document.getElementById("dash-sessions-diff");
+      const sessionsDiffEl = document.getElementById(`${prefix}dash-sessions-diff`);
       const tonnageCurrentEl = document.getElementById(
-        "dash-tonnage-current"
+        `${prefix}dash-tonnage-current`
       );
-      const tonnageDiffEl = document.getElementById("dash-tonnage-diff");
+      const tonnageDiffEl = document.getElementById(`${prefix}dash-tonnage-diff`);
 
       if (volCurrentEl)
         volCurrentEl.innerText = thisWeekVol.toLocaleString();
@@ -1871,7 +1919,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (log.type === "cardio") return;
 
         if (!exerciseMap[log.ex]) {
-          exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+          exerciseMap[log.ex] = { thisVol: 0, lastVol: 0, isNew: true };
         }
         exerciseMap[log.ex].thisVol += log.vol || 0;
       });
@@ -1880,7 +1928,9 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (log.type === "cardio") return;
 
         if (!exerciseMap[log.ex]) {
-          exerciseMap[log.ex] = { thisVol: 0, lastVol: 0 };
+          exerciseMap[log.ex] = { thisVol: 0, lastVol: 0, isNew: false };
+        } else {
+          exerciseMap[log.ex].isNew = false; // Exercise existed last week
         }
         exerciseMap[log.ex].lastVol += log.vol || 0;
       });
@@ -1891,14 +1941,16 @@ renderAdvancedRatios: function(daysBack = 30) {
           const pctChange =
             data.lastVol > 0
               ? ((data.thisVol - data.lastVol) / data.lastVol) * 100
-              : 0;
-          return { ex, pctChange, thisVol: data.thisVol };
+              : (data.isNew ? 100 : 0); // New exercises get 100% as "new addition"
+          return { ex, pctChange, thisVol: data.thisVol, lastVol: data.lastVol, isNew: data.isNew };
         })
         .filter((item) => item.thisVol > 0)
         .sort((a, b) => b.pctChange - a.pctChange)
         .slice(0, 3);
 
-      const container = document.getElementById("dash-top-gainers");
+      // V30.0 Phase 3.5: Use correct element ID based on context
+      const prefix = APP.stats._dashboardIsKlinik ? 'klinik-' : '';
+      const container = document.getElementById(`${prefix}dash-top-gainers`);
       if (!container) return;
 
       if (gainers.length === 0) {
@@ -1910,19 +1962,27 @@ renderAdvancedRatios: function(daysBack = 30) {
       let html = "";
       gainers.forEach((item, idx) => {
         const emoji = idx === 0 ? "🔥" : idx === 1 ? "📈" : "✅";
-        const color =
-          item.pctChange > 10
-            ? "text-emerald-400"
-            : item.pctChange > 0
-            ? "text-blue-400"
-            : "text-slate-400";
+        let color, displayText;
+
+        if (item.isNew && item.lastVol === 0) {
+          // New exercise this week - show "NEW" instead of percentage
+          color = "text-purple-400";
+          displayText = "NEW";
+        } else if (item.pctChange > 10) {
+          color = "text-emerald-400";
+          displayText = `${item.pctChange > 0 ? "+" : ""}${item.pctChange.toFixed(1)}%`;
+        } else if (item.pctChange > 0) {
+          color = "text-blue-400";
+          displayText = `+${item.pctChange.toFixed(1)}%`;
+        } else {
+          color = "text-slate-400";
+          displayText = `${item.pctChange.toFixed(1)}%`;
+        }
 
         html += `
         <div class="flex justify-between items-center bg-slate-800/30 p-2 rounded">
           <span class="text-xs text-slate-300">${idx + 1}. ${item.ex}</span>
-          <span class="text-xs font-bold ${color}">[${
-          item.pctChange > 0 ? "+" : ""
-        }${item.pctChange.toFixed(1)}%] ${emoji}</span>
+          <span class="text-xs font-bold ${color}">[${displayText}] ${emoji}</span>
         </div>
       `;
       });
@@ -1931,8 +1991,10 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     checkFatigue: (logs) => {
-      const alert = document.getElementById("dash-fatigue-alert");
-      const message = document.getElementById("dash-fatigue-message");
+      // V30.0 Phase 3.5: Use correct element ID based on context
+      const prefix = APP.stats._dashboardIsKlinik ? 'klinik-' : '';
+      const alert = document.getElementById(`${prefix}dash-fatigue-alert`);
+      const message = document.getElementById(`${prefix}dash-fatigue-message`);
 
       if (!alert || !message) return;
 
@@ -2029,7 +2091,12 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     updateBodyParts: () => {
-      const periodEl = document.getElementById("bodypart-period");
+      // V30.0 Phase 3.5: Detect context for correct element IDs
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+      APP.stats._isKlinikView = isKlinikView; // Store for use by render functions
+
+      const periodEl = document.getElementById(isKlinikView ? "klinik-bodypart-period" : "bodypart-period");
       const weeks = parseInt(periodEl?.value || 4);
       const h = LS_SAFE.getJSON("gym_hist", []);
 
@@ -2097,8 +2164,13 @@ renderAdvancedRatios: function(daysBack = 30) {
     setBodyPartView: (mode) => {
       APP.stats.bodyPartViewMode = mode;
 
-      const combinedBtn = document.getElementById("view-combined-btn");
-      const splitBtn = document.getElementById("view-split-btn");
+      // V30.0 Phase 3.5: Detect context for correct element IDs
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+      const prefix = isKlinikView ? 'klinik-' : '';
+
+      const combinedBtn = document.getElementById(`${prefix}view-combined-btn`);
+      const splitBtn = document.getElementById(`${prefix}view-split-btn`);
 
       if (mode === "combined") {
         combinedBtn.className =
@@ -2116,7 +2188,9 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     renderStackedVolume: (direct, indirect, total) => {
-      const container = document.getElementById("bodypart-bars");
+      // V30.0 Phase 3.5: Use stored context
+      const isKlinikView = APP.stats._isKlinikView;
+      const container = document.getElementById(isKlinikView ? "klinik-bodypart-bars" : "bodypart-bars");
       if (!container) return;
 
       const viewMode = APP.stats.bodyPartViewMode || "combined";
@@ -2128,8 +2202,10 @@ renderAdvancedRatios: function(daysBack = 30) {
       }
     },
 
+    // V30.0 Phase 4: Combined view with dark theme
     renderCombinedView: (direct, indirect, total) => {
-      const container = document.getElementById("bodypart-bars");
+      const isKlinikView = APP.stats._isKlinikView;
+      const container = document.getElementById(isKlinikView ? "klinik-bodypart-bars" : "bodypart-bars");
       const muscles = ["chest", "back", "legs", "shoulders", "arms"];
       const maxVol = Math.max(
         ...muscles.map((m) => (direct[m] || 0) + (indirect[m] || 0))
@@ -2137,11 +2213,11 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (maxVol === 0) {
         container.innerHTML =
-          '<p class="text-xs text-slate-500 italic">No data in selected period.</p>';
+          '<p class="text-xs text-app-subtext/60 italic text-center py-4">No data in selected period.</p>';
         return;
       }
 
-      let html = '<div class="space-y-3">';
+      let html = '<div class="space-y-4">';
 
       muscles.forEach((muscle) => {
         const directVol = direct[muscle] || 0;
@@ -2152,22 +2228,23 @@ renderAdvancedRatios: function(daysBack = 30) {
 
         const label = muscle.charAt(0).toUpperCase() + muscle.slice(1);
 
+        // V30.0: Teal accent for bars
         html += `
-      <div class="mb-3">
-        <div class="flex justify-between text-xs mb-1">
-          <span class="text-slate-300 font-bold">${label}</span>
-          <span class="text-slate-400 font-mono">${totalVol.toLocaleString()} kg</span>
+      <div class="bg-app-card rounded-xl p-3 border border-white/10">
+        <div class="flex justify-between text-xs mb-2">
+          <span class="text-white font-semibold">${label}</span>
+          <span class="text-app-accent font-bold font-mono">${totalVol.toLocaleString()} kg</span>
         </div>
 
-        <div class="bg-slate-700/30 rounded-full h-8 overflow-hidden relative">
+        <div class="bg-white/5 rounded-full h-6 overflow-hidden relative">
           <div class="absolute inset-0 flex" style="width: ${pctTotal}%">
             <div
-              class="bg-emerald-500 h-full transition-all duration-500"
+              class="bg-app-accent h-full transition-all duration-500"
               style="width: ${pctDirect}%"
               title="Direct: ${directVol.toLocaleString()} kg"
             ></div>
             <div
-              class="bg-emerald-500/25 border-l border-emerald-500/50 h-full transition-all duration-500"
+              class="bg-app-accent/30 border-l border-app-accent/50 h-full transition-all duration-500"
               style="width: ${100 - pctDirect}%"
               title="Indirect: ${indirectVol.toLocaleString()} kg"
             ></div>
@@ -2177,7 +2254,7 @@ renderAdvancedRatios: function(daysBack = 30) {
             pctTotal > 15
               ? `
             <div class="absolute inset-0 flex items-center justify-end pr-3">
-              <span class="text-xs font-bold text-white">${pctTotal.toFixed(
+              <span class="text-xs font-bold text-white drop-shadow-lg">${pctTotal.toFixed(
                 0
               )}%</span>
             </div>
@@ -2186,16 +2263,16 @@ renderAdvancedRatios: function(daysBack = 30) {
           }
         </div>
 
-        <div class="flex gap-4 mt-1 text-[10px] text-slate-500">
+        <div class="flex gap-4 mt-2 text-[10px] text-app-subtext">
           <div class="flex items-center gap-1">
-            <div class="w-2 h-2 bg-emerald-500 rounded-sm"></div>
+            <div class="w-2 h-2 bg-app-accent rounded-sm"></div>
             <span>Direct: ${directVol.toLocaleString()} kg</span>
           </div>
           ${
             indirectVol > 0
               ? `
             <div class="flex items-center gap-1">
-              <div class="w-2 h-2 bg-emerald-500/25 border border-emerald-500/50 rounded-sm"></div>
+              <div class="w-2 h-2 bg-app-accent/30 border border-app-accent/50 rounded-sm"></div>
               <span>Indirect: ${indirectVol.toLocaleString()} kg</span>
             </div>
           `
@@ -2210,8 +2287,10 @@ renderAdvancedRatios: function(daysBack = 30) {
       container.innerHTML = html;
     },
 
+    // V30.0 Phase 4: Split view with dark theme
     renderSplitView: (direct, indirect, total) => {
-      const container = document.getElementById("bodypart-bars");
+      const isKlinikView = APP.stats._isKlinikView;
+      const container = document.getElementById(isKlinikView ? "klinik-bodypart-bars" : "bodypart-bars");
 
       const upperBody = ["chest", "back", "shoulders", "arms"];
       const lowerBody = ["legs"];
@@ -2225,10 +2304,11 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       let html = "";
 
+      // V30.0: Orange accent for lower body
       html += `
-    <div class="mb-6 pb-4 border-b border-slate-700">
-      <h4 class="text-xs font-bold text-blue-400 uppercase mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-person-running"></i> Lower Body (Absolute Scale)
+    <div class="mb-6 pb-4 border-b border-white/10">
+      <h4 class="text-sm font-bold text-orange-400 uppercase mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-person-running"></i> Lower Body
       </h4>
       <div class="space-y-3">
   `;
@@ -2254,10 +2334,11 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       html += "</div></div>";
 
+      // V30.0: Teal accent for upper body
       html += `
     <div>
-      <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-dumbbell"></i> Upper Body (Relative Scale)
+      <h4 class="text-sm font-bold text-app-accent uppercase mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-dumbbell"></i> Upper Body
       </h4>
       <div class="space-y-3">
   `;
@@ -2294,8 +2375,8 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (lowerTotal === 0 && upperTotal === 0) {
         html += `
-    <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-      <div class="text-xs text-slate-500 italic text-center">
+    <div class="mt-4 p-4 bg-app-card rounded-xl border border-white/10">
+      <div class="text-xs text-app-subtext/60 italic text-center">
         No volume data available for ratio calculation.
       </div>
     </div>
@@ -2306,9 +2387,9 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (lowerTotal === 0) {
         html += `
-    <div class="mt-4 p-3 bg-red-900/20 rounded-lg border border-red-500">
-      <div class="text-xs text-red-400 font-bold">⚠️ No lower body volume detected</div>
-      <div class="text-[9px] text-slate-500 mt-1">Add leg exercises to enable ratio analysis.</div>
+    <div class="mt-4 p-4 bg-red-500/10 rounded-xl border border-red-500/30">
+      <div class="text-sm text-red-400 font-bold">⚠️ No lower body volume detected</div>
+      <div class="text-xs text-app-subtext mt-1">Add leg exercises to enable ratio analysis.</div>
     </div>
   `;
         container.innerHTML = html;
@@ -2317,19 +2398,19 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       const ratio = (upperTotal / lowerTotal) * 100;
 
+      // V30.0: Dark theme ratio summary
       html += `
-  <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-    <div class="text-[10px] text-slate-400 mb-1">Upper:Lower Ratio</div>
-    <div class="text-lg font-bold text-white">
-      ${ratio.toFixed(
-        0
-      )}% <span class="text-xs text-slate-500">(Upper as % of Lower)</span>
+  <div class="mt-6 p-4 bg-app-card rounded-2xl border border-white/10">
+    <div class="text-xs text-app-subtext mb-1">Upper:Lower Ratio</div>
+    <div class="text-2xl font-bold text-white mb-2">
+      ${ratio.toFixed(0)}% <span class="text-sm text-app-subtext font-normal">(Upper as % of Lower)</span>
     </div>
-    <div class="text-[9px] text-slate-500 mt-1 italic">
+    <div class="text-xs text-app-subtext">
       ${APP.stats.interpretRatio(ratio)}
     </div>
-    <div class="mt-2 text-[10px] text-slate-600 border-t border-slate-700 pt-2">
-      Upper: ${upperTotal.toLocaleString()} kg | Lower: ${lowerTotal.toLocaleString()} kg
+    <div class="mt-3 pt-3 text-xs text-app-subtext border-t border-white/10 flex justify-between">
+      <span>Upper: <span class="text-app-accent font-semibold">${upperTotal.toLocaleString()} kg</span></span>
+      <span>Lower: <span class="text-orange-400 font-semibold">${lowerTotal.toLocaleString()} kg</span></span>
     </div>
   </div>
 `;
@@ -2337,11 +2418,12 @@ renderAdvancedRatios: function(daysBack = 30) {
       container.innerHTML = html;
     },
 
+    // V30.0 Phase 4: Dark theme interpretation
     interpretRatio: (ratio) => {
       if (ratio < 50) {
         return `
-      <span class="text-red-400">⚠️ Upper body critically lagging</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-red-400 font-semibold">⚠️ Upper body critically lagging</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Risk: Severe imbalance. Add 3-4 upper exercises ASAP.
       </div>
     `;
@@ -2349,8 +2431,8 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (ratio >= 50 && ratio < 80) {
         return `
-      <span class="text-orange-400">⚠️ Upper body significantly lagging</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-orange-400 font-semibold">⚠️ Upper body significantly lagging</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Typical for powerlifting/athletic focus. If goal is aesthetics, add upper work.
       </div>
     `;
@@ -2358,8 +2440,8 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (ratio >= 80 && ratio < 90) {
         return `
-      <span class="text-yellow-400">🦵 Lower body bias (slight)</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-yellow-400 font-semibold">🦵 Lower body bias (slight)</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Common for strength programs. Upper at 80-89% of lower volume.
       </div>
     `;
@@ -2367,8 +2449,8 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (ratio >= 90 && ratio <= 110) {
         return `
-      <span class="text-emerald-400">✅ Balanced program</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-emerald-400 font-semibold">✅ Balanced program</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Ideal ratio (90-110%). Upper and lower proportionally developed.
       </div>
     `;
@@ -2376,8 +2458,8 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (ratio > 110 && ratio <= 130) {
         return `
-      <span class="text-blue-400">💪 Upper body bias (slight)</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-app-accent font-semibold">💪 Upper body bias (slight)</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Common for hypertrophy/bodybuilding focus. Lower at 77-91% of upper.
       </div>
     `;
@@ -2385,21 +2467,22 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (ratio > 130 && ratio <= 150) {
         return `
-      <span class="text-indigo-400">💪 Upper body dominant</span>
-      <div class="text-[10px] text-slate-600 mt-1">
+      <span class="text-blue-400 font-semibold">💪 Upper body dominant</span>
+      <div class="text-[10px] text-app-subtext/80 mt-1">
         Strong upper focus. Ensure adequate leg volume for hormonal/metabolic benefits.
       </div>
     `;
       }
 
       return `
-    <span class="text-red-400">🚨 Skip Leg Day Alert</span>
-    <div class="text-[10px] text-slate-600 mt-1">
+    <span class="text-red-400 font-semibold">🚨 Skip Leg Day Alert</span>
+    <div class="text-[10px] text-app-subtext/80 mt-1">
       Upper >150% of lower. Add 2-3 compound leg movements immediately.
     </div>
   `;
     },
 
+    // V30.0 Phase 4: Dark theme muscle bar
     renderMuscleBar: (
       label,
       directVol,
@@ -2409,21 +2492,21 @@ renderAdvancedRatios: function(daysBack = 30) {
       pctDirect
     ) => {
       return `
-    <div class="mb-3">
-      <div class="flex justify-between text-xs mb-1">
-        <span class="text-slate-300 font-bold">${label}</span>
-        <span class="text-slate-400 font-mono">${totalVol.toLocaleString()} kg</span>
+    <div class="bg-app-card rounded-xl p-3 border border-white/10 mb-2">
+      <div class="flex justify-between text-xs mb-2">
+        <span class="text-white font-semibold">${label}</span>
+        <span class="text-app-accent font-bold font-mono">${totalVol.toLocaleString()} kg</span>
       </div>
 
-      <div class="bg-slate-700/30 rounded-full h-8 overflow-hidden relative">
+      <div class="bg-white/5 rounded-full h-6 overflow-hidden relative">
         <div class="absolute inset-0 flex" style="width: ${pctTotal}%">
           <div
-            class="bg-emerald-500 h-full transition-all duration-500"
+            class="bg-app-accent h-full transition-all duration-500"
             style="width: ${pctDirect}%"
             title="Direct: ${directVol.toLocaleString()} kg"
           ></div>
           <div
-            class="bg-emerald-500/25 border-l border-emerald-500/50 h-full transition-all duration-500"
+            class="bg-app-accent/30 border-l border-app-accent/50 h-full transition-all duration-500"
             style="width: ${100 - pctDirect}%"
             title="Indirect: ${indirectVol.toLocaleString()} kg"
           ></div>
@@ -2433,7 +2516,7 @@ renderAdvancedRatios: function(daysBack = 30) {
           pctTotal > 15
             ? `
           <div class="absolute inset-0 flex items-center justify-end pr-3">
-            <span class="text-xs font-bold text-white">${pctTotal.toFixed(
+            <span class="text-xs font-bold text-white drop-shadow-lg">${pctTotal.toFixed(
               0
             )}%</span>
           </div>
@@ -2442,16 +2525,16 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
       </div>
 
-      <div class="flex gap-4 mt-1 text-[10px] text-slate-500">
+      <div class="flex gap-4 mt-2 text-[10px] text-app-subtext">
         <div class="flex items-center gap-1">
-          <div class="w-2 h-2 bg-emerald-500 rounded-sm"></div>
+          <div class="w-2 h-2 bg-app-accent rounded-sm"></div>
           <span>Direct: ${directVol.toLocaleString()} kg</span>
         </div>
         ${
           indirectVol > 0
             ? `
           <div class="flex items-center gap-1">
-            <div class="w-2 h-2 bg-emerald-500/25 border border-emerald-500/50 rounded-sm"></div>
+            <div class="w-2 h-2 bg-app-accent/30 border border-app-accent/50 rounded-sm"></div>
             <span>Indirect: ${indirectVol.toLocaleString()} kg</span>
           </div>
         `
@@ -2463,11 +2546,15 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     checkImbalance: (bodyPartMap) => {
+      // V30.0 Phase 3.5: Use stored context
+      const isKlinikView = APP.stats._isKlinikView;
+      const prefix = isKlinikView ? 'klinik-' : '';
+
       const chestVol = bodyPartMap.chest;
       const backVol = bodyPartMap.back;
-      const imbalanceDiv = document.getElementById("bodypart-imbalance");
+      const imbalanceDiv = document.getElementById(`${prefix}bodypart-imbalance`);
       const imbalanceMsg = document.getElementById(
-        "bodypart-imbalance-message"
+        `${prefix}bodypart-imbalance-message`
       );
 
       if (!imbalanceDiv || !imbalanceMsg) return;
@@ -2649,16 +2736,23 @@ renderAdvancedRatios: function(daysBack = 30) {
 
     updateChart: () => {
       if (typeof Chart === "undefined") return;
-      const sel = document.getElementById("stats-select").value;
+
+      // V30.0 Phase 3.5: Detect if using klinik-view or stats-modal
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+
+      // Get selected exercise from appropriate select element
+      const selectEl = document.getElementById(isKlinikView ? "klinik-stats-select" : "stats-select");
+      const sel = selectEl ? selectEl.value : '';
       if (!sel) return;
 
       const h = LS_SAFE.getJSON("gym_hist", [])
         .filter((x) => x.ex === sel)
         .sort((a, b) => a.ts - b.ts);
 
-      const msg = document.getElementById("no-data-msg");
-      const vital = document.getElementById("vital-signs");
-      const tbody = document.getElementById("hist-table-body");
+      const msg = document.getElementById(isKlinikView ? "klinik-no-data-msg" : "no-data-msg");
+      const vital = document.getElementById(isKlinikView ? "klinik-vital-signs" : "vital-signs");
+      const tbody = document.getElementById(isKlinikView ? "klinik-hist-table-body" : "hist-table-body");
 
       if (!h.length) {
         if (APP.stats.chart) {
@@ -2737,28 +2831,9 @@ renderAdvancedRatios: function(daysBack = 30) {
             }
           });
         if (tbody) tbody.innerHTML = tHtml;
-        if (vital) {
-          vital.className = "grid grid-cols-3 gap-2 text-center";
-          vital.style.display = "";
-          vital.style.width = "";
 
-          vital.innerHTML = `
-                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
-                  <div class="text-[10px] text-slate-400 uppercase">PR</div>
-                  <div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div>
-                </div>
-                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
-                  <div class="text-[10px] text-slate-400 uppercase">Vol Avg</div>
-                  <div class="text-lg font-bold text-blue-400" id="stat-vol">--</div>
-                </div>
-                <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
-                  <div class="text-[10px] text-slate-400 uppercase">Count</div>
-                  <div class="text-lg font-bold text-white" id="stat-count">--</div>
-                </div>
-              `;
-        }
-
-        if (tbody) tbody.innerHTML = tHtml;
+        // V30.0 Phase 3.5: Use correct prefixed IDs when in klinik view
+        const idPrefix = isKlinikView ? "klinik-" : "";
 
         if (vital) {
           vital.className = "grid grid-cols-3 gap-2 text-center";
@@ -2768,31 +2843,32 @@ renderAdvancedRatios: function(daysBack = 30) {
           vital.innerHTML = `
                 <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
                   <div class="text-[10px] text-slate-400 uppercase tracking-tighter">PR (Top)</div>
-                  <div class="text-lg font-bold text-emerald-400" id="stat-pr">--</div>
+                  <div class="text-lg font-bold text-emerald-400" id="${idPrefix}stat-pr">--</div>
                 </div>
                 <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
                   <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Vol Avg</div>
-                  <div class="text-lg font-bold text-blue-400" id="stat-vol">--</div>
+                  <div class="text-lg font-bold text-blue-400" id="${idPrefix}stat-vol">--</div>
                 </div>
                 <div class="bg-slate-700/30 p-2 rounded border border-slate-700">
                   <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Sesi</div>
-                  <div class="text-lg font-bold text-white" id="stat-count">--</div>
+                  <div class="text-lg font-bold text-white" id="${idPrefix}stat-count">--</div>
                 </div>
               `;
         }
 
-        const prEl = document.getElementById("stat-pr");
-        const volEl = document.getElementById("stat-vol");
-        const countEl = document.getElementById("stat-count");
+        // V30.0 Phase 3.5: Use correct element IDs based on context
+        const prEl = document.getElementById(`${idPrefix}stat-pr`);
+        const volEl = document.getElementById(`${idPrefix}stat-vol`);
+        const countEl = document.getElementById(`${idPrefix}stat-count`);
         if (prEl) prEl.innerText = mx;
         if (volEl)
           volEl.innerText =
             h.length > 0 ? Math.round(tv / h.length).toLocaleString() : 0;
         if (countEl) countEl.innerText = h.length;
 
-        const ctx = document.getElementById("progressChart");
+        const ctx = document.getElementById(isKlinikView ? "klinik-progressChart" : "progressChart");
         if (!ctx) {
-          console.error("[DOM ERROR] progressChart canvas not found");
+          console.error("[DOM ERROR] progressChart canvas not found for", isKlinikView ? "klinik" : "modal");
           return;
         }
 
@@ -2803,6 +2879,8 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
 
         if (APP.stats.chart) APP.stats.chart.destroy();
+
+        // V30.0 Phase 4: Dark theme chart configuration
         APP.stats.chart = new Chart(context, {
           type: "line",
           data: {
@@ -2811,17 +2889,27 @@ renderAdvancedRatios: function(daysBack = 30) {
               {
                 label: "Top Set",
                 data: h.map((d) => d.top),
-                borderColor: "#10b981",
-                backgroundColor: "#10b981",
+                borderColor: "#4FD1C5",              // V30.0: Teal accent
+                backgroundColor: "rgba(79, 209, 197, 0.1)",
                 yAxisID: "y",
-                tension: 0.3,
+                tension: 0.4,                        // V30.0: Smoother curves
+                borderWidth: 2,
+                pointBackgroundColor: "#4FD1C5",
+                pointBorderColor: "#FFFFFF",
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
               },
               {
                 label: "Volume",
                 data: h.map((d) => d.vol),
                 type: "bar",
                 yAxisID: "y1",
-                backgroundColor: "rgba(59,130,246,0.2)",
+                backgroundColor: "rgba(79, 209, 197, 0.3)", // V30.0: Teal bars
+                borderColor: "#4FD1C5",
+                borderWidth: 1,
+                borderRadius: 4,
               },
             ],
           },
@@ -2832,14 +2920,31 @@ renderAdvancedRatios: function(daysBack = 30) {
               legend: {
                 display: false,
               },
+              tooltip: {
+                // V30.0: Dark theme tooltip
+                backgroundColor: '#1C1C1E',
+                titleColor: '#FFFFFF',
+                bodyColor: '#9CA3AF',
+                borderColor: 'rgba(79, 209, 197, 0.3)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: false,
+              },
             },
             scales: {
               y: {
                 display: true,
                 position: "left",
                 grid: {
-                  color: "#334155",
+                  color: "rgba(255, 255, 255, 0.05)", // V30.0: Subtle grid
+                  drawBorder: false,
                 },
+                ticks: {
+                  color: "#9CA3AF",
+                  font: { size: 11, family: 'Inter, sans-serif' },
+                },
+                border: { display: false },
               },
               y1: {
                 display: true,
@@ -2847,15 +2952,22 @@ renderAdvancedRatios: function(daysBack = 30) {
                 grid: {
                   display: false,
                 },
+                ticks: {
+                  color: "#9CA3AF",
+                  font: { size: 11, family: 'Inter, sans-serif' },
+                },
+                border: { display: false },
               },
               x: {
                 grid: {
                   display: false,
                 },
                 ticks: {
-                  color: "#94a3b8",
+                  color: "#9CA3AF",
+                  font: { size: 11, family: 'Inter, sans-serif' },
                   maxTicksLimit: 5,
                 },
+                border: { display: false },
               },
             },
           },
@@ -2864,7 +2976,11 @@ renderAdvancedRatios: function(daysBack = 30) {
     },
 
     renderCardioChart: (logs) => {
-      const ctx = document.getElementById("progressChart");
+      // V30.0 Phase 3.5: Detect context for correct canvas
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+
+      const ctx = document.getElementById(isKlinikView ? "klinik-progressChart" : "progressChart");
       if (!ctx) return;
 
       const context = ctx.getContext("2d");
@@ -2875,6 +2991,7 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       if (APP.stats.chart) APP.stats.chart.destroy();
 
+      // V30.0 Phase 4: Dark theme cardio chart
       APP.stats.chart = new Chart(context, {
         type: "line",
         data: {
@@ -2883,21 +3000,29 @@ renderAdvancedRatios: function(daysBack = 30) {
             {
               label: "Duration (min)",
               data: logs.map((l) => l.duration),
-              borderColor: "#3b82f6",
-              backgroundColor: "rgba(59, 130, 246, 0.1)",
+              borderColor: "#4FD1C5",                      // V30.0: Teal for duration
+              backgroundColor: "rgba(79, 209, 197, 0.1)",
               yAxisID: "y",
-              tension: 0.3,
+              tension: 0.4,
+              borderWidth: 2,
               fill: true,
+              pointBackgroundColor: "#4FD1C5",
+              pointBorderColor: "#FFFFFF",
+              pointBorderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
             },
             {
               label: "Avg HR (bpm)",
               data: logs.map((l) => l.avgHR),
-              borderColor: "#ef4444",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              borderColor: "#F97316",                      // V30.0: Orange for HR
+              backgroundColor: "rgba(249, 115, 22, 0.1)",
               yAxisID: "y1",
-              tension: 0.3,
+              tension: 0.4,
+              borderWidth: 2,
+              pointBackgroundColor: "#F97316",
+              pointBorderColor: "#FFFFFF",
+              pointBorderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
             },
@@ -2911,10 +3036,22 @@ renderAdvancedRatios: function(daysBack = 30) {
               display: true,
               position: "top",
               labels: {
-                color: "#94a3b8",
-                font: { size: 11 },
+                color: "#FFFFFF",
+                font: { size: 12, family: 'Inter, sans-serif', weight: '600' },
                 usePointStyle: true,
+                padding: 16,
               },
+            },
+            tooltip: {
+              // V30.0: Dark theme tooltip
+              backgroundColor: '#1C1C1E',
+              titleColor: '#FFFFFF',
+              bodyColor: '#9CA3AF',
+              borderColor: 'rgba(79, 209, 197, 0.3)',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 8,
+              displayColors: true,
             },
             annotation: {
               annotations: {
@@ -2923,15 +3060,15 @@ renderAdvancedRatios: function(daysBack = 30) {
                   yMin: zone2Lower,
                   yMax: zone2Upper,
                   yScaleID: "y1",
-                  backgroundColor: "rgba(16, 185, 129, 0.1)",
-                  borderColor: "rgba(16, 185, 129, 0.3)",
+                  backgroundColor: "rgba(79, 209, 197, 0.08)", // V30.0: Teal zone
+                  borderColor: "rgba(79, 209, 197, 0.3)",
                   borderWidth: 1,
                   label: {
                     display: true,
                     content: "Zone 2 Target",
                     position: "start",
-                    color: "#10b981",
-                    font: { size: 9 },
+                    color: "#4FD1C5",
+                    font: { size: 9, family: 'Inter, sans-serif' },
                   },
                 },
               },
@@ -2944,15 +3081,18 @@ renderAdvancedRatios: function(daysBack = 30) {
               title: {
                 display: true,
                 text: "Duration (min)",
-                color: "#3b82f6",
-                font: { size: 11, weight: "bold" },
+                color: "#4FD1C5",
+                font: { size: 11, weight: "600", family: 'Inter, sans-serif' },
               },
               grid: {
-                color: "#334155",
+                color: "rgba(255, 255, 255, 0.05)",
+                drawBorder: false,
               },
               ticks: {
-                color: "#3b82f6",
+                color: "#9CA3AF",
+                font: { size: 11, family: 'Inter, sans-serif' },
               },
+              border: { display: false },
             },
             y1: {
               display: true,
@@ -2960,15 +3100,17 @@ renderAdvancedRatios: function(daysBack = 30) {
               title: {
                 display: true,
                 text: "Heart Rate (bpm)",
-                color: "#ef4444",
-                font: { size: 11, weight: "bold" },
+                color: "#F97316",
+                font: { size: 11, weight: "600", family: 'Inter, sans-serif' },
               },
               grid: {
                 display: false,
               },
               ticks: {
-                color: "#ef4444",
+                color: "#9CA3AF",
+                font: { size: 11, family: 'Inter, sans-serif' },
               },
+              border: { display: false },
               min: zone2Lower - 10,
               max: zone2Upper + 10,
             },
@@ -2977,9 +3119,11 @@ renderAdvancedRatios: function(daysBack = 30) {
                 display: false,
               },
               ticks: {
-                color: "#94a3b8",
+                color: "#9CA3AF",
+                font: { size: 11, family: 'Inter, sans-serif' },
                 maxTicksLimit: 5,
               },
+              border: { display: false },
             },
           },
         },
@@ -3457,6 +3601,164 @@ renderAdvancedRatios: function(daysBack = 30) {
       console.log(`\n   Total: ${insights.length} insights (target: 3-7)`);
 
       return insights;
+    },
+
+    // ============================================================================
+    // V30.0 PHASE 3.5: KLINIK VIEW INITIALIZATION
+    // ============================================================================
+
+    /**
+     * Initialize the Klinik (Analytics) view when navigating via bottom nav
+     * Renders data similar to how the modal did, but into the view container
+     */
+    initKlinikView: function() {
+      console.log("[STATS] Initializing Klinik View");
+
+      // V30.0 Phase 3.5: Populate exercise selector from gym_hist (same as modal)
+      const select = document.getElementById('klinik-stats-select');
+      if (select) {
+        const h = LS_SAFE.getJSON("gym_hist", []);
+        const uniqueExercises = [
+          ...new Set(h.filter((x) => x && x.ex).map((x) => x.ex)),
+        ].sort();
+
+        select.innerHTML = "";
+        if (uniqueExercises.length === 0) {
+          select.innerHTML = '<option value="">No Data - Complete workouts to see exercises</option>';
+        } else {
+          uniqueExercises.forEach(
+            (ex) => (select.innerHTML += `<option value="${ex}">${ex}</option>`)
+          );
+        }
+      }
+
+      // Render dashboard data (This Week vs Last Week)
+      this.renderKlinikDashboard();
+
+      // V30.0 Phase 3.5: Initialize advanced ratios (function auto-detects klinik context)
+      if (window.APP.stats.renderAdvancedRatios) {
+        window.APP.stats.renderAdvancedRatios(30);
+      }
+
+      // V30.0 Phase 3.5: Render insights (function auto-detects klinik context)
+      if (window.APP.ui && window.APP.ui.renderInsightCards) {
+        window.APP.ui.renderInsightCards(30);
+      }
+
+      console.log("[STATS] Klinik View initialized");
+    },
+
+    /**
+     * V30.0 Phase 3.5: Render the Klinik Dashboard tab content
+     * Uses gym_hist data (same as updateDashboard) but renders to klinik-view elements
+     */
+    renderKlinikDashboard: function() {
+      // Use gym_hist (same as updateDashboard for consistency)
+      const h = LS_SAFE.getJSON("gym_hist", []);
+      if (h.length === 0) {
+        console.log("[STATS] renderKlinikDashboard: No gym_hist data");
+        return;
+      }
+
+      const now = new Date();
+      const thisWeekStart = new Date(now);
+      thisWeekStart.setDate(now.getDate() - now.getDay());
+      thisWeekStart.setHours(0, 0, 0, 0);
+
+      const lastWeekStart = new Date(thisWeekStart);
+      lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+      const thisWeekLogs = h.filter(
+        (log) => new Date(log.ts) >= thisWeekStart
+      );
+      const lastWeekLogs = h.filter((log) => {
+        const d = new Date(log.ts);
+        return d >= lastWeekStart && d < thisWeekStart;
+      });
+
+      // Calculate volume (use .vol property from gym_hist)
+      const thisWeekVol = thisWeekLogs.reduce((sum, log) => {
+        if (log.type === "cardio") return sum;
+        return sum + (log.vol || 0);
+      }, 0);
+      const lastWeekVol = lastWeekLogs.reduce((sum, log) => {
+        if (log.type === "cardio") return sum;
+        return sum + (log.vol || 0);
+      }, 0);
+      const volDiff =
+        lastWeekVol > 0
+          ? (((thisWeekVol - lastWeekVol) / lastWeekVol) * 100).toFixed(1)
+          : 0;
+
+      // Calculate RPE from sets (log.d array contains sets with .rpe)
+      let thisWeekRPE = 0, thisWeekRPECount = 0;
+      let lastWeekRPE = 0, lastWeekRPECount = 0;
+
+      thisWeekLogs.forEach((log) => {
+        if (log.d) {
+          log.d.forEach((set) => {
+            if (set.rpe) {
+              thisWeekRPE += parseFloat(set.rpe);
+              thisWeekRPECount++;
+            }
+          });
+        }
+      });
+
+      lastWeekLogs.forEach((log) => {
+        if (log.d) {
+          log.d.forEach((set) => {
+            if (set.rpe) {
+              lastWeekRPE += parseFloat(set.rpe);
+              lastWeekRPECount++;
+            }
+          });
+        }
+      });
+
+      const avgThisWeekRPE = thisWeekRPECount > 0 ? (thisWeekRPE / thisWeekRPECount).toFixed(1) : 0;
+      const avgLastWeekRPE = lastWeekRPECount > 0 ? (lastWeekRPE / lastWeekRPECount).toFixed(1) : 0;
+      const rpeDiff = (avgThisWeekRPE - avgLastWeekRPE).toFixed(1);
+
+      // Count sessions (unique dates)
+      const thisWeekSessions = new Set(thisWeekLogs.map((l) => l.date)).size;
+      const lastWeekSessions = new Set(lastWeekLogs.map((l) => l.date)).size;
+
+      // Update klinik view elements
+      const volCurrentEl = document.getElementById('klinik-dash-volume-current');
+      const volDiffEl = document.getElementById('klinik-dash-volume-diff');
+      const rpeCurrentEl = document.getElementById('klinik-dash-rpe-current');
+      const rpeDiffEl = document.getElementById('klinik-dash-rpe-diff');
+      const sessionsCurrentEl = document.getElementById('klinik-dash-sessions-current');
+      const sessionsDiffEl = document.getElementById('klinik-dash-sessions-diff');
+      const tonnageCurrentEl = document.getElementById('klinik-dash-tonnage-current');
+      const tonnageDiffEl = document.getElementById('klinik-dash-tonnage-diff');
+
+      if (volCurrentEl) volCurrentEl.innerText = thisWeekVol.toLocaleString();
+      if (volDiffEl) volDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
+
+      if (rpeCurrentEl) rpeCurrentEl.innerText = avgThisWeekRPE || "0";
+      if (rpeDiffEl) rpeDiffEl.innerHTML = APP.stats.formatDiff(rpeDiff, "rpe");
+
+      if (sessionsCurrentEl) sessionsCurrentEl.innerText = thisWeekSessions;
+      if (sessionsDiffEl) {
+        sessionsDiffEl.innerHTML =
+          thisWeekSessions === lastWeekSessions
+            ? '<span class="text-slate-400">Same ➡️</span>'
+            : thisWeekSessions > lastWeekSessions
+            ? '<span class="text-emerald-400">+' + (thisWeekSessions - lastWeekSessions) + ' ↑</span>'
+            : '<span class="text-red-400">-' + (lastWeekSessions - thisWeekSessions) + ' ↓</span>';
+      }
+
+      if (tonnageCurrentEl) tonnageCurrentEl.innerText = thisWeekVol.toLocaleString();
+      if (tonnageDiffEl) tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
+
+      // Calculate top gainers for klinik view
+      APP.stats._dashboardIsKlinik = true; // Set context for helper functions
+      APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
+      APP.stats.checkFatigue(thisWeekLogs);
+
+      console.log("[STATS] Klinik dashboard rendered with", h.length, "total logs");
     }
   };
 
