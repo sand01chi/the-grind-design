@@ -2674,8 +2674,8 @@ renderAdvancedAnalytics: function(daysBack = 30) {
                 <span class="text-[10px] text-app-subtext uppercase mb-1">${muscle}</span>
                 <span class="text-lg font-bold ${frequency.color[muscle] === 'green' ? 'text-emerald-400' : frequency.color[muscle] === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${freq}x</span>
                 
-                <!-- Hover Tooltip -->
-                <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-64">
+                <!-- Hover Tooltip - Mobile Optimized -->
+                <div class="hidden group-hover:block absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-[90vw] max-w-xs">
                   <div class="bg-slate-900 border border-app-accent/30 rounded-lg p-3 shadow-xl">
                     <div class="text-[10px] font-bold text-app-accent mb-2 uppercase">${muscle} Exercises:</div>
                     <div class="max-h-48 overflow-y-auto">
