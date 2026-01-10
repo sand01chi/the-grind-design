@@ -1469,7 +1469,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
   const pushPull = this.calculatePushPullRatio(daysBack);
   const core = this.analyzeCoreTraining(daysBack);
   const stability = this.analyzeCoreStability(daysBack);
-  const insights = this.generateClinicalInsights(daysBack);
+  const insights = this.interpretWorkoutData(daysBack); // FIX: Use interpretWorkoutData instead of generateClinicalInsights
 
   // === SECTION 1: CORE METRICS ===
   const coreContainer = document.getElementById('klinik-advanced-core-metrics');
@@ -1699,7 +1699,81 @@ renderAdvancedAnalytics: function(daysBack = 30) {
   // === SECTION 3: CLINICAL INSIGHTS ===
   const insightsContainer = document.getElementById('klinik-advanced-insights');
   if (insightsContainer) {
-    this.renderInsightCards(insights, insightsContainer);
+    if (insights.length === 0) {
+      insightsContainer.innerHTML = `
+        <div class="text-center text-slate-500 py-6">
+          <div class="text-3xl mb-2">📊</div>
+          <div class="text-xs">Log more workouts to generate insights</div>
+        </div>
+      `;
+    } else {
+      let insightsHTML = '';
+      
+      insights.forEach(insight => {
+        const borderColor = insight.type === 'danger' ? 'border-l-red-500' :
+                            insight.type === 'warning' ? 'border-l-yellow-500' :
+                            insight.type === 'info' ? 'border-l-blue-500' :
+                            'border-l-emerald-500';
+        
+        const bgTint = insight.type === 'danger' ? 'bg-red-500/5' :
+                       insight.type === 'warning' ? 'bg-yellow-500/5' :
+                       insight.type === 'info' ? 'bg-blue-500/5' :
+                       'bg-emerald-500/5';
+        
+        const iconColor = insight.type === 'danger' ? 'text-red-400' :
+                          insight.type === 'warning' ? 'text-yellow-400' :
+                          insight.type === 'info' ? 'text-blue-400' :
+                          'text-emerald-400';
+        
+        const titleColor = insight.type === 'danger' ? 'text-red-300' :
+                           insight.type === 'warning' ? 'text-yellow-300' :
+                           insight.type === 'info' ? 'text-blue-300' :
+                           'text-emerald-300';
+        
+        const evidenceColor = insight.type === 'danger' ? 'text-red-400 hover:text-red-300' :
+                              insight.type === 'warning' ? 'text-yellow-400 hover:text-yellow-300' :
+                              insight.type === 'info' ? 'text-blue-400 hover:text-blue-300' :
+                              'text-emerald-400 hover:text-emerald-300';
+        
+        insightsHTML += `
+          <div class="glass-card rounded-xl border-l-4 ${borderColor} ${bgTint} p-3 transition-all">
+            <div class="flex items-start gap-3">
+              <div class="text-2xl ${iconColor} mt-0.5">
+                ${insight.icon}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold ${titleColor} mb-2">
+                  ${insight.title}
+                </h4>
+                <p class="text-xs text-app-subtext mb-2">
+                  ${insight.metrics}
+                </p>
+                ${insight.risk ? `
+                  <div class="text-xs text-app-subtext mb-2">
+                    <span class="font-semibold text-white">Risk:</span> ${insight.risk}
+                  </div>
+                ` : ''}
+                <div class="text-xs text-app-subtext mb-2">
+                  <span class="font-semibold text-white">Action:</span> ${insight.action}
+                </div>
+                ${insight.evidence ? `
+                  <div class="flex items-center text-[10px] mt-3 pt-2 border-t border-white/10">
+                    <span class="font-semibold text-app-subtext mr-1">Evidence:</span>
+                    <button class="${evidenceColor} underline transition-colors"
+                            onclick="window.APP.ui.showEvidenceTooltip('${insight.id}', event)"
+                            onmouseleave="window.APP.ui.hideTooltip()">
+                      ${insight.evidence.source}
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      insightsContainer.innerHTML = insightsHTML;
+    }
   }
 
   console.log("[STATS] Advanced Analytics tab rendered");
