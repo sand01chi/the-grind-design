@@ -1213,12 +1213,28 @@
 
     /**
      * Switches between AI modes (context export / import / backup)
-     * @param {string} mode - "context", "import", or "backup"
+     * V30.0 Phase 3.5: Now supports both modal and view content areas
+     * @param {string} mode - "context", "import", "library", "backup", or "prompt-manager"
      */
     switchAIMode: function(mode) {
-      const contentArea = document.getElementById("ai-content-area");
+      // V30.0 Phase 3.5: Determine which content area to use
+      // Check if AI view is visible (not hidden)
+      const aiView = document.getElementById("ai-view");
+      const aiViewContentArea = document.getElementById("ai-view-content-area");
+      const modalContentArea = document.getElementById("ai-content-area");
+
+      let contentArea;
+
+      // If AI view exists and is visible, use its content area
+      if (aiView && !aiView.classList.contains('hidden') && aiViewContentArea) {
+        contentArea = aiViewContentArea;
+      } else if (modalContentArea) {
+        // Fall back to modal content area
+        contentArea = modalContentArea;
+      }
+
       if (!contentArea) {
-        console.error("[UI] Content area not found");
+        console.error("[UI] Content area not found (neither view nor modal)");
         return;
       }
 
@@ -3303,9 +3319,14 @@
      * @param {number} daysBack - Number of days to analyze (default: 30)
      */
     renderInsightCards: function(daysBack = 30) {
-      const container = document.getElementById('insights-container');
+      // V30.0 Phase 3.5: Support both modal and klinik-view contexts
+      const klinikView = document.getElementById("klinik-view");
+      const isKlinikView = klinikView && !klinikView.classList.contains('hidden');
+      const containerId = isKlinikView ? 'klinik-insights-container' : 'insights-container';
+
+      const container = document.getElementById(containerId);
       if (!container) {
-        console.warn("[UI] Insights container not found");
+        console.warn("[UI] Insights container not found:", containerId);
         return;
       }
 
@@ -3322,70 +3343,68 @@
         return;
       }
 
-      // Build HTML for each insight
+      // V30.0 Phase 4: Build HTML for each insight with dark theme styling
       let html = '';
 
       insights.forEach(insight => {
-        // Determine styling based on type
-        const bgClass = insight.type === 'danger' ? 'bg-red-900/20' :
-                        insight.type === 'warning' ? 'bg-yellow-900/20' :
-                        insight.type === 'info' ? 'bg-blue-900/20' :
-                        'bg-green-900/20';
+        // V30.0: Determine left border color based on severity
+        const borderColor = insight.type === 'danger' ? 'border-l-red-500' :
+                            insight.type === 'warning' ? 'border-l-yellow-500' :
+                            insight.type === 'info' ? 'border-l-blue-500' :
+                            'border-l-emerald-500';
 
-        const borderClass = insight.type === 'danger' ? 'border-red-900/50' :
-                            insight.type === 'warning' ? 'border-yellow-900/50' :
-                            insight.type === 'info' ? 'border-blue-900/50' :
-                            'border-green-900/50';
+        // V30.0: Subtle background tint based on severity
+        const bgTint = insight.type === 'danger' ? 'bg-red-500/5' :
+                       insight.type === 'warning' ? 'bg-yellow-500/5' :
+                       insight.type === 'info' ? 'bg-blue-500/5' :
+                       'bg-emerald-500/5';
 
-        const textClass = insight.type === 'danger' ? 'text-red-300' :
-                          insight.type === 'warning' ? 'text-yellow-300' :
-                          insight.type === 'info' ? 'text-blue-300' :
-                          'text-green-300';
+        // V30.0: Title text color
+        const titleColor = insight.type === 'danger' ? 'text-red-400' :
+                           insight.type === 'warning' ? 'text-yellow-400' :
+                           insight.type === 'info' ? 'text-blue-400' :
+                           'text-emerald-400';
 
-        const textLightClass = insight.type === 'danger' ? 'text-red-400' :
-                               insight.type === 'warning' ? 'text-yellow-400' :
-                               insight.type === 'info' ? 'text-blue-400' :
-                               'text-green-400';
-
-        const evidenceClass = insight.type === 'danger' ? 'text-red-400' :
-                              insight.type === 'warning' ? 'text-yellow-400' :
-                              insight.type === 'info' ? 'text-blue-400' :
-                              'text-green-400';
+        // V30.0: Evidence link color
+        const evidenceColor = insight.type === 'danger' ? 'text-red-400 hover:text-red-300' :
+                              insight.type === 'warning' ? 'text-yellow-400 hover:text-yellow-300' :
+                              insight.type === 'info' ? 'text-blue-400 hover:text-blue-300' :
+                              'text-emerald-400 hover:text-emerald-300';
 
         html += `
-          <div class="${bgClass} border-l-4 ${borderClass} p-3 rounded-r-lg">
-            <div class="flex items-start">
+          <div class="bg-app-card ${bgTint} border-l-4 ${borderColor} rounded-xl p-4 mb-3">
+            <div class="flex items-start gap-3">
               <div class="flex-shrink-0">
-                <span class="text-lg">${insight.icon}</span>
+                <span class="text-xl">${insight.icon}</span>
               </div>
-              <div class="ml-2 flex-1">
+              <div class="flex-1 min-w-0">
                 <!-- Title -->
-                <h4 class="text-xs font-semibold ${textClass} mb-1">
+                <h4 class="text-sm font-semibold ${titleColor} mb-2">
                   ${insight.title}
                 </h4>
 
                 <!-- Metrics -->
-                <p class="text-[10px] ${textLightClass} mb-1">
+                <p class="text-xs text-app-subtext mb-2">
                   ${insight.metrics}
                 </p>
 
                 ${insight.risk ? `
                   <!-- Risk (danger/warning only) -->
-                  <div class="text-[10px] ${textLightClass} mb-1">
-                    <span class="font-medium">Risk:</span> ${insight.risk}
+                  <div class="text-xs text-app-subtext mb-2">
+                    <span class="font-semibold text-white">Risk:</span> ${insight.risk}
                   </div>
                 ` : ''}
 
                 <!-- Action -->
-                <div class="text-[10px] ${textClass} mb-1">
-                  <span class="font-medium">Action:</span> ${insight.action}
+                <div class="text-xs text-app-subtext mb-2">
+                  <span class="font-semibold text-white">Action:</span> ${insight.action}
                 </div>
 
                 ${insight.evidence ? `
                   <!-- Evidence (with tooltip) -->
-                  <div class="flex items-center text-[9px] ${evidenceClass}">
-                    <span class="font-medium mr-1">Evidence:</span>
-                    <button class="underline hover:font-medium"
+                  <div class="flex items-center text-[10px] mt-3 pt-2 border-t border-white/10">
+                    <span class="font-semibold text-app-subtext mr-1">Evidence:</span>
+                    <button class="${evidenceColor} underline transition-colors"
                             onclick="window.APP.ui.showEvidenceTooltip('${insight.id}', event)"
                             onmouseleave="window.APP.ui.hideTooltip()">
                       ${insight.evidence.source}
@@ -3410,11 +3429,59 @@
     // ============================================================================
 
     /**
+     * V30.0: Position tooltip with viewport awareness
+     * @param {HTMLElement} container - Tooltip container
+     * @param {DOMRect} triggerRect - Bounding rect of trigger element
+     */
+    _positionTooltip: function(container, triggerRect) {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const padding = 12;
+      const tooltipMaxWidth = 280;
+
+      // Reset position to measure natural size
+      container.style.left = '0px';
+      container.style.top = '0px';
+      container.style.display = 'block';
+      container.classList.remove('hidden');
+
+      // Force reflow to get accurate dimensions
+      const tooltipWidth = Math.min(container.offsetWidth, tooltipMaxWidth);
+      const tooltipHeight = container.offsetHeight;
+
+      // Calculate centered position below trigger
+      let left = triggerRect.left + (triggerRect.width / 2) - (tooltipWidth / 2);
+      let top = triggerRect.bottom + 8;
+
+      // Horizontal boundary checks
+      if (left < padding) {
+        left = padding;
+      } else if (left + tooltipWidth > viewportWidth - padding) {
+        left = viewportWidth - tooltipWidth - padding;
+      }
+
+      // Vertical boundary checks - show above if no space below
+      if (top + tooltipHeight > viewportHeight - padding) {
+        top = triggerRect.top - tooltipHeight - 8;
+      }
+
+      // Final boundary check - keep in viewport
+      if (top < padding) {
+        top = padding;
+      }
+
+      container.style.left = left + 'px';
+      container.style.top = top + 'px';
+    },
+
+    /**
      * Show scientific evidence tooltip
      * @param {string} insightId - ID of the insight
      * @param {Event} event - Click/hover event for positioning
      */
     showEvidenceTooltip: function(insightId, event) {
+      event.stopPropagation();
+
       const insights = window.APP._currentInsights || [];
       const insight = insights.find(i => i.id === insightId);
 
@@ -3427,26 +3494,14 @@
 
       // Set content
       content.innerHTML = `
-        <div class="font-semibold mb-1">${insight.evidence.source}</div>
-        ${insight.evidence.title ? `<div class="text-[10px] italic mb-1">${insight.evidence.title}</div>` : ''}
-        <div class="text-[10px]">${insight.evidence.citation}</div>
+        <div class="font-semibold text-sm mb-1">${insight.evidence.source}</div>
+        ${insight.evidence.title ? `<div class="text-xs italic mb-1 text-slate-300">${insight.evidence.title}</div>` : ''}
+        <div class="text-xs text-slate-400">${insight.evidence.citation}</div>
       `;
 
       // Position tooltip
       const rect = event.target.getBoundingClientRect();
-      const tooltipHeight = container.offsetHeight;
-
-      // Position above button if too close to bottom
-      if (rect.bottom + tooltipHeight + 20 > window.innerHeight) {
-        container.style.top = (rect.top - tooltipHeight - 8) + 'px';
-      } else {
-        container.style.top = (rect.bottom + 8) + 'px';
-      }
-
-      container.style.left = rect.left + 'px';
-
-      // Show
-      container.classList.remove('hidden');
+      this._positionTooltip(container, rect);
     },
 
     /**
@@ -3455,6 +3510,8 @@
      * @param {Event} event - Click/hover event
      */
     showTooltip: function(tooltipId, event) {
+      event.stopPropagation();
+
       const container = document.getElementById('tooltip-container');
       const content = document.getElementById('tooltip-content');
 
@@ -3489,18 +3546,14 @@
 
       // Set content
       content.innerHTML = `
-        <div class="font-semibold mb-1">${tooltip.title}</div>
-        <div class="text-[10px] mb-2">${tooltip.text}</div>
-        <div class="text-[10px] italic text-slate-400">Source: ${tooltip.source}</div>
+        <div class="font-semibold text-sm mb-1">${tooltip.title}</div>
+        <div class="text-xs mb-2 text-slate-300">${tooltip.text}</div>
+        <div class="text-xs italic text-slate-400">Source: ${tooltip.source}</div>
       `;
 
       // Position tooltip
       const rect = event.target.getBoundingClientRect();
-      container.style.top = (rect.bottom + 8) + 'px';
-      container.style.left = Math.max(8, rect.left - 100) + 'px'; // Center under button with margin
-
-      // Show
-      container.classList.remove('hidden');
+      this._positionTooltip(container, rect);
     },
 
     /**
@@ -3510,6 +3563,76 @@
       const container = document.getElementById('tooltip-container');
       if (container) {
         container.classList.add('hidden');
+        container.style.display = 'none';
+      }
+    },
+
+    // ============================================================================
+    // V30.0 PHASE 3.5: AI VIEW INITIALIZATION
+    // ============================================================================
+
+    /**
+     * Initialize the AI View when navigating via bottom nav
+     * Sets up the content area and triggers default mode render
+     */
+    initAIView: function() {
+      console.log("[UI] Initializing AI View");
+
+      // Get the mode selector and content area for the view (not modal)
+      const modeSelector = document.getElementById('ai-view-mode-selector');
+      const contentArea = document.getElementById('ai-view-content-area');
+
+      if (!modeSelector || !contentArea) {
+        console.error("[UI] AI View elements not found");
+        return;
+      }
+
+      // Default to 'context' mode
+      const currentMode = modeSelector.value || 'context';
+
+      // Render the appropriate mode content
+      this.switchAIModeForView(currentMode, contentArea);
+    },
+
+    /**
+     * Switch AI mode specifically for the View (not modal)
+     * @param {string} mode - The mode to switch to
+     * @param {HTMLElement} contentArea - The content area to render into
+     */
+    switchAIModeForView: function(mode, contentArea) {
+      if (!contentArea) {
+        contentArea = document.getElementById('ai-view-content-area');
+      }
+
+      if (!contentArea) {
+        console.error("[UI] AI View content area not found");
+        return;
+      }
+
+      console.log(`[UI] Switching AI View to mode: ${mode}`);
+
+      // Clear previous content
+      contentArea.innerHTML = '';
+
+      // Render based on mode (reusing existing render methods)
+      switch(mode) {
+        case 'context':
+          this.renderContextMode(contentArea);
+          break;
+        case 'import':
+          this.renderImportMode(contentArea);
+          break;
+        case 'library':
+          this.renderLibraryMode(contentArea);
+          break;
+        case 'backup':
+          this.renderBackupMode(contentArea);
+          break;
+        case 'prompt-manager':
+          this.renderPromptManager(contentArea);
+          break;
+        default:
+          this.renderContextMode(contentArea);
       }
     },
   };

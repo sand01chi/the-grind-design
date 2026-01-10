@@ -9,12 +9,42 @@
     <link rel="icon" type="image/png" href="app-logo.png" />
     <link rel="apple-touch-icon" href="app-logo.png" />
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>THE GRIND DESIGN V29.5 CODE HEALTH AUDIT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>THE GRIND DESIGN V30.0 MOBILE UI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Tailwind Custom Configuration for V30.0 Mobile UI -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              app: {
+                bg: '#000000',           // Pure black background
+                card: '#1C1C1E',         // Dark card background
+                accent: '#4FD1C5',       // Teal accent (primary actions)
+                'accent-dim': 'rgba(79, 209, 197, 0.15)', // Teal background dim
+                text: '#FFFFFF',         // Primary text
+                subtext: '#9CA3AF',      // Secondary text (gray-400)
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            boxShadow: {
+              'glow': '0 0 15px rgba(79, 209, 197, 0.3)',
+              'inner-glow': 'inset 0 0 20px rgba(79, 209, 197, 0.2)',
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <!-- Font Awesome 6.4.0 -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -24,27 +54,93 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      /* GLASSMMORPHISM THEME */
+      /* ========================================
+         V30.0 MOBILE UI - PURE BLACK THEME
+         ======================================== */
+
       :root {
-        --glass-bg: rgba(15, 23, 42, 0.85); /* Slightly more opaque */
-        --glass-border: rgba(255, 255, 255, 0.12); /* Sharper border */
+        /* V30.0 Pure Black Theme */
+        --glass-bg: rgba(28, 28, 30, 0.95); /* #1C1C1E with opacity */
+        --glass-border: rgba(255, 255, 255, 0.1);
         --glass-highlight: rgba(255, 255, 255, 0.05);
         --glass-blur: 16px;
-        --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
         --glass-text-secondary: rgba(148, 163, 184, 0.8);
-        --primary-glow: rgba(16, 185, 129, 0.2); 
-        --primary-color: #10b981;
+        --primary-glow: rgba(79, 209, 197, 0.2); /* Teal glow */
+        --primary-color: #4FD1C5; /* Teal accent */
       }
 
       body {
-        /* Premium deep dark background */
-        background: #0b0f1a;
+        /* V30.0 Pure Black Background */
+        background: #000000;
         background-attachment: fixed;
-        color: #e2e8f0;
+        color: #ffffff;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      /* Hide scrollbar for cleaner mobile look */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Spontaneous button glow effect (V30.0) */
+      .spontaneous-btn-bg {
+        background: linear-gradient(90deg, #111827 0%, rgba(45, 212, 191, 0.15) 50%, #111827 100%);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        box-shadow: 0 0 15px rgba(79, 209, 197, 0.15);
+      }
+
+      /* Next badge positioning (V30.0) */
+      .next-badge {
+        position: absolute;
+        top: -12px;
+        left: 16px;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background-color: #4FD1C5;
+        color: #000000;
+        z-index: 10;
+      }
+
+      /* Bottom nav styles (V30.0) */
+      .nav-item {
+        transition: color 0.2s;
+      }
+
+      .nav-item-active i {
+        filter: drop-shadow(0 0 5px rgba(79, 209, 197, 0.6));
+      }
+
+      .nav-item:not(.nav-item-active):hover {
+        color: #9CA3AF;
+      }
+
+      /* Button transitions (V30.0) */
+      button {
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      /* Modal styling (V30.0) */
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal-content {
+        background-color: #1C1C1E;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
       }
 
       /* Global Glass Utilities */
@@ -373,6 +469,7 @@
         border-bottom: none;
       }
 
+      /* V30.0 Phase 4: Analytics Tab Buttons - Teal Accent */
       .tab-btn {
         position: relative;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -381,22 +478,136 @@
       }
 
       .tab-btn.active {
-        background-color: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        background-color: rgba(79, 209, 197, 0.15);
+        color: #4FD1C5;
         transform: scale(1.05);
         backdrop-filter: blur(4px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 4px 12px rgba(79, 209, 197, 0.2);
+        border-color: rgba(79, 209, 197, 0.4);
       }
 
       .tab-btn.inactive {
         background-color: rgba(255, 255, 255, 0.05);
-        color: #94a3b8;
+        color: #9CA3AF;
         transform: scale(1);
+      }
+
+      .tab-btn.inactive:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #FFFFFF;
       }
 
       .tab-btn.inactive:active {
         transform: scale(0.95);
+      }
+
+      /* V30.0 Phase 4: Analytics Card Styles */
+      .analytics-card {
+        background-color: #1C1C1E;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .analytics-section-title {
+        color: #FFFFFF;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      /* V30.0: Status badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-optimal {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: #10B981;
+      }
+
+      .status-monitor {
+        background-color: rgba(234, 179, 8, 0.2);
+        color: #EAB308;
+      }
+
+      .status-imbalance {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #EF4444;
+      }
+
+      /* V30.0: Progress bars for analytics */
+      .progress-track {
+        width: 100%;
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 12px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+
+      .progress-fill-optimal {
+        background-color: rgba(16, 185, 129, 0.8);
+      }
+
+      .progress-fill-monitor {
+        background-color: rgba(234, 179, 8, 0.8);
+      }
+
+      .progress-fill-imbalance {
+        background-color: rgba(239, 68, 68, 0.8);
+      }
+
+      /* V30.0: Insight severity cards */
+      .insight-card {
+        background-color: #1C1C1E;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 12px;
+      }
+
+      .insight-card-danger {
+        border-left: 4px solid #EF4444;
+        background-color: rgba(239, 68, 68, 0.05);
+      }
+
+      .insight-card-warning {
+        border-left: 4px solid #EAB308;
+        background-color: rgba(234, 179, 8, 0.05);
+      }
+
+      .insight-card-info {
+        border-left: 4px solid #3B82F6;
+        background-color: rgba(59, 130, 246, 0.05);
+      }
+
+      .insight-card-success {
+        border-left: 4px solid #10B981;
+        background-color: rgba(16, 185, 129, 0.05);
+      }
+
+      /* V30.0: Chart container styling */
+      .chart-container {
+        background-color: #1C1C1E;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       #active-tab-label {
@@ -598,162 +809,63 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
   </head>
 
-  <body class="h-screen flex flex-col overflow-hidden">
-    <header
-      class="glass-panel border-b border-white/10 rounded-none border-x-0 border-t-0 p-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center z-30 fixed top-0 w-full shadow-2xl"
-    >
-      <div class="app-header">
-        <img
-          src="app-logo.png"
-          onerror="this.style.display='none'"
-          class="app-logo"
-          alt="Logo"
-        />
-        <div>
-          <h1 class="font-bold text-white text-sm tracking-wide">
-            THE GRIND DESIGN
-          </h1>
-          <p
-            class="text-[10px] text-emerald-400 uppercase tracking-wider font-bold"
-          >
-            V29.5 CODE HEALTH AUDIT
-          </p>
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <button
-          onclick="APP.ui.openAICommandCenter()"
-          class="glass-btn text-xs text-purple-400 border border-purple-900/50 px-3 py-1.5 rounded hover:bg-purple-900/50 transition"
-          title="AI Command Center"
-        >
-          <i class="fa-solid fa-microchip mr-1"></i> AI
-        </button>
-        <button
-          onclick="APP.ui.openModal('calendar')"
-          class="glass-btn text-xs text-emerald-400 border border-emerald-900/50 px-3 py-1.5 rounded hover:bg-emerald-900/50 transition"
-        >
-          <i class="fa-solid fa-calendar-days"></i>
-        </button>
-      </div>
-    </header>
-    <main
-      id="app-container"
-      class="flex-1 overflow-y-auto no-scrollbar pt-28 pb-24 px-4"
-    >
-      <div id="dashboard-view" class="fade-in space-y-6">
-        <div
-          class="glass-panel rounded-3xl p-6 relative overflow-hidden"
-        >
-          <div
-            class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none"
-          >
-            <svg
-              width="150"
-              height="150"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 12h3L9 3l6 18 3-9h3" />
-            </svg>
-          </div>
-          <div class="relative z-10">
-            <h1 class="text-3xl font-bold text-white mb-1">
-              Halo, <span id="display-name" class="text-emerald-400">Dok</span>!
+  <body class="flex justify-center min-h-screen bg-black">
+    <!-- V30.0 Mobile Container Wrapper -->
+    <div class="w-full max-w-md bg-black min-h-screen overflow-y-auto relative flex flex-col">
+      <!-- Status Bar Spacer (for mobile notch/status bar) -->
+      <div class="h-3 w-full shrink-0"></div>
+
+      <header
+        class="glass-panel border-b border-white/10 rounded-none border-x-0 border-t-0 p-4 pt-[calc(0.5rem+env(safe-area-inset-top))] flex justify-between items-center z-30 sticky top-0 shadow-2xl bg-black/90 backdrop-blur-md"
+      >
+        <div class="app-header">
+          <img
+            src="app-logo.png"
+            onerror="this.style.display='none'"
+            class="app-logo"
+            alt="Logo"
+          />
+          <div>
+            <h1 class="font-bold text-white text-sm tracking-wide">
+              THE GRIND DESIGN
             </h1>
-            <p class="text-slate-400 text-sm mb-6">
-              Kelola Intensitas, Raih Puncak Volume.
-            </p>
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                onclick="APP.ui.openModal('weight')"
-                class="glass-card hover:bg-emerald-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-emerald-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-weight-scale text-emerald-400"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-emerald-300 uppercase tracking-wider"
-                  >
-                    Weight
-                  </p>
-                  <p class="text-white font-bold" id="dashboard-bw">-- kg</p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('stats')"
-                class="glass-card hover:bg-indigo-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-indigo-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-chart-line text-blue-400"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-indigo-300 uppercase tracking-wider"
-                  >
-                    Analyze
-                  </p>
-                  <p class="text-white font-bold">Stats</p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('nutrition')"
-                class="glass-card hover:bg-orange-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-orange-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-orange-300 uppercase tracking-wider"
-                  >
-                    TDEE
-                  </p>
-                  <p class="text-white font-bold" id="dashboard-tdee">
-                    -- <span class="text-[10px] font-normal">kkal</span>
-                  </p>
-                </div>
-              </button>
-              <button
-                onclick="APP.ui.openModal('profile')"
-                class="glass-card hover:bg-stone-600/10 transition-all rounded-2xl p-3 flex items-center gap-3 border border-stone-500/30 active:scale-95"
-              >
-                <div class="flex items-center gap-2"></div>
-                <i class="fa-solid fa-user-gear text-stone-400"></i>
-                <div class="text-left">
-                  <p
-                    class="text-[10px] text-stone-300 uppercase tracking-wider"
-                  >
-                    Manage
-                  </p>
-                  <p class="text-white font-bold">Profile</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div
-          onclick="APP.ui.openModal('spontaneous')"
-          class="bg-gradient-to-r from-indigo-900/40 to-slate-800 rounded-xl p-4 border border-indigo-500/30 cursor-pointer active:scale-95 transition shadow-lg relative overflow-hidden group"
-        >
-          <div
-            class="absolute right-0 bottom-0 text-indigo-500/10 text-6xl -mr-4 -mb-4"
-          >
-            <i class="fa-solid fa-bolt"></i>
-          </div>
-          <div class="flex items-center gap-3">
-            <div
-              class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition"
+            <p
+              class="text-[10px] text-app-accent uppercase tracking-wider font-bold"
             >
-              <i class="fa-solid fa-bolt"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-white text-sm">SPONTANEOUS MODE</h3>
-              <p class="text-[10px] text-indigo-300">
-                Sesi Bebas / Active Recovery (No Rotation Impact)
-              </p>
-            </div>
+              V30.0 MOBILE UI
+            </p>
           </div>
         </div>
+        <div class="flex gap-2">
+          <!-- Calendar button only (AI accessible via bottom nav) -->
+          <button
+            onclick="window.APP.ui.openModal('calendar')"
+            class="text-gray-400 hover:text-app-accent transition p-2"
+            title="Calendar"
+          >
+            <i class="fa-regular fa-calendar fa-lg"></i>
+          </button>
+        </div>
+      </header>
+      <main
+        id="app-container"
+        class="flex-1 overflow-y-auto no-scrollbar pb-24 px-4"
+      >
+      <div id="dashboard-view" class="fade-in space-y-6">
+        <!-- V30.0: Stats Cards Container -->
+        <div id="stats-cards-container">
+          <!-- Stats cards (Weight + TDEE) will be injected here by renderDashboard() -->
+        </div>
+        <!-- V30.0 Spontaneous Mode Button with Glow Effect -->
+        <section class="mb-2">
+          <button
+            onclick="window.APP.nav.loadWorkout('spontaneous')"
+            class="w-full py-4 rounded-3xl spontaneous-btn-bg flex items-center justify-center gap-3 group active:scale-[0.98] transition-transform"
+          >
+            <i class="fa-solid fa-person-running fa-lg text-app-accent group-hover:animate-pulse"></i>
+            <span class="text-app-accent font-bold text-lg tracking-wide">Spontaneous Mode</span>
+          </button>
+        </section>
         <div class="flex items-center justify-between">
           <p
             class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1"
@@ -761,7 +873,7 @@
             Rotasi Sesi
           </p>
           <span
-            class="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded flex items-center"
+            class="text-[10px] text-app-accent bg-app-accent/10 px-2 py-0.5 rounded flex items-center"
             ><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>
             Auto-Suggest</span
           >
@@ -771,10 +883,10 @@
         <div class="mt-4">
           <button
             onclick="APP.session.openCreator()"
-            class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition border border-emerald-400/30"
+            class="w-full bg-app-accent hover:bg-app-accent/90 text-black font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition"
           >
-            <i class="fa-solid fa-plus-circle text-xl"></i>
-            <span>BUAT SESI LATIHAN BARU</span>
+            <i class="fa-solid fa-plus text-xl"></i>
+            <span>Add New Session</span>
           </button>
 
           <p class="text-[10px] text-slate-500 text-center mt-2 italic">
@@ -785,7 +897,7 @@
       <div id="workout-view" class="hidden fade-in space-y-4">
         <div class="flex justify-between items-center mb-2">
           <button
-            onclick="APP.nav.switchView('dashboard')"
+            onclick="window.APP.nav.switchView('dashboard')"
             class="flex items-center text-slate-400 hover:text-white text-sm group"
           >
             <div
@@ -891,20 +1003,547 @@
         <div id="exercise-list" class="space-y-4"></div>
         <button
           onclick="APP.data.addNewExerciseCard()"
-          class="w-full glass-card border border-dashed border-slate-700 text-slate-400 py-3 rounded-xl hover:text-white hover:border-emerald-500 hover:bg-slate-700/50 transition mb-4"
+          class="w-full glass-card border border-dashed border-slate-700 text-slate-400 py-3 rounded-xl hover:text-white hover:border-app-accent hover:bg-slate-700/50 transition mb-4"
         >
           <i class="fa-solid fa-plus mr-2"></i> Tambah Gerakan Baru
         </button>
         <div class="pt-2 pb-10">
           <button
             onclick="APP.core.finishSession()"
-            class="w-full glass-btn border-2 border-emerald-500/50 text-emerald-400 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition hover:bg-emerald-500/10"
+            class="w-full glass-btn border-2 border-app-accent/50 text-app-accent font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition hover:bg-app-accent/10"
           >
             <i class="fa-solid fa-flag-checkered"></i> SELESAI & SIMPAN LOG
           </button>
         </div>
       </div>
+
+      <!-- ========================================== -->
+      <!-- V30.0 Phase 3.5: KLINIK (Analytics) VIEW   -->
+      <!-- Converted from modal to view navigation   -->
+      <!-- ========================================== -->
+      <div id="klinik-view" class="hidden fade-in">
+        <div class="space-y-4">
+          <!-- Header -->
+          <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+            <h3 class="font-bold text-white text-xl">Clinical Analytics</h3>
+          </div>
+
+          <!-- Exercise Selector -->
+          <div id="klinik-exercise-selector" class="mb-4">
+            <select
+              id="klinik-stats-select"
+              onchange="APP.stats.updateChart()"
+              class="w-full glass-input text-white text-sm p-3 rounded-xl border border-white/10"
+            ></select>
+          </div>
+
+          <!-- Tab Navigation -->
+          <div class="mb-3">
+            <div class="flex gap-2 justify-center mb-2">
+              <button
+                id="klinik-tab-dashboard"
+                onclick="APP.stats.switchTab('dashboard')"
+                class="tab-btn active w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              >
+                📊
+              </button>
+              <button
+                id="klinik-tab-chart"
+                onclick="APP.stats.switchTab('chart')"
+                class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              >
+                📈
+              </button>
+              <button
+                id="klinik-tab-table"
+                onclick="APP.stats.switchTab('table')"
+                class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              >
+                📋
+              </button>
+              <button
+                id="klinik-tab-bodyparts"
+                onclick="APP.stats.switchTab('bodyparts')"
+                class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              >
+                💪
+              </button>
+            </div>
+            <div class="text-center">
+              <span
+                id="klinik-active-tab-label"
+                class="text-xs font-bold text-emerald-400 uppercase tracking-wider"
+              >
+                Dashboard
+              </span>
+            </div>
+          </div>
+
+          <!-- Dashboard Tab Content -->
+          <div
+            id="klinik-dashboard-content"
+            class="glass-panel p-4 rounded-xl border border-white/10 min-h-[350px] overflow-y-auto no-scrollbar mb-4"
+          >
+            <div class="mb-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-week"></i> This Week vs Last Week
+              </h3>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-1">Total Volume</div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="klinik-dash-volume-current" class="text-2xl font-bold text-white">0</span>
+                    <span class="text-xs text-slate-500">kg</span>
+                  </div>
+                  <div id="klinik-dash-volume-diff" class="text-xs font-bold mt-1">
+                    <span class="text-slate-400">No data</span>
+                  </div>
+                </div>
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-1">Avg RPE</div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="klinik-dash-rpe-current" class="text-2xl font-bold text-white">0</span>
+                  </div>
+                  <div id="klinik-dash-rpe-diff" class="text-xs font-bold mt-1">
+                    <span class="text-slate-400">No data</span>
+                  </div>
+                </div>
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-1">Sessions</div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="klinik-dash-sessions-current" class="text-2xl font-bold text-white">0</span>
+                  </div>
+                  <div id="klinik-dash-sessions-diff" class="text-xs font-bold mt-1">
+                    <span class="text-slate-400">No data</span>
+                  </div>
+                </div>
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-1">Tonnage</div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="klinik-dash-tonnage-current" class="text-2xl font-bold text-white">0</span>
+                    <span class="text-xs text-slate-500">kg</span>
+                  </div>
+                  <div id="klinik-dash-tonnage-diff" class="text-xs font-bold mt-1">
+                    <span class="text-slate-400">No data</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
+              </h3>
+              <div id="klinik-dash-top-gainers" class="space-y-2">
+                <p class="text-xs text-slate-500 italic">Complete more sessions to see gainers.</p>
+              </div>
+            </div>
+            <div id="klinik-dash-fatigue-alert" class="hidden">
+              <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
+                <div class="flex items-start gap-2">
+                  <i class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5"></i>
+                  <div>
+                    <div class="text-xs font-bold text-red-400 mb-1">Fatigue Alert</div>
+                    <div id="klinik-dash-fatigue-message" class="text-xs text-slate-300">High RPE detected. Consider rest.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Tab Content -->
+          <div
+            id="klinik-chart-content"
+            class="glass-panel p-2 rounded-xl border border-white/10 min-h-[250px] relative mb-4 hidden"
+          >
+            <canvas id="klinik-progressChart"></canvas>
+            <div id="klinik-no-data-msg" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs hidden">
+              No Data.
+            </div>
+          </div>
+
+          <!-- Table Tab Content -->
+          <div
+            id="klinik-table-content"
+            class="glass-panel p-2 rounded-xl border border-white/10 min-h-[250px] relative mb-4 hidden overflow-y-auto no-scrollbar"
+          >
+            <table class="hist-table">
+              <thead>
+                <tr>
+                  <th>TGL</th>
+                  <th>BEBAN</th>
+                  <th>REPS</th>
+                  <th>RPE</th>
+                  <th>VOL</th>
+                </tr>
+              </thead>
+              <tbody id="klinik-hist-table-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Bodyparts Tab Content -->
+          <div
+            id="klinik-bodyparts-content"
+            class="glass-panel p-4 rounded-xl border border-white/10 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
+          >
+            <div class="mb-4">
+              <div class="flex gap-2 justify-center">
+                <button
+                  id="klinik-view-combined-btn"
+                  onclick="APP.stats.setBodyPartView('combined')"
+                  class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-emerald-600 text-white"
+                >
+                  📊 Combined View
+                </button>
+                <button
+                  id="klinik-view-split-btn"
+                  onclick="APP.stats.setBodyPartView('split')"
+                  class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-slate-700 text-slate-400"
+                >
+                  🔀 Split View (Upper/Lower)
+                </button>
+              </div>
+              <p class="text-[9px] text-slate-500 text-center mt-2 italic">
+                Combined: All muscles vs Legs baseline | Split: Fair comparison per region
+              </p>
+            </div>
+            <select
+              id="klinik-bodypart-period"
+              onchange="APP.stats.updateBodyParts()"
+              class="w-full glass-input text-white text-xs p-2 rounded border border-white/10 mb-4"
+            >
+              <option value="4">Last 4 Weeks</option>
+              <option value="8">Last 8 Weeks</option>
+              <option value="12">Last 12 Weeks</option>
+            </select>
+            <div class="mb-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3">Volume by Muscle Group</h3>
+              <div id="klinik-bodypart-bars" class="space-y-3">
+                <p class="text-xs text-slate-500 italic">Loading...</p>
+              </div>
+            </div>
+            <div id="klinik-bodypart-imbalance" class="hidden">
+              <div class="bg-yellow-900/20 border border-yellow-900/50 rounded-lg p-3">
+                <div class="flex items-start gap-2">
+                  <i class="fa-solid fa-scale-unbalanced text-yellow-400 mt-0.5"></i>
+                  <div>
+                    <div class="text-xs font-bold text-yellow-400 mb-1">Imbalance Detected</div>
+                    <div id="klinik-bodypart-imbalance-message" class="text-xs text-slate-300">Checking balance...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- V29.0: ADVANCED RATIOS SECTION -->
+            <div class="mt-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line"></i> Advanced Analytics
+                <span class="text-[9px] font-normal text-slate-500">(V29.0)</span>
+              </h3>
+              <div id="klinik-advanced-ratios-container" class="space-y-3">
+                <!-- Cards will be rendered by renderAdvancedRatios() -->
+              </div>
+            </div>
+
+            <!-- V29.0: TRAINING INSIGHTS PANEL -->
+            <div class="mt-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb"></i> Clinical Insights
+                <span class="text-[9px] font-normal text-slate-500">(Evidence-Based)</span>
+              </h3>
+              <div id="klinik-insights-container" class="space-y-2">
+                <!-- Insight cards will be rendered by renderInsightCards() -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Vital Signs (Legacy) -->
+          <div id="klinik-vital-signs" class="grid grid-cols-3 gap-2 text-center hidden">
+            <div class="glass-card p-2 rounded border border-white/5">
+              <div class="text-[10px] text-slate-400 uppercase">PR</div>
+              <div class="text-lg font-bold text-emerald-400" id="klinik-stat-pr">--</div>
+            </div>
+            <div class="glass-card p-2 rounded border border-white/5">
+              <div class="text-[10px] text-slate-400 uppercase">Vol Avg</div>
+              <div class="text-lg font-bold text-blue-400" id="klinik-stat-vol">--</div>
+            </div>
+            <div class="glass-card p-2 rounded border border-white/5">
+              <div class="text-[10px] text-slate-400 uppercase">Count</div>
+              <div class="text-lg font-bold text-white" id="klinik-stat-count">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- V30.0 Phase 3.5: AI VIEW                   -->
+      <!-- Converted from modal to view navigation   -->
+      <!-- ========================================== -->
+      <div id="ai-view" class="hidden fade-in">
+        <div class="space-y-4">
+          <!-- Header -->
+          <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700">
+            <h3 class="font-bold text-white text-xl">
+              <i class="fa-solid fa-microchip text-purple-400 mr-2"></i>AI Command Center
+            </h3>
+          </div>
+
+          <!-- Mode Selector -->
+          <div class="mb-4">
+            <label class="text-xs text-slate-400 font-bold uppercase block mb-2">Mode</label>
+            <select
+              id="ai-view-mode-selector"
+              onchange="APP.ui.switchAIMode(this.value)"
+              class="w-full glass-input border border-white/10 text-white text-sm p-3 rounded-lg focus:border-purple-500 transition"
+            >
+              <option value="context">📤 Ambil Konteks (Export)</option>
+              <option value="import">📥 Import Resep (JSON)</option>
+              <option value="library">📚 Resep Tersimpan</option>
+              <option value="backup">💾 Backup & Restore</option>
+              <option value="prompt-manager">🎯 Kelola Prompt AI</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Content Area -->
+          <div id="ai-view-content-area" class="overflow-y-auto no-scrollbar min-h-[400px]">
+            <!-- Content injected by switchAIMode() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- V30.0 Phase 3.5: SETTINGS VIEW             -->
+      <!-- Converted from modal to view navigation   -->
+      <!-- ========================================== -->
+      <div id="settings-view" class="hidden fade-in">
+        <div class="space-y-4">
+          <!-- Header -->
+          <div class="flex justify-between items-center mb-4 pb-3 border-b border-white/10">
+            <h3 class="font-bold text-white text-xl">Profile & Settings</h3>
+          </div>
+
+          <!-- Profile Form -->
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-[10px] text-slate-400">Nama</span>
+                <input
+                  type="text"
+                  id="settings-prof-name"
+                  class="w-full p-2 glass-input rounded text-white text-sm"
+                  placeholder="Masukkan nama..."
+                />
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400">Tinggi (cm)</span>
+                <input
+                  type="number"
+                  id="settings-prof-height"
+                  class="w-full p-2 glass-input rounded text-white text-sm"
+                  placeholder="170"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-[10px] text-slate-400">Usia</span>
+                <input
+                  type="number"
+                  id="settings-prof-age"
+                  class="w-full p-2 glass-input rounded text-white text-sm"
+                  placeholder="25"
+                />
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400">Gender</span>
+                <select
+                  id="settings-prof-gender"
+                  class="w-full p-2 glass-input rounded text-white text-sm"
+                >
+                  <option value="male">Pria</option>
+                  <option value="female">Wanita</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400">Aktivitas</span>
+              <select
+                id="settings-prof-active"
+                class="w-full p-2 glass-input rounded text-white text-sm"
+              >
+                <option value="1.2">Sedentary (Tidak ada olahraga)</option>
+                <option value="1.375">Light (1-3 hari/minggu)</option>
+                <option value="1.55">Moderate (3-5 hari/minggu)</option>
+                <option value="1.725">Active (6-7 hari/minggu)</option>
+              </select>
+            </div>
+            <button
+              onclick="APP.data.saveProfileFromSettings()"
+              class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition active:scale-95"
+            >
+              Simpan Profil
+            </button>
+          </div>
+
+          <!-- Storage Status -->
+          <div class="glass-panel p-4 rounded-xl border border-white/10">
+            <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase flex justify-between">
+              <span><i class="fa-solid fa-database mr-1"></i> Storage Status</span>
+              <button onclick="APP.showStorageStats()" class="text-blue-400 hover:text-blue-300">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </h4>
+            <div id="settings-storage-stats" class="grid grid-cols-2 gap-2 text-xs">
+              <div class="glass-card p-2 rounded">
+                <div class="text-slate-500 text-[10px]">Items</div>
+                <div class="text-white font-bold" id="settings-stat-items">--</div>
+              </div>
+              <div class="glass-card p-2 rounded">
+                <div class="text-slate-500 text-[10px]">Size</div>
+                <div class="text-white font-bold" id="settings-stat-size">--</div>
+              </div>
+              <div class="glass-card p-2 rounded col-span-2">
+                <div class="text-slate-500 text-[10px]">Usage</div>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div id="settings-usage-bar" class="bg-emerald-500 h-full transition-all" style="width: 0%"></div>
+                  </div>
+                  <span class="text-white font-bold text-[10px]" id="settings-stat-usage">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cloud Sync -->
+          <div class="p-4 rounded-xl border border-teal-500/40 bg-teal-900/20">
+            <div class="mb-4 p-4 bg-indigo-900/30 rounded-2xl border border-indigo-500/30 shadow-inner">
+              <h3 class="text-[10px] font-bold text-indigo-400 mb-3 uppercase tracking-widest flex items-center">
+                <i class="fa-solid fa-cloud mr-2"></i> Cloud Sync (G-Drive)
+              </h3>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  onclick="syncToCloud()"
+                  class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1"
+                >
+                  <i class="fa-solid fa-cloud-arrow-up text-base"></i> Backup
+                </button>
+                <button
+                  onclick="restoreFromCloud()"
+                  class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 flex flex-col items-center gap-1"
+                >
+                  <i class="fa-solid fa-cloud-arrow-down text-base"></i> Restore
+                </button>
+              </div>
+              <p class="text-[9px] text-slate-500 mt-2 text-center italic leading-tight">
+                Backup disimpan aman di AppData Google Drive.
+              </p>
+            </div>
+            <div class="border-t border-slate-700 pt-3 mt-2">
+              <div class="grid grid-cols-2 gap-4">
+                <button
+                  onclick="APP.data.exportData()"
+                  class="bg-slate-700 text-emerald-400 text-xs py-2 rounded"
+                >
+                  Backup Manual
+                </button>
+                <label class="bg-slate-700 text-blue-400 text-xs py-2 rounded text-center cursor-pointer">
+                  Restore Manual
+                  <input type="file" id="settings-import-file" class="hidden" onchange="APP.data.importData(this)" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="p-4 rounded-xl border border-red-900/30 bg-red-950/20">
+            <h4 class="text-red-400 font-bold text-[10px] mb-2 uppercase tracking-wide">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Danger Zone
+            </h4>
+            <div class="grid grid-cols-1 gap-2">
+              <button
+                onclick="APP.data.deleteLogs('today')"
+                class="w-full bg-slate-700 text-slate-300 text-xs py-2 rounded hover:bg-red-900/50 hover:text-red-400 transition text-left px-3 flex justify-between items-center"
+              >
+                <span>Hapus Log Hari Ini</span> <i class="fa-solid fa-trash"></i>
+              </button>
+              <div class="flex gap-2">
+                <input
+                  type="date"
+                  id="settings-del-date-picker"
+                  class="glass-input text-white text-xs p-2 rounded border border-white/10 flex-1"
+                />
+                <button
+                  onclick="APP.data.deleteLogs('date')"
+                  class="bg-slate-700 text-slate-300 text-xs px-3 rounded hover:bg-red-900/50 hover:text-red-400 transition whitespace-nowrap"
+                >
+                  Hapus Tgl Ini
+                </button>
+              </div>
+              <button
+                onclick="APP.data.deleteLogs('all')"
+                class="w-full bg-red-900/30 border border-red-900/50 text-red-400 font-bold text-xs py-3 rounded mt-2 hover:bg-red-900 hover:text-white transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/10"
+              >
+                <i class="fa-solid fa-radiation"></i> RESET TOTAL (FRESH START)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
+
+    <!-- V30.0: Bottom Navigation (Phase 3.5: All views use switchView) -->
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-black/90 backdrop-blur-md border-t border-white/5 pb-6 pt-2 px-6 z-50">
+      <ul class="flex justify-between items-center">
+
+        <!-- Home Tab -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-app-accent nav-item-active"
+             data-view="dashboard"
+             href="#"
+             onclick="window.APP.nav.switchView('dashboard'); return false;">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="text-[10px] font-medium">Home</span>
+          </a>
+        </li>
+
+        <!-- Analytics Tab (V30.0 Phase 3.5: Now uses switchView) -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="klinik"
+             href="#"
+             onclick="window.APP.nav.switchView('klinik'); return false;">
+            <i class="fa-solid fa-chart-simple text-xl"></i>
+            <span class="text-[10px] font-medium">Analytics</span>
+          </a>
+        </li>
+
+        <!-- AI Tab (V30.0 Phase 3.5: Now uses switchView) -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="ai"
+             href="#"
+             onclick="window.APP.nav.switchView('ai'); return false;">
+            <i class="fa-solid fa-brain text-xl"></i>
+            <span class="text-[10px] font-medium">AI</span>
+          </a>
+        </li>
+
+        <!-- Profile Tab (V30.0 Phase 3.5: Now uses switchView) -->
+        <li class="flex-1">
+          <a class="flex flex-col items-center gap-1 nav-item text-gray-500"
+             data-view="settings"
+             href="#"
+             onclick="window.APP.nav.switchView('settings'); return false;">
+            <i class="fa-regular fa-user text-xl"></i>
+            <span class="text-[10px] font-medium">Profile</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    </div><!-- END: V30.0 Mobile Container Wrapper -->
+
     <div id="toast-container"></div>
 
     <!-- DEEP SESSION EDITOR MODAL -->
@@ -919,7 +1558,7 @@
           class="flex justify-between items-center mb-4 pb-3 border-b border-white/10"
         >
           <h3 class="font-bold text-white text-lg">
-            <i class="fa-solid fa-pen-to-square text-emerald-400 mr-2"></i>
+            <i class="fa-solid fa-pen-to-square text-app-accent mr-2"></i>
             Edit Sesi Lengkap
           </h3>
           <button
@@ -1819,11 +2458,6 @@
           </div>
         </div>
 
-        <!-- V29.0: TOOLTIP CONTAINER -->
-        <div id="tooltip-container" class="hidden fixed z-50 bg-slate-900 text-white text-xs rounded-lg shadow-lg p-3 max-w-xs border border-slate-700">
-          <div id="tooltip-content"></div>
-          <div class="absolute w-2 h-2 bg-slate-900 border-l border-b border-slate-700 transform rotate-45 -bottom-1 left-4"></div>
-        </div>
       </div>
     </div>
     <div
@@ -2359,6 +2993,14 @@
           <!-- Content injected by switchAIMode() -->
         </div>
       </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- V30.0: GLOBAL TOOLTIP CONTAINER            -->
+    <!-- Must be at body level for proper z-index   -->
+    <!-- ========================================== -->
+    <div id="tooltip-container" class="hidden fixed bg-slate-900/95 backdrop-blur-sm text-white text-xs rounded-xl shadow-2xl p-4 max-w-[280px] border border-slate-600" style="z-index: 99999; pointer-events: none;">
+      <div id="tooltip-content"></div>
     </div>
 
     <!-- ========================================== -->

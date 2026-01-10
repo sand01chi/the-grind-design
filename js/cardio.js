@@ -101,20 +101,32 @@
 
   APP.showStorageStats = () => {
     const stats = LS_SAFE.getStats();
-    document.getElementById("stat-items").innerText = stats.items;
-    document.getElementById("stat-size").innerText = stats.sizeKB + " KB";
-    document.getElementById("stat-usage").innerText = stats.usage;
+
+    // V30.0 Phase 3.5: Support both profile-modal and settings-view contexts
+    const settingsView = document.getElementById("settings-view");
+    const isSettingsView = settingsView && !settingsView.classList.contains('hidden');
+    const prefix = isSettingsView ? "settings-" : "";
+
+    const itemsEl = document.getElementById(`${prefix}stat-items`);
+    const sizeEl = document.getElementById(`${prefix}stat-size`);
+    const usageEl = document.getElementById(`${prefix}stat-usage`);
+    const bar = document.getElementById(`${prefix}usage-bar`);
+
+    if (itemsEl) itemsEl.innerText = stats.items;
+    if (sizeEl) sizeEl.innerText = stats.sizeKB + " KB";
+    if (usageEl) usageEl.innerText = stats.usage;
 
     const usagePercent = parseFloat(stats.usage);
-    const bar = document.getElementById("usage-bar");
-    bar.style.width = usagePercent + "%";
+    if (bar) {
+      bar.style.width = usagePercent + "%";
 
-    if (usagePercent > 80) {
-      bar.className = "bg-red-500 h-full transition-all";
-    } else if (usagePercent > 50) {
-      bar.className = "bg-yellow-500 h-full transition-all";
-    } else {
-      bar.className = "bg-emerald-500 h-full transition-all";
+      if (usagePercent > 80) {
+        bar.className = "bg-red-500 h-full transition-all";
+      } else if (usagePercent > 50) {
+        bar.className = "bg-yellow-500 h-full transition-all";
+      } else {
+        bar.className = "bg-emerald-500 h-full transition-all";
+      }
     }
 
     console.log("Storage Stats:", stats);

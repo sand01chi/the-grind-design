@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FitLife Mobile App Replica</title>
+<!-- Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration for Custom Colors and Fonts -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            app: {
+              bg: '#000000', // Deep black background
+              card: '#1C1C1E', // Dark grey for cards
+              accent: '#4FD1C5', // Teal/Cyan accent color
+              'accent-dim': 'rgba(79, 209, 197, 0.15)', // Dimmed accent for backgrounds
+              text: '#FFFFFF',
+              subtext: '#9CA3AF', // Gray-400 equivalent
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow': '0 0 15px rgba(79, 209, 197, 0.3)',
+            'inner-glow': 'inset 0 0 20px rgba(79, 209, 197, 0.2)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Custom CSS for specific styling needs not covered by utilities -->
+<style data-purpose="custom-utilities">
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Hide scrollbar for cleaner mobile look */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* The glowing gradient border effect for the spontaneous button */
+    .spontaneous-btn-bg {
+      background: linear-gradient(90deg, #111827 0%, rgba(45, 212, 191, 0.15) 50%, #111827 100%);
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      box-shadow: 0 0 15px rgba(79, 209, 197, 0.15);
+    }
+
+    /* Badge positioning on border */
+    .next-badge {
+      position: absolute;
+      top: -12px;
+      left: 16px;
+      padding: 2px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: #2DD4BF;
+      color: #000000;
+      z-index: 10;
+    }
+    
+    /* Specific tweak for the bottom nav active indicator blur, adapted for fontawesome i tags */
+    .nav-item-active i {
+      filter: drop-shadow(0 0 5px rgba(79, 209, 197, 0.6));
+    }
+  </style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex justify-center min-h-screen bg-neutral-900" style="font-family: 'Inter', sans-serif;">
+<!-- BEGIN: Mobile Container -->
+<!-- Simulating the mobile viewport width -->
+<main class="w-full max-w-md bg-app-bg h-screen overflow-y-auto relative flex flex-col pb-24">
+<!-- Status Bar Spacer (Simulated) -->
+<div class="h-12 w-full shrink-0"></div>
+<!-- BEGIN: Header -->
+<header class="px-6 pb-6 flex items-center justify-between">
+<h1 class="text-3xl font-bold text-white tracking-tight">FitLife</h1>
+<!-- Calendar Icon -->
+<button class="text-gray-400 hover:text-white transition-colors"><i class="fa-regular fa-calendar fa-lg"></i></button>
+</header>
+<!-- END: Header -->
+<!-- BEGIN: Content Wrapper -->
+<div class="px-5 flex flex-col gap-6 mb-24">
+<!-- BEGIN: Stats Row -->
+<section aria-label="Health Statistics" class="grid grid-cols-2 gap-4">
+<!-- Weight Card -->
+<article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-gray-400 font-medium text-sm">Weight</span>
+<!-- Arrow Up Right Icon -->
+<i class="fa-solid fa-arrow-up text-gray-500" style="transform: rotate(45deg);"></i>
+</div>
+<div>
+<div class="flex items-baseline gap-1">
+<span class="font-bold text-white text-4xl">75.2</span>
+<span class="text-sm text-gray-400 font-medium">kg</span>
+</div>
+<div class="flex items-center gap-1 mt-1">
+<span class="text-gray-400 text-xs"><i class="fa-solid fa-caret-down mr-1"></i> 0.5 kg</span>
+</div>
+</div>
+</article>
+<!-- TDEE Card -->
+<article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="text-gray-400 font-medium text-sm">TDEE</span>
+<!-- Arrow Up Right Icon -->
+<i class="fa-solid fa-arrow-up text-gray-500" style="transform: rotate(45deg);"></i>
+</div>
+<div>
+<div class="flex items-baseline gap-1">
+<span class="font-bold text-white text-4xl">2450</span>
+<span class="text-sm text-gray-400 font-medium">kcal</span>
+</div>
+<div class="flex items-center gap-1 mt-1">
+<span class="text-gray-400 text-xs">+ 50 kcal</span>
+</div>
+</div>
+</article>
+</section>
+<!-- END: Stats Row -->
+<!-- BEGIN: Main Action -->
+<section>
+<button class="w-full py-4 rounded-3xl spontaneous-btn-bg flex items-center justify-center gap-3 group active:scale-[0.98] transition-transform">
+<!-- Running Icon -->
+<i class="fa-solid fa-person-running fa-lg text-[#2DD4BF]"></i>
+<span class="text-[#2DD4BF] font-bold text-lg tracking-wide">Spontaneous Mode</span>
+</button>
+</section>
+<!-- END: Main Action -->
+<!-- BEGIN: Workout Sessions -->
+<section class="flex flex-col gap-4"><h2 class="text-xl font-bold text-white">Workout Sessions</h2>
+<div class="flex flex-col gap-4 mt-4">
+<!-- Item 1: Active -->
+<div class="relative p-4 rounded-2xl border border-[#2DD4BF] bg-[#1E1E1E]">
+<div class="absolute -top-3 left-4 bg-[#2DD4BF] text-black text-xs font-bold px-3 py-1 rounded-full">Next</div>
+<div class="flex justify-between items-center">
+<div>
+<h3 class="text-white font-bold text-lg">Morning Run</h3>
+<p class="text-gray-400 text-sm">Today, 8:00 AM</p>
+</div>
+<button class="flex items-center gap-2 text-[#2DD4BF] text-sm">
+<i class="fa-regular fa-pen-to-square"></i> Edit
+                </button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-4 rounded-2xl bg-[#1E1E1E] border border-transparent">
+<div class="flex justify-between items-center">
+<div>
+<h3 class="text-white font-bold text-lg">Strength Training</h3>
+<p class="text-gray-400 text-sm">Finished on Yesterday</p>
+</div>
+<button class="flex items-center gap-2 text-[#2DD4BF] text-sm">
+<i class="fa-regular fa-pen-to-square"></i> Edit
+                </button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-4 rounded-2xl bg-[#1E1E1E] border border-transparent">
+<div class="flex justify-between items-center">
+<div>
+<h3 class="text-white font-bold text-lg">Yoga Flow</h3>
+<p class="text-gray-400 text-sm">Finished on Monday</p>
+</div>
+<button class="flex items-center gap-2 text-[#2DD4BF] text-sm">
+<i class="fa-regular fa-pen-to-square"></i> Edit
+                </button>
+</div>
+</div>
+</div>
+<!-- Add New Session Button -->
+<button class="w-full py-4 rounded-2xl bg-[#1E1E1E] flex items-center justify-center gap-2 text-[#2DD4BF] font-medium mt-2 active:bg-app-card transition-colors">
+<i class="fa-solid fa-plus"></i>
+        Add New Session
+    </button></section>
+<!-- END: Workout Sessions -->
+</div>
+<!-- END: Content Wrapper -->
+<!-- BEGIN: Bottom Navigation -->
+<nav class="fixed bottom-0 w-full max-w-md bg-black/90 backdrop-blur-md border-t border-white/5 pb-6 pt-2 px-6">
+<ul class="flex justify-between items-center">
+<!-- Home (Active) -->
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-[#2DD4BF] nav-item-active" href="#">
+<i class="fa-solid fa-house text-xl"></i>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+</li>
+<!-- Analytics -->
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors" href="#">
+<i class="fa-solid fa-chart-simple text-xl"></i>
+<span class="text-[10px] font-medium">Analytics</span>
+</a>
+</li>
+<!-- AI -->
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors" href="#">
+<!-- Brain Icon -->
+<i class="fa-solid fa-brain text-xl"></i>
+<span class="text-[10px] font-medium">AI</span>
+</a>
+</li>
+<!-- Profile -->
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors" href="#">
+<i class="fa-regular fa-user text-xl"></i>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- END: Bottom Navigation -->
+</main>
+<!-- END: Mobile Container -->
+</body></html>

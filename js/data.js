@@ -857,15 +857,19 @@
       });
       const w = LS_SAFE.getJSON("weights", []);
       const tdee = LS_SAFE.get("tdee");
-      
-      document.getElementById("display-name").innerText = p.name;
-      document.getElementById("dashboard-bw").innerText = `${
-        w.length ? w[0].v : "--"
-      } kg`;
 
-      if (tdee) {
-        document.getElementById("dashboard-tdee").innerHTML = 
-          `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
+      // V30.0: Add null checks for removed dashboard elements
+      const displayNameEl = document.getElementById("display-name");
+      if (displayNameEl) displayNameEl.innerText = p.name;
+
+      const dashboardBwEl = document.getElementById("dashboard-bw");
+      if (dashboardBwEl) {
+        dashboardBwEl.innerText = `${w.length ? w[0].v : "--"} kg`;
+      }
+
+      const dashboardTdeeEl = document.getElementById("dashboard-tdee");
+      if (tdee && dashboardTdeeEl) {
+        dashboardTdeeEl.innerHTML = `${tdee} <span class="text-[10px] font-normal">kkal</span>`;
       }
 
       if (document.getElementById("prof-name")) {
@@ -1402,6 +1406,72 @@
 
       // V28.1: Use simplified library modal for manual copy
       APP.ui.showManualCopy(rep);
+    },
+
+    // ============================================================================
+    // V30.0 PHASE 3.5: SETTINGS VIEW PROFILE FUNCTIONS
+    // ============================================================================
+
+    /**
+     * Load profile data into the Settings View form fields
+     * Called when navigating to Settings via bottom nav
+     */
+    loadProfileToSettings: function() {
+      console.log("[DATA] Loading profile to Settings View");
+
+      const profile = LS_SAFE.getJSON("profile", {});
+
+      // Populate settings form fields
+      const nameEl = document.getElementById('settings-prof-name');
+      const heightEl = document.getElementById('settings-prof-height');
+      const ageEl = document.getElementById('settings-prof-age');
+      const genderEl = document.getElementById('settings-prof-gender');
+      const activeEl = document.getElementById('settings-prof-active');
+
+      if (nameEl) nameEl.value = profile.name || '';
+      if (heightEl) heightEl.value = profile.h || '';
+      if (ageEl) ageEl.value = profile.a || '';
+      if (genderEl) genderEl.value = profile.g || 'male';
+      if (activeEl) activeEl.value = profile.act || '1.55';
+
+      // Also update storage stats
+      if (window.APP.showStorageStats) {
+        window.APP.showStorageStats();
+      }
+
+      console.log("[DATA] Profile loaded to Settings View");
+    },
+
+    /**
+     * Save profile data from the Settings View form fields
+     * Called when user clicks Save button in Settings View
+     */
+    saveProfileFromSettings: function() {
+      console.log("[DATA] Saving profile from Settings View");
+
+      const nameEl = document.getElementById('settings-prof-name');
+      const heightEl = document.getElementById('settings-prof-height');
+      const ageEl = document.getElementById('settings-prof-age');
+      const genderEl = document.getElementById('settings-prof-gender');
+      const activeEl = document.getElementById('settings-prof-active');
+
+      const profile = {
+        name: nameEl ? nameEl.value : '',
+        h: heightEl ? parseInt(heightEl.value) || 170 : 170,
+        a: ageEl ? parseInt(ageEl.value) || 25 : 25,
+        g: genderEl ? genderEl.value : 'male',
+        act: activeEl ? parseFloat(activeEl.value) || 1.55 : 1.55
+      };
+
+      // Save to localStorage
+      LS_SAFE.setJSON("profile", profile);
+
+      // Show success toast
+      if (window.APP.ui && window.APP.ui.showToast) {
+        window.APP.ui.showToast("✅ Profil berhasil disimpan", "success");
+      }
+
+      console.log("[DATA] Profile saved from Settings View:", profile);
     },
   };
 

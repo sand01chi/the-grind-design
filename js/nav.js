@@ -313,15 +313,198 @@
   // ============================================
 
   APP.nav = {
+    /**
+     * V30.0 Phase 3.5: Unified View Switching
+     * All main views (dashboard, workout, klinik, ai, settings) use this function
+     * @param {string} v - View name without '-view' suffix
+     */
     switchView: (v) => {
-      document.getElementById("dashboard-view").classList.add("hidden");
-      document.getElementById("workout-view").classList.add("hidden");
-      document.getElementById(`${v}-view`).classList.remove("hidden");
-      if (v === "dashboard") APP.nav.renderDashboard();
+      console.log(`[NAV] Switching to view: ${v}`);
+
+      // V30.0 Phase 3.5: All main views
+      const views = [
+        'dashboard-view',
+        'workout-view',
+        'klinik-view',    // Analytics
+        'ai-view',        // AI Command Center
+        'settings-view'   // Profile/Settings
+      ];
+
+      // Hide all views
+      views.forEach(viewId => {
+        const viewEl = document.getElementById(viewId);
+        if (viewEl) {
+          viewEl.classList.add('hidden');
+        }
+      });
+
+      // Show target view
+      const targetView = `${v}-view`;
+      const targetEl = document.getElementById(targetView);
+
+      if (targetEl) {
+        targetEl.classList.remove('hidden');
+
+        // Scroll to top when switching views
+        window.scrollTo(0, 0);
+      } else {
+        console.error(`[NAV] View not found: ${targetView}`);
+        // Fallback to dashboard if view not found
+        const dashboardEl = document.getElementById('dashboard-view');
+        if (dashboardEl) dashboardEl.classList.remove('hidden');
+      }
+
+      // V30.0 Phase 3.5: Hide bottom nav during workout session
+      const bottomNav = document.getElementById('bottom-nav');
+      if (bottomNav) {
+        if (v === 'workout') {
+          bottomNav.classList.add('hidden');
+        } else {
+          bottomNav.classList.remove('hidden');
+        }
+      }
+
+      // View-specific rendering logic
+      if (v === 'dashboard') {
+        // Render dashboard
+        if (window.APP.nav && window.APP.nav.renderDashboard) {
+          window.APP.nav.renderDashboard();
+        }
+      } else if (v === 'klinik') {
+        // V30.0 Phase 3.5: Render analytics view
+        // Initialize the klinik view with data
+        if (window.APP.stats && window.APP.stats.initKlinikView) {
+          window.APP.stats.initKlinikView();
+        }
+      } else if (v === 'ai') {
+        // V30.0 Phase 3.5: Initialize AI view
+        if (window.APP.ui && window.APP.ui.initAIView) {
+          window.APP.ui.initAIView();
+        }
+      } else if (v === 'settings') {
+        // V30.0 Phase 3.5: Load profile data into settings view
+        if (window.APP.data && window.APP.data.loadProfileToSettings) {
+          window.APP.data.loadProfileToSettings();
+        }
+      }
+
+      // V30.0: Update bottom nav active state
+      window.APP.nav.updateBottomNav(v);
+    },
+
+    /**
+     * V30.0 Phase 3.5: Update bottom navigation active state
+     * @param {string} activeView - Current view identifier (without '-view' suffix)
+     */
+    updateBottomNav: function(activeView) {
+      // View mapping - maps internal view names to nav data-view attributes
+      const viewMap = {
+        'dashboard': 'dashboard',
+        'workout': 'dashboard',    // Workout doesn't have nav item, keep dashboard active
+        'klinik': 'klinik',
+        'stats': 'klinik',         // Alias
+        'ai': 'ai',
+        'settings': 'settings',
+        'profile': 'settings'      // Alias
+      };
+
+      const mappedView = viewMap[activeView] || activeView;
+
+      // Update all nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const itemView = item.getAttribute('data-view');
+
+        if (itemView === mappedView) {
+          // Activate this item
+          item.classList.add('text-app-accent', 'nav-item-active');
+          item.classList.remove('text-gray-500');
+        } else {
+          // Deactivate other items
+          item.classList.remove('text-app-accent', 'nav-item-active');
+          item.classList.add('text-gray-500');
+        }
+      });
     },
 
     renderDashboard: () => {
             try {
+              // ============================================
+              // V30.0: STATS CARDS (Weight + TDEE)
+              // ============================================
+
+              // Get user profile and weight data
+              const profile = LS_SAFE.getJSON("profile", {});
+              const weights = LS_SAFE.getJSON("weights", []);
+              // Use latest weight from weights array, fallback to profile.weight, then default 70
+              const userWeight = weights.length > 0 ? parseFloat(weights[0].v) : (profile.weight || 70);
+              const userHeight = profile.h || 170; // cm
+              const userAge = profile.a || 25;
+              const userGender = profile.g || 'male';
+              const activityLevel = profile.act || 1.55; // Moderate activity default
+
+              // Calculate BMR (Mifflin-St Jeor Equation)
+              let bmr;
+              if (userGender === 'male' || userGender === 'M') {
+                bmr = (10 * userWeight) + (6.25 * userHeight) - (5 * userAge) + 5;
+              } else {
+                bmr = (10 * userWeight) + (6.25 * userHeight) - (5 * userAge) - 161;
+              }
+
+              // Calculate TDEE (or use stored value if available)
+              const storedTdee = LS_SAFE.get("tdee");
+              const tdee = storedTdee ? parseInt(storedTdee) : Math.round(bmr * activityLevel);
+
+              // Render stats cards container
+              const statsContainer = document.getElementById('stats-cards-container');
+              if (statsContainer) {
+                statsContainer.innerHTML = `
+                  <section aria-label="Stats" class="grid grid-cols-2 gap-4 mb-4">
+
+                    <!-- Weight Card (Interactive) -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5 cursor-pointer hover:border-app-accent/30 active:scale-[0.98] transition-all group"
+                             onclick="window.APP.ui.openModal('weight')">
+                      <div class="flex justify-between items-start">
+                        <span class="text-gray-400 font-medium text-sm group-hover:text-app-accent transition">Weight</span>
+                        <i class="fa-solid fa-weight-scale text-gray-500 text-sm group-hover:text-app-accent transition"></i>
+                      </div>
+                      <div>
+                        <div class="flex items-baseline gap-1">
+                          <span class="font-bold text-white text-4xl group-hover:text-app-accent transition">${userWeight}</span>
+                          <span class="text-sm text-gray-400 font-medium">kg</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500 group-hover:text-app-accent transition">
+                          <i class="fa-solid fa-pen-to-square"></i>
+                          <span>Tap to update</span>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- TDEE Card (Interactive) -->
+                    <article class="bg-app-card rounded-3xl p-5 relative flex flex-col justify-between h-32 border border-white/5 cursor-pointer hover:border-app-accent/30 active:scale-[0.98] transition-all group"
+                             onclick="window.APP.ui.openModal('nutrition')">
+                      <div class="flex justify-between items-start">
+                        <span class="text-gray-400 font-medium text-sm group-hover:text-app-accent transition">TDEE</span>
+                        <i class="fa-solid fa-fire text-gray-500 text-sm group-hover:text-app-accent transition"></i>
+                      </div>
+                      <div>
+                        <div class="flex items-baseline gap-1">
+                          <span class="font-bold text-white text-4xl group-hover:text-app-accent transition">${tdee}</span>
+                          <span class="text-sm text-gray-400 font-medium">kcal</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1 text-xs text-gray-500 group-hover:text-app-accent transition">
+                          <i class="fa-solid fa-calculator"></i>
+                          <span>Daily energy</span>
+                        </div>
+                      </div>
+                    </article>
+
+                  </section>
+                `;
+              }
+
+              // ============================================
+              // EXISTING SESSION LIST CODE BELOW
+              // ============================================
               const list = document.getElementById("schedule-list");
 
               if (!list) {
@@ -329,94 +512,117 @@
                 return;
               }
 
-              let htmlBuffer = "";
-              const wData = APP.state.workoutData;
-              // V29.5 P0-006: Use preference-based highlight (not timestamp-based)
+              // V30.0: Get next session preference
               const nextSession = LS_SAFE.get("pref_next_session") || "s1";
+
+              // Build session cards HTML
+              let sessionsHTML = '';
+              const wData = APP.state.workoutData;
+
               Object.keys(wData).forEach((k) => {
                 try {
-                  if (k === "spontaneous") return;
+                  if (k === "spontaneous") return; // Skip spontaneous
 
-                  const d = wData[k];
+                  const session = wData[k];
 
-                  if (!d || typeof d !== "object") {
-                    console.warn(
-                      `[DASHBOARD] Session ${k} has invalid structure - skipping`
-                    );
+                  if (!session || typeof session !== "object") {
+                    console.warn(`[DASHBOARD] Session ${k} has invalid structure - skipping`);
                     return;
                   }
 
-                  if (!d.title) {
-                    console.warn(
-                      `[DASHBOARD] Session ${k} has no title - using fallback`
-                    );
-                    d.title = "Untitled Session";
+                  if (!session.title) {
+                    console.warn(`[DASHBOARD] Session ${k} has no title - using fallback`);
+                    session.title = "Untitled Session";
                   }
 
-                  if (!d.label) {
-                    d.label = "CUSTOM";
+                  // Sanitize session data (V29.5 security)
+                  const safeTitle = window.APP.validation?.sanitizeHTML
+                    ? window.APP.validation.sanitizeHTML(session.title)
+                    : session.title;
+                  const safeLabel = session.label || "CUSTOM";
+
+                  // Get last performed timestamp
+                  const lastTimestamp = LS_SAFE.get(`last_${k}`);
+
+                  // V30.0: Calculate relative time
+                  let timeStr = "Never performed";
+                  if (lastTimestamp) {
+                    const lastDate = new Date(parseInt(lastTimestamp));
+                    const now = new Date();
+                    const diffMs = now - lastDate;
+                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 0) {
+                      timeStr = "Today";
+                    } else if (diffDays === 1) {
+                      timeStr = "Yesterday";
+                    } else if (diffDays < 7) {
+                      timeStr = `${diffDays} days ago`;
+                    } else if (diffDays < 30) {
+                      const weeks = Math.floor(diffDays / 7);
+                      timeStr = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+                    } else {
+                      const months = Math.floor(diffDays / 30);
+                      timeStr = `${months} month${months > 1 ? 's' : ''} ago`;
+                    }
                   }
 
-                  // V29.5 P2-003: Sanitize session title and label
-                  const safeTitle = window.APP.validation.sanitizeHTML(d.title);
-                  const safeLabel = window.APP.validation.sanitizeHTML(d.label);
+                  // Check if this is the next session
+                  const isNext = (k === nextSession);
 
-                  const last = LS_SAFE.get(`last_${k}`);
-                  const timeStr = DT.formatRelative(last);
-                  // V29.5 P0-006: Use preference-based highlight
-                  const isNextSession = (k === nextSession);
+                  // Count exercises for display
+                  const exerciseCount = session.exercises?.length || 0;
 
-                  htmlBuffer += `
-  <div onclick="APP.nav.loadWorkout('${k}')" class="glass-panel p-4 rounded-xl border ${
-                isNextSession
-                  ? "border-emerald-500/50 pulse-border"
-                  : "border-white/5"
-              } active:scale-95 transition flex justify-between items-center cursor-pointer mb-3 shadow-lg group relative">
-    <div>
-          <div class="flex items-center mb-1">
-            <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 rounded">${
-              safeLabel
-            }</span>
-            ${
-              isNextSession
-                ? '<span class="bg-emerald-500 text-white text-[10px] px-2 rounded ml-2 shadow">NEXT</span>'
-                : ""
-            }
-          </div>
-          <h3 class="font-bold text-white text-base">
-            ${safeTitle}
-          </h3>
-          <div class="text-xs text-slate-400 mt-1">
-            <i class="fa-solid fa-clock-rotate-left mr-1"></i> ${timeStr}
-          </div>
-        </div>
-        <div class="flex flex-col items-end gap-2">
-          <button
-            onclick="event.stopPropagation(); APP.data.setNextSession('${k}')"
-            class="${isNextSession ? 'text-emerald-400' : 'text-slate-500 hover:text-yellow-400'} p-2 text-xs transition"
-            title="${isNextSession ? 'Current next session' : 'Set as next session'}"
-          >
-            <i class="fa-solid ${isNextSession ? 'fa-bullseye' : 'fa-star'}"></i>
-          </button>
-          <button
-            onclick="APP.session.openEditor(event, '${k}')"
-            class="text-slate-400 hover:text-emerald-400 p-2.5 text-xs bg-white/5 border border-white/10 rounded-xl transition shadow-sm active:scale-90"
-            title="Edit Sesi"
-          >
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <i class="fa-solid fa-chevron-right text-slate-600/50 text-[10px]"></i>
-        </div>
-      </div>
-    `;
+                  // V30.0: Build session card HTML with modern design
+                  sessionsHTML += `
+                    <div class="relative p-4 rounded-2xl ${
+                      isNext
+                        ? 'border border-app-accent bg-[#1E1E1E]'
+                        : 'bg-app-card border border-transparent'
+                    } mb-4 active:scale-[0.98] transition-transform cursor-pointer"
+                         onclick="window.APP.nav.loadWorkout('${k}')">
+
+                      ${isNext ? '<div class="next-badge">Next</div>' : ''}
+
+                      <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-700/50 px-2 py-0.5 rounded uppercase">
+                              ${safeLabel}
+                            </span>
+                            ${isNext ? '<i class="fa-solid fa-bullseye text-app-accent text-xs"></i>' : ''}
+                          </div>
+                          <h3 class="text-white font-bold text-lg mb-1">${safeTitle}</h3>
+                          <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <span><i class="fa-solid fa-clock-rotate-left mr-1"></i>${timeStr}</span>
+                            <span><i class="fa-solid fa-list-check mr-1"></i>${exerciseCount} exercises</span>
+                          </div>
+                        </div>
+
+                        <div class="flex flex-col items-end gap-3">
+                          <button class="${isNext ? 'text-app-accent' : 'text-slate-500 hover:text-yellow-400'} p-1 transition"
+                                  onclick="event.stopPropagation(); window.APP.data.setNextSession('${k}')"
+                                  title="${isNext ? 'Current next session' : 'Set as next session'}">
+                            <i class="fa-solid ${isNext ? 'fa-bullseye' : 'fa-star'}"></i>
+                          </button>
+                          <button class="text-gray-400 hover:text-app-accent p-1 transition"
+                                  onclick="event.stopPropagation(); window.APP.session.openEditor(event, '${k}')"
+                                  title="Edit Session">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  `;
+
                 } catch (e) {
-                  console.error(
-                    `[DASHBOARD] Failed to render session ${k}:`,
-                    e
-                  );
+                  console.error(`[DASHBOARD] Failed to render session ${k}:`, e);
                 }
               });
-              list.innerHTML = htmlBuffer;
+
+              // Inject into DOM
+              list.innerHTML = sessionsHTML;
             } catch (e) {
               APP.debug.showFatalError("Render Dashboard", e);
             }

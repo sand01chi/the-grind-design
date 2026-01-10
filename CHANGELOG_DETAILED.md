@@ -5,6 +5,180 @@
 
 ---
 
+## V30.0 - MOBILE UI REDESIGN (2026-01-10)
+
+**Theme:** Mobile-First Transformation
+**Duration:** 4 phases across 4 days
+**Status:** Production Ready
+
+### Overview
+Complete UI redesign optimizing THE GRIND DESIGN for mobile-first usage with modern dark theme aesthetic, improved navigation, and enhanced clinical analytics visualization.
+
+### Design Vision
+- **Pure Black Theme:** OLED-friendly #000000 background
+- **Teal Accent:** Medical/tech aesthetic with #4FD1C5
+- **Mobile-First:** Optimized for 375px-428px viewports
+- **Bottom Navigation:** Thumb-zone optimized navigation
+- **Glassmorphism:** Modern card designs with subtle transparency
+
+### Phase 1: Foundation & Dark Theme (8 hours)
+**Implemented:**
+- Mobile-first container layout (max-width: 448px, centered)
+- Pure black theme (#000000) with teal accents (#4FD1C5)
+- Custom Tailwind color palette (app-bg, app-card, app-accent)
+- Inter font family (400, 500, 600, 700 weights)
+- Typography system with consistent sizing
+- Status bar spacer for mobile notch compatibility
+- Global dark theme CSS for all UI elements
+
+**Files Modified:**
+- `index.html`: Layout transformation, Tailwind config, custom CSS
+
+**Bug Fixes:**
+- Tooltip positioning fix: Viewport-aware positioning to prevent tooltips rendering outside container
+
+### Phase 2: Dashboard Redesign (10 hours)
+**Implemented:**
+
+**Stats Cards:**
+- Weight card: Interactive button to update weight, large display (4xl font)
+- TDEE card: Calculated from profile (BMR × activity level), clickable
+
+**Spontaneous Mode Button:**
+- Gradient background with glow effect
+- Running icon with hover animation
+- Full-width teal styling
+
+**Session Cards:**
+- "Next" badge on preferred session (from pref_next_session)
+- Relative timestamps: "Today", "Yesterday", "X days ago", "X weeks ago", "Never performed"
+- Teal border for next session, dark background for others
+- Exercise count and last performed display
+- Sanitized HTML output (V29.5 security compliance)
+
+**Bottom Navigation:**
+- Fixed positioning with backdrop blur
+- 4 navigation items: Home, Analytics, AI, Profile
+- Active state with teal accent and glow effect
+- Constrained to mobile container (max-w-md)
+
+**Removed:**
+- 4-button grid (WEIGHT/ANALYZE/TDEE/MANAGE) - redundant with bottom nav
+- AI button in header - redundant with bottom nav
+- Weekly Volume card - replaced with TDEE card
+
+**Files Modified:**
+- `index.html`: Dashboard structure, bottom nav HTML
+- `js/nav.js`: Dashboard rendering, stats cards, session cards, bottom nav logic
+
+### Phase 3: Exercise Cards (SKIPPED)
+**Decision:** Current exercise card design already optimal for mobile use with comprehensive features (rest timer, fill all, clinical notes, RPE tracking, etc.). No changes needed.
+
+### Phase 3.5: Navigation Unification (1 hour)
+**Implemented:**
+- Converted Analytics, AI, and Profile from modal overlays to view transitions
+- Unified all navigation to use `switchView()` pattern
+- Bottom nav now switches between all views smoothly
+- Removed modal JavaScript functions for main views
+- All views at same DOM level for consistent transitions
+
+**Files Modified:**
+- `index.html`: Restructured Analytics/AI/Profile as views (not modals)
+- `js/nav.js`: Enhanced `switchView()` to handle all views, `updateBottomNav()` function
+
+**Bug Fixes:**
+- Element ID mismatches causing navigation failures
+- History data population issues in analytics view
+
+### Phase 4: Analytics Dark Theme (4 hours)
+**Implemented:**
+
+**Chart.js Dark Theme:**
+- Global Chart.js defaults: gray text (#9CA3AF), subtle grid lines (white/5%)
+- Teal data lines (#4FD1C5) with glow effects
+- Dark tooltips (#1C1C1E) with teal borders
+- Smooth curve tension (0.4) for better visualization
+- White point borders with colored fills
+
+**Ratio Cards Styling:**
+- Dark card backgrounds (#1C1C1E) with white/10% borders
+- Large ratio numbers (text-4xl, white)
+- Colored progress bars based on status:
+  - Green (#10B981): Optimal (1.0-1.2 ratio)
+  - Yellow (#EAB308): Monitor (1.2-1.5 ratio)
+  - Red (#EF4444): Imbalance (>1.5 ratio)
+- Status badges with colored backgrounds and uppercase text
+- Rounded corners (rounded-2xl) for modern aesthetic
+
+**Clinical Insights Panel:**
+- Colored left borders (4px) based on severity:
+  - Red (#EF4444): Danger (injury risk)
+  - Yellow (#EAB308): Warning (suboptimal)
+  - Blue (#3B82F6): Info (FYI)
+  - Emerald (#10B981): Success
+- Subtle background tints matching severity
+- Dark card styling with proper spacing
+- Evidence links with hover states
+
+**Body Parts Volume Display:**
+- Combined view with teal accent bars
+- Split view: orange (lower body), teal (upper body)
+- Dark card containers for each muscle group
+- Modern rounded corners and spacing
+
+**Global CSS Utilities:**
+- Analytics card classes (`.analytics-card`, `.status-badge`, etc.)
+- Progress bar utilities (`.progress-track`, `.progress-fill-*`)
+- Insight card severity classes (`.insight-card-danger`, etc.)
+- Metric display classes (`.metric-label`, `.metric-value`)
+
+**Files Modified:**
+- `js/stats.js`: Chart.js config, ratio cards rendering, body parts display
+- `js/ui.js`: Clinical insights rendering
+- `index.html`: Global CSS utilities, tab styling
+
+### Technical Achievements
+- **Zero Breaking Changes:** All V29 functionality preserved
+- **V27+ Compliance:** All `window.APP.*` patterns maintained
+- **Data Integrity:** No data structure modifications
+- **Backward Compatibility:** All existing features work identically
+- **Security:** V29.5 sanitization patterns maintained
+- **Performance:** No performance degradation, smooth animations
+
+### User Experience Improvements
+- **Mobile-Optimized:** 44px+ touch targets throughout
+- **Navigation:** Smooth view transitions, no modal overlays for main navigation
+- **Visual Hierarchy:** Clear distinction between primary and secondary actions
+- **Accessibility:** High contrast ratios, readable text sizes
+- **Professional:** Clinical-grade aesthetic matching medical app standards
+
+### Color Palette
+- **Background:** #000000 (pure black, OLED-friendly)
+- **Cards:** #1C1C1E (dark gray)
+- **Primary Accent:** #4FD1C5 (teal)
+- **Text:** #FFFFFF (primary), #9CA3AF (secondary), #6B7280 (muted)
+- **Status Colors:** #10B981 (success), #EAB308 (warning), #EF4444 (danger), #3B82F6 (info)
+
+### Known Limitations
+- Desktop experience unchanged (future: Phase 5 could optimize for desktop)
+- Some modals (calendar, exercise picker) not yet dark-themed (minor)
+- No new features added (pure UI redesign)
+
+### Migration Notes
+- No data migration required
+- No localStorage structure changes
+- No API changes
+- Direct upgrade from V29.5 safe
+
+### Future Enhancements (Post-V30)
+- Desktop-optimized layouts for >768px viewports
+- Dark theme for remaining modals
+- Animation polish and micro-interactions
+- Additional chart types (doughnut, radar for muscle balance)
+- Progressive Web App manifest updates
+
+---
+
 ## V29.5.0 - CODE HEALTH AUDIT COMPLETION (2026-01-09)
 
 **Type:** Maintenance Release
