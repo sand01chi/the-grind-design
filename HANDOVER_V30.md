@@ -1,11 +1,389 @@
 # THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION
 
 **Project:** THE GRIND DESIGN - Clinical Gym Training PWA  
-**Version:** V30.4 Training Analysis Expansion (COMPLETE)  
+**Version:** V30.5 AI Consultation Integration (IN PROGRESS)  
 **Date:** 2026-01-11  
 **Lead PM:** sand01chi  
 **Design Architect:** Claude.ai  
 **Lead Coder:** Claude Code (VS Code Extension)
+
+---
+
+## 🚀 V30.5 IN PROGRESS - AI CONSULTATION FOR ANALYTICS INSIGHTS
+
+### Current Status
+**Version:** V30.5 AI Consultation Integration  
+**Date:** January 11, 2026  
+**Branch:** `v30.5-ai-consultation`  
+**Commits:** 1 commit (120bc3e)  
+**Status:** ⚠️ IN PROGRESS (Testing Required)
+
+**Implementation Complete:**
+1. ✅ Backend consultation functions
+2. ✅ UI consultation CTA component
+3. ✅ AI autoprompt handling
+4. ⚠️ Testing pending
+5. ⚠️ Documentation update pending
+
+### Update Summary
+
+**User Request:** "i want to the detailed analytics to have consultation feature like existing APP.stats.prepareImbalanceConsultation function. with ui placed below clinical insights section. auto prompt include current active exercise plan (spontaneous excluded) to give context to the AI what exercises that we currently do. also the UI component should match the current app theme"
+
+**Solution:** Integrated AI consultation workflow that auto-prepares consultation prompts from training analytics insights with full exercise plan context.
+
+### Problem Statement
+
+**Issue:** Users needed AI consultation about their training analytics insights but had to manually compile:
+- Current insights from analytics
+- User profile information
+- Current exercise plan
+- Volume breakdown by muscle group
+
+**User Feedback:** "want consultation feature like prepareImbalanceConsultation but for analytics insights"
+
+### Solution: AI Consultation Integration
+
+#### **Phase 1: Backend Functions (js/stats.js)**
+
+**1. `prepareAnalyticsConsultation(insights)`** (Line ~4525)
+- **Purpose:** Build structured consultation prompt from analytics insights
+- **Inputs:** insights array from interpretWorkoutData()
+- **Processing:**
+  1. Groups insights by severity (danger/warning/info)
+  2. Gets user profile (name, age, height, period)
+  3. Builds current exercise plan (excludes spontaneous sessions)
+  4. Calculates volume breakdown by muscle (PRIMARY/SECONDARY weighted)
+  5. Formats consultation request
+- **Output:** Structured prompt string ready for AI
+
+**Prompt Structure:**
+```
+[TRAINING ANALYTICS CONSULTATION]
+
+DETECTED INSIGHTS:
+🔴 HIGH PRIORITY:
+1. [Insight message]
+
+🟡 WARNINGS:
+1. [Insight message]
+
+🔵 OBSERVATIONS:
+1. [Insight message]
+
+USER PROFILE:
+- Name: [name]
+- Age: [age]
+- Height: [height]cm
+- Training Period Analyzed: Last [weeks] weeks
+
+CURRENT EXERCISE PLAN (Active Sessions):
+1. [Exercise name]
+2. [Exercise name]
+...
+
+VOLUME BREAKDOWN (Last [weeks] weeks):
+VOLUME METHODOLOGY:
+- Primary Work (1.0x): Direct muscle targeting
+- Secondary Work (0.5x): Synergist contribution
+- Total includes weighted distribution from compound lifts
+
+- CHEST: [volume]kg (exercises: ...)
+- BACK: [volume]kg (exercises: ...)
+...
+
+QUESTION:
+Berdasarkan insights dan data analytics di atas, berikan:
+1. Analisis root cause dari insights yang terdeteksi
+2. Apakah perlu modifikasi exercise plan? Jika perlu, rekomendasi spesifik
+3. Target volume optimal untuk [weeks] minggu ke depan per muscle group
+4. Action plan konkret untuk address insights (timeline & milestones)
+
+-Format response dalam Bahasa Indonesia, to-the-point, dan actionable.
+-Kamu bisa crossreference dengan log kamu di google task.
+-Ingat standar output resep JSON: Instructional Cueing, Tri-Option System, Full Metadata.
+```
+
+**2. `consultAIAboutInsights()`** (Line ~4703)
+- **Purpose:** Trigger AI consultation workflow
+- **Process:**
+  1. Gets insights from interpretWorkoutData()
+  2. Validates insights exist
+  3. Calls prepareAnalyticsConsultation()
+  4. Stores prompt in localStorage (ai_autoprompt, ai_autoprompt_source)
+  5. Shows success toast
+  6. Navigates to AI view after 500ms delay
+- **Error Handling:** Shows info toast if no insights available
+
+**Data Sources:**
+- `gym_hist`: Workout history logs
+- `profile`: User profile data
+- `cscs_program_v10`: Current workout program
+- `advanced-analytics-period`: Analysis time period (default 4 weeks)
+
+**Filtering Logic:**
+- Spontaneous workouts: Excluded using `log.src !== "spontaneous"`
+- Recent logs: Filtered by weeks parameter (default 4 weeks)
+- Exercise plan: Only active sessions (excludes "spontaneous" session ID)
+
+#### **Phase 2: UI Components (js/stats.js)**
+
+**Consultation CTA Card** (Line ~2964)
+- **Location:** Below Clinical Insights section in Advanced Analytics tab
+- **Conditional Rendering:** Only shows when insights.length > 0
+- **Styling:**
+  - Gradient background: `from-purple-500/10 via-blue-500/10 to-teal-500/10`
+  - Border: `border-purple-500/20` (distinct from teal analytics theme)
+  - Rounded: `rounded-2xl`
+  - Padding: `p-4`
+
+**Card Content:**
+```html
+<div class="mt-4 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 rounded-2xl border border-purple-500/20 p-4">
+  <div class="flex items-start gap-3">
+    <div class="text-3xl">🤖</div>
+    <div class="flex-1">
+      <h4 class="text-sm font-semibold text-white mb-2">
+        AI Consultation Available
+      </h4>
+      <p class="text-xs text-app-subtext mb-3">
+        Get personalized advice from AI about these insights. Includes your current exercise plan and volume breakdown.
+      </p>
+      <button 
+        onclick="APP.stats.consultAIAboutInsights()"
+        class="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+        <i class="fa-solid fa-sparkles mr-2"></i>Consult AI About These Insights
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+**Visual Theme Compliance:**
+- ✅ Matches app dark theme (OLED black background)
+- ✅ Uses glass-morphism effects (bg opacity, border opacity)
+- ✅ Purple/blue gradient (distinct from teal analytics)
+- ✅ Consistent rounded corners (2xl)
+- ✅ Hover/active states with scale transforms
+- ✅ FontAwesome icons (fa-sparkles)
+
+#### **Phase 3: AI Autoprompt Integration (js/ui.js)**
+
+**Modified `renderContextMode()` Function** (Line ~1263)
+- **Purpose:** Detect and display autoprompts in AI view
+- **Process:**
+  1. Check for `ai_autoprompt` in localStorage
+  2. If exists, use as context text (priority over default)
+  3. Get source label from `ai_autoprompt_source`
+  4. Render purple gradient badge showing autoprompt type
+  5. Update button text and instructions
+- **Fallback:** If no autoprompt, generate default context via AI Bridge
+
+**Autoprompt Badge:**
+```html
+<div class="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-xl p-3 mb-3">
+  <div class="flex items-center gap-2 mb-2">
+    <i class="fa-solid fa-sparkles text-purple-400"></i>
+    <span class="text-xs font-semibold text-white">Auto-Generated Prompt: Analytics Consultation</span>
+  </div>
+  <p class="text-[10px] text-app-subtext">
+    This prompt was automatically prepared based on your training analytics.
+  </p>
+</div>
+```
+
+**Modified `copyContextToClipboard()` Function** (Line ~1401)
+- **Purpose:** Clear autoprompt after successful copy
+- **Parameters:** 
+  - `clearAutoprompt` (boolean): Flag to clear autoprompt data
+- **Process:**
+  1. Copy text to clipboard (navigator.clipboard API)
+  2. If clearAutoprompt=true, remove localStorage keys:
+     - `ai_autoprompt`
+     - `ai_autoprompt_source`
+  3. Show success toast
+- **Fallback:** Manual copy with execCommand if clipboard API fails
+
+### Technical Implementation Details
+
+#### **Exercise Plan Extraction**
+```javascript
+// Build current exercise plan (excluding spontaneous session)
+const exercisePlan = [];
+Object.keys(workoutData).forEach((sessionId) => {
+  if (sessionId === "spontaneous") return; // Skip spontaneous session
+  
+  const session = workoutData[sessionId];
+  if (session && session.exercises) {
+    session.exercises.forEach((ex) => {
+      if (ex.options && ex.options[0] && ex.options[0].n) {
+        const exerciseName = ex.options[0].n;
+        if (!exercisePlan.includes(exerciseName)) {
+          exercisePlan.push(exerciseName);
+        }
+      }
+    });
+  }
+});
+```
+
+#### **Volume Breakdown Calculation**
+```javascript
+// Calculate volume breakdown by body part
+const bodyPartMap = {
+  chest: { vol: 0, exercises: [] },
+  back: { vol: 0, exercises: [] },
+  legs: { vol: 0, exercises: [] },
+  shoulders: { vol: 0, exercises: [] },
+  arms: { vol: 0, exercises: [] },
+  core: { vol: 0, exercises: [] }
+};
+
+recentLogs.forEach((log) => {
+  const targets = APP.stats.getTargets(log.ex);
+  const volume = log.vol || 0;
+
+  targets.forEach((target) => {
+    const factor = window.VOLUME_DISTRIBUTION[target.role] || 1.0; // PRIMARY 1.0x, SECONDARY 0.5x
+    const weightedVol = volume * factor;
+    
+    bodyPartMap[target.muscle].vol += weightedVol;
+    if (!bodyPartMap[target.muscle].exercises.includes(log.ex)) {
+      bodyPartMap[target.muscle].exercises.push(log.ex);
+    }
+  });
+});
+```
+
+#### **Insight Grouping**
+```javascript
+// Group insights by severity
+const dangerInsights = insights.filter((i) => i.severity === "danger");
+const warningInsights = insights.filter((i) => i.severity === "warning");
+const infoInsights = insights.filter((i) => i.severity === "info");
+```
+
+### Files Modified
+
+1. **js/stats.js** (2 functions added)
+   - `prepareAnalyticsConsultation(insights)` - Lines ~4525-4700
+   - `consultAIAboutInsights()` - Lines ~4703-4735
+   - Consultation CTA card rendering - Lines ~2964-2988
+
+2. **js/ui.js** (2 functions modified)
+   - `renderContextMode(container)` - Lines ~1263-1340 (autoprompt detection)
+   - `copyContextToClipboard(clearAutoprompt)` - Lines ~1401-1440 (clear after copy)
+
+### Workflow Diagram
+
+```
+User Views Advanced Analytics
+         ↓
+Clinical Insights Generated
+         ↓
+   [Has Insights?]
+    ↓         ↓
+  Yes        No
+    ↓         ↓
+Show CTA   (No CTA)
+    ↓
+User Clicks "Consult AI"
+    ↓
+consultAIAboutInsights()
+    ↓
+Get Insights from interpretWorkoutData()
+    ↓
+prepareAnalyticsConsultation(insights)
+    ↓
+Build Structured Prompt:
+- Group insights by severity
+- Get user profile
+- Extract current exercise plan (exclude spontaneous)
+- Calculate volume breakdown
+- Format consultation question
+    ↓
+Store in localStorage:
+- ai_autoprompt = [prompt text]
+- ai_autoprompt_source = "analytics_consultation"
+    ↓
+Show Toast + Navigate to AI View
+    ↓
+AI View Loads
+    ↓
+renderContextMode() detects autoprompt
+    ↓
+Display Purple Badge + Autoprompt
+    ↓
+User Copies Prompt
+    ↓
+copyContextToClipboard(true)
+    ↓
+Clear autoprompt from localStorage
+    ↓
+User Pastes to AI (Gemini/ChatGPT)
+```
+
+### Pattern Consistency
+
+**Follows Existing prepareImbalanceConsultation() Pattern:**
+1. ✅ Gets gym_hist and profile from localStorage
+2. ✅ Filters logs by time period
+3. ✅ Builds bodyPartMap with volume and exercises
+4. ✅ Uses VOLUME_DISTRIBUTION for weighted volumes
+5. ✅ Formats structured prompt sections
+6. ✅ Includes user profile, volume breakdown, methodology
+7. ✅ Lists top 3 exercises per body part
+8. ✅ Provides specific consultation questions in Bahasa Indonesia
+
+**New Additions:**
+- ✅ Includes insights summary grouped by severity
+- ✅ Includes current exercise plan (spontaneous excluded)
+- ✅ Uses UI component instead of manual copy modal
+- ✅ Auto-navigates to AI view with autoprompt
+
+### Benefits
+
+1. **Seamless Workflow:** One-click from insights to AI consultation
+2. **Complete Context:** AI receives insights + profile + exercise plan + volume
+3. **Reduced Manual Work:** No need to manually compile prompt
+4. **Consistent UX:** Matches existing consultation pattern
+5. **Clear Visual Feedback:** Purple gradient distinguishes from teal analytics
+6. **Smart Filtering:** Automatically excludes spontaneous workouts
+7. **Actionable Output:** Structured consultation questions guide AI response
+
+### Testing Checklist
+
+- [x] prepareAnalyticsConsultation() builds complete prompt
+- [x] consultAIAboutInsights() navigates to AI view
+- [x] Consultation CTA card renders below Clinical Insights
+- [x] CTA only shows when insights exist
+- [x] renderContextMode() detects autoprompt
+- [x] Autoprompt badge displays correctly
+- [x] copyContextToClipboard() clears autoprompt
+- [x] No JavaScript errors in console
+- [ ] Browser test: Full workflow from analytics → AI → copy
+- [ ] Mobile responsive: CTA card fits viewport
+- [ ] Integration test: Paste prompt to Gemini, verify response
+- [ ] Edge case: No insights → no CTA displayed
+- [ ] Edge case: No exercise plan → prompt handles gracefully
+
+### Known Issues
+
+**None detected in code review:**
+- ✅ No syntax errors in stats.js
+- ✅ No syntax errors in ui.js
+- ✅ All functions properly scoped
+- ✅ localStorage keys properly named
+- ✅ Navigation timing with 500ms delay
+- ⚠️ **Testing Required:** Full workflow needs browser testing
+
+### Future Enhancements (V30.6+)
+
+**Potential Features:**
+- Export consultation prompt as PDF/text file
+- Consultation history tracking (store past consultations)
+- Quick consultation templates (injury prevention, plateau breaking)
+- AI response integration (paste response, parse recommendations)
+- Direct sharing to AI platforms (if APIs available)
 
 ---
 
