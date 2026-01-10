@@ -1341,17 +1341,18 @@
       const compoundExercises = new Map(); // Track compound exercises
       const isolationExercises = new Map(); // Track isolation exercises
 
-      // Compound exercises (multi-joint movements)
-      const compoundPatterns = [
-        "Squat", "Deadlift", "Press", "Row", "Pull", "Chin",
-        "Dip", "Lunge", "RDL", "Hip Thrust", "Good Morning"
+      // Isolation exercises (single-joint movements) - CHECK FIRST for priority
+      const isolationPatterns = [
+        "CALF", "LEG CURL", "LEG EXTENSION", "CURL", "FLY", 
+        "LATERAL RAISE", "FRONT RAISE", "REAR DELT", "PEC DECK",
+        "KICKBACK", "PULLOVER", "SHRUG", "CRUNCH", "PLANK",
+        "TRICEP EXTENSION"
       ];
 
-      // Isolation exercises (single-joint movements)
-      const isolationPatterns = [
-        "Curl", "Fly", "Kickback", "Pullover", "Calf Raise",
-        "Shrug", "Crunch", "Plank", "Lateral Raise", "Front Raise",
-        "Rear Delt", "Pec Deck", "Tricep Extension", "Leg Extension"
+      // Compound exercises (multi-joint movements)
+      const compoundPatterns = [
+        "SQUAT", "DEADLIFT", "PRESS", "ROW", "PULL", "CHIN",
+        "DIP", "LUNGE", "RDL", "HIP THRUST", "GOOD MORNING"
       ];
 
       recentLogs.forEach(log => {
@@ -1359,8 +1360,9 @@
         if (!log.d || !Array.isArray(log.d)) return;
 
         const exName = log.ex.toUpperCase();
-        const isCompound = compoundPatterns.some(p => exName.includes(p.toUpperCase()));
-        const isIsolation = isolationPatterns.some(p => exName.includes(p.toUpperCase()));
+        // Check isolation FIRST (priority for single-joint movements)
+        const isIsolation = isolationPatterns.some(p => exName.includes(p));
+        const isCompound = !isIsolation && compoundPatterns.some(p => exName.includes(p));
 
         log.d.forEach(set => {
           const reps = parseInt(set.r) || 0;
