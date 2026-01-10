@@ -1000,11 +1000,13 @@
         "Row", "Face Pull", "Shrug"
       ];
 
-      // Vertical push exercises
+      // Vertical push exercises (enhanced to catch all shoulder press variants)
       const verticalPushPatterns = [
         "Overhead Press", "Shoulder Press", "Military Press",
         "Arnold Press", "Lateral Raise", "Front Raise"
       ];
+      // Note: Pattern matching checks if exercise name INCLUDES any of these strings
+      // This catches: [Machine] Shoulder Press, [Barbell] Overhead Press, Seated Military Press, etc.
 
       // Vertical pull exercises
       const verticalPullPatterns = [
@@ -2343,7 +2345,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 30%;"></div>
             <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 50%;"></div>
             <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 30%; left: 70%;"></div>
-            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${Math.min(Math.max(hvRatios.verticalRatio * 50, 0), 100)}%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max(hvRatios.verticalRatio * 50, 0), 100)}%;"></div>
           </div>
           <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
             hvRatios.verticalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
