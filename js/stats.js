@@ -1610,24 +1610,35 @@ renderAdvancedAnalytics: function(daysBack = 30) {
                            'bg-red-500/20 text-red-400';
       const qhIcon = quadHams.color === 'green' ? '✅' : quadHams.color === 'yellow' ? '⚠️' : '🚨';
 
+      // Calculate position for ratio marker (0-2 scale, show 0-1 range)
+      const markerPos = Math.min(Math.max(quadHams.ratio * 50, 0), 100);
+
       ratiosHTML += `
         <div class="bg-app-card rounded-2xl border border-white/10 p-4">
           <div class="flex justify-between items-center mb-3">
-            <h4 class="text-sm font-semibold text-white">🦵 Quad/Hams Ratio</h4>
+            <h4 class="text-sm font-semibold text-white">🦵 Quad/Hamstring Balance</h4>
             <button class="text-app-subtext hover:text-white text-sm transition-colors"
-                    onclick="window.APP.ui.showTooltip('quadhams-info', event)"
+                    onclick="window.APP.ui.showTooltip('qh-info', event)"
                     onmouseleave="window.APP.ui.hideTooltip()">
               ℹ️
             </button>
           </div>
           <div class="flex items-baseline mb-3">
             <span class="text-4xl font-bold text-white">${quadHams.ratio}</span>
-            <span class="ml-2 text-xs text-app-subtext">:1</span>
+            <span class="ml-2 text-xs text-app-subtext">Target: 0.6-0.8</span>
           </div>
-          <div class="mb-4">
+          <div class="mb-3">
             <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${qhBadgeClass}">
               ${qhIcon} ${quadHams.status.charAt(0).toUpperCase() + quadHams.status.slice(1)}
             </span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 25%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 25%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 35%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 55%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${markerPos}%;"></div>
           </div>
           <div class="h-px bg-white/10 my-3"></div>
           <div class="text-xs text-app-subtext space-y-2">
@@ -1636,12 +1647,8 @@ renderAdvancedAnalytics: function(daysBack = 30) {
               <span class="font-semibold text-white">${quadHams.quadVolume.toLocaleString()} kg</span>
             </div>
             <div class="flex justify-between">
-              <span>Hamstring Volume:</span>
+              <span>Hams Volume:</span>
               <span class="font-semibold text-white">${quadHams.hamsVolume.toLocaleString()} kg</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Target Ratio:</span>
-              <span class="font-semibold text-white">0.8-1.2:1</span>
             </div>
           </div>
         </div>
@@ -1655,38 +1662,67 @@ renderAdvancedAnalytics: function(daysBack = 30) {
                            'bg-red-500/20 text-red-400';
       const ppIcon = pushPull.color === 'green' ? '✅' : pushPull.color === 'yellow' ? '⚠️' : '🚨';
 
+      // Calculate position (0.8-1.4 range mapped to 0-100%)
+      const ppMarkerPos = Math.min(Math.max((pushPull.totalRatio - 0.8) / 0.6 * 100, 0), 100);
+
       ratiosHTML += `
         <div class="bg-app-card rounded-2xl border border-white/10 p-4">
           <div class="flex justify-between items-center mb-3">
-            <h4 class="text-sm font-semibold text-white">⚖️ Push/Pull Ratio</h4>
+            <h4 class="text-sm font-semibold text-white">⚖️ Push/Pull Balance</h4>
             <button class="text-app-subtext hover:text-white text-sm transition-colors"
-                    onclick="window.APP.ui.showTooltip('pushpull-info', event)"
+                    onclick="window.APP.ui.showTooltip('pp-info', event)"
                     onmouseleave="window.APP.ui.hideTooltip()">
               ℹ️
             </button>
           </div>
           <div class="flex items-baseline mb-3">
             <span class="text-4xl font-bold text-white">${pushPull.totalRatio}</span>
-            <span class="ml-2 text-xs text-app-subtext">:1</span>
+            <span class="ml-2 text-xs text-app-subtext">Target: 1.0-1.2</span>
           </div>
-          <div class="mb-4">
+          <div class="mb-3">
             <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${ppBadgeClass}">
               ${ppIcon} ${pushPull.status.charAt(0).toUpperCase() + pushPull.status.slice(1)}
             </span>
           </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 20%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 13.3%; left: 33.3%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 46.6%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 40%; left: 60%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${ppMarkerPos}%;"></div>
+          </div>
           <div class="h-px bg-white/10 my-3"></div>
           <div class="text-xs text-app-subtext space-y-2">
             <div class="flex justify-between">
-              <span>Total Push Volume:</span>
+              <span>Total Push:</span>
               <span class="font-semibold text-white">${pushPull.totalPush.toLocaleString()} kg</span>
             </div>
             <div class="flex justify-between">
-              <span>Total Pull Volume:</span>
+              <span>Total Pull:</span>
               <span class="font-semibold text-white">${pushPull.totalPull.toLocaleString()} kg</span>
             </div>
-            <div class="flex justify-between">
-              <span>Target Ratio:</span>
-              <span class="font-semibold text-white">0.7-1.0:1</span>
+            <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                    onclick="this.nextElementSibling.classList.toggle('hidden')">
+              ▼ View Upper/Lower Breakdown
+            </button>
+            <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-2">
+              <div class="flex justify-between text-[10px]">
+                <span>Upper Push:</span>
+                <span class="font-semibold text-white">${pushPull.upperPush.toLocaleString()} kg</span>
+              </div>
+              <div class="flex justify-between text-[10px]">
+                <span>Upper Pull:</span>
+                <span class="font-semibold text-white">${pushPull.upperPull.toLocaleString()} kg</span>
+              </div>
+              <div class="flex justify-between text-[10px]">
+                <span>Lower Push:</span>
+                <span class="font-semibold text-white">${pushPull.lowerPush.toLocaleString()} kg</span>
+              </div>
+              <div class="flex justify-between text-[10px]">
+                <span>Lower Pull:</span>
+                <span class="font-semibold text-white">${pushPull.lowerPull.toLocaleString()} kg</span>
+              </div>
             </div>
           </div>
         </div>
