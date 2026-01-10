@@ -846,6 +846,7 @@
       let totalSets = 0;
       const daysWithCore = new Set();
       const exercisesUsed = new Set();
+      const coreExercises = new Map(); // Track exercises with set count
 
       // Iterate through filtered logs
       recentLogs.forEach(log => {
@@ -862,6 +863,9 @@
 
           // Track variety
           exercisesUsed.add(log.ex);
+          
+          // Track exercise set count
+          coreExercises.set(log.ex, (coreExercises.get(log.ex) || 0) + sets);
         }
       });
 
@@ -980,6 +984,7 @@
         weeklySets: weeklySets,
         frequency: frequency,
         variety: variety,
+        stabilityExercises: Array.from(stabilityExercisesMap.entries()).sort((a, b) => b[1] - a[1]),
         status: status,
         color: color,
         message: message,
@@ -1233,6 +1238,8 @@
 
       let unilateralVolume = 0;
       let bilateralVolume = 0;
+      const unilateralExercises = new Map(); // Track unilateral exercises
+      const bilateralExercises = new Map(); // Track bilateral exercises
 
       // Unilateral exercise patterns
       const unilateralPatterns = [
@@ -1264,8 +1271,10 @@
 
             if (isUnilateral) {
               unilateralVolume += adjustedVolume;
+              unilateralExercises.set(log.ex, (unilateralExercises.get(log.ex) || 0) + adjustedVolume);
             } else {
               bilateralVolume += adjustedVolume;
+              bilateralExercises.set(log.ex, (bilateralExercises.get(log.ex) || 0) + adjustedVolume);
             }
           });
         });
@@ -1292,6 +1301,8 @@
         bilateralVolume: Math.round(bilateralVolume),
         totalVolume: Math.round(totalVolume),
         unilateralPercent: parseFloat(unilateralPercent.toFixed(1)),
+        unilateralExercises: Array.from(unilateralExercises.entries()).sort((a, b) => b[1] - a[1]),
+        bilateralExercises: Array.from(bilateralExercises.entries()).sort((a, b) => b[1] - a[1]),
         status: status,
         color: color,
         daysAnalyzed: daysBack,
@@ -1313,6 +1324,8 @@
 
       let compoundVolume = 0;
       let isolationVolume = 0;
+      const compoundExercises = new Map(); // Track compound exercises
+      const isolationExercises = new Map(); // Track isolation exercises
 
       // Compound exercises (multi-joint movements)
       const compoundPatterns = [
@@ -1352,8 +1365,10 @@
 
             if (isCompound) {
               compoundVolume += adjustedVolume;
+              compoundExercises.set(log.ex, (compoundExercises.get(log.ex) || 0) + adjustedVolume);
             } else if (isIsolation) {
               isolationVolume += adjustedVolume;
+              isolationExercises.set(log.ex, (isolationExercises.get(log.ex) || 0) + adjustedVolume);
             }
           });
         });
@@ -1381,6 +1396,8 @@
         totalVolume: Math.round(totalVolume),
         compoundPercent: parseFloat(compoundPercent.toFixed(1)),
         isolationPercent: parseFloat(isolationPercent.toFixed(1)),
+        compoundExercises: Array.from(compoundExercises.entries()).sort((a, b) => b[1] - a[1]),
+        isolationExercises: Array.from(isolationExercises.entries()).sort((a, b) => b[1] - a[1]),
         trainingStyle: trainingStyle,
         daysAnalyzed: daysBack,
         scientificBasis: "Schoenfeld (2021) - Compound vs isolation for muscle development",
@@ -2135,6 +2152,22 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <span class="font-semibold text-white">${core.variety} movements</span>
           </div>
         </div>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
+          <div class="text-[10px] font-bold text-app-accent mb-2">DEDICATED CORE EXERCISES</div>
+          ${core.coreExercises.map(([ex, sets]) => `
+            <div class="flex justify-between text-[9px] text-app-subtext">
+              <span>• ${ex}</span>
+              <span>${sets} sets</span>
+            </div>
+          `).join('')}
+          ${core.coreExercises.length === 0 ? '<div class="text-[9px] text-app-subtext">No exercises logged</div>' : ''}
+        </div>
       </div>
     `;
 
@@ -2198,6 +2231,23 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             <span>Exercise Variety:</span>
             <span class="font-semibold text-white">${stability.variety} movements</span>
           </div>
+        </div>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
+          <div class="text-[10px] font-bold text-app-accent mb-2">STABILITY-DEMANDING EXERCISES</div>
+          <div class="text-[9px] text-purple-300 mb-2">* Exercises with SECONDARY core engagement</div>
+          ${stability.stabilityExercises.map(([ex, sets]) => `
+            <div class="flex justify-between text-[9px] text-app-subtext">
+              <span>• ${ex}</span>
+              <span>${sets} sets</span>
+            </div>
+          `).join('')}
+          ${stability.stabilityExercises.length === 0 ? '<div class="text-[9px] text-app-subtext">No exercises logged</div>' : ''}
         </div>
       </div>
     `;
@@ -2629,6 +2679,38 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           </div>
         </div>
         <p class="text-[10px] text-app-subtext mt-2">Target: ≥20% for injury prevention (Boyle 2016)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Unilateral (${unilateral.unilateralVolume.toLocaleString()} kg):</span>
+            </div>
+            ${unilateral.unilateralExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${unilateral.unilateralExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Bilateral (${unilateral.bilateralVolume.toLocaleString()} kg):</span>
+            </div>
+            ${unilateral.bilateralExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${unilateral.bilateralExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+        </div>
       </div>
     `;
 
@@ -2670,6 +2752,38 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           </div>
         </div>
         <p class="text-[10px] text-app-subtext mt-2">${compound.note}</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Compound (${compound.compoundVolume.toLocaleString()} kg):</span>
+            </div>
+            ${compound.compoundExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${compound.compoundExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Isolation (${compound.isolationVolume.toLocaleString()} kg):</span>
+            </div>
+            ${compound.isolationExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${compound.isolationExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+        </div>
       </div>
     `;
 
