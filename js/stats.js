@@ -58,6 +58,8 @@
       /\b(lateral|front|rear.*delt|shoulder).*raise\b/i,  // Lateral/Front/Rear Delt Raises (excludes leg raises)
       /\bskull.*crusher\b/i,     // Skull Crushers
       /\btricep.*extension\b/i,  // Tricep Extensions
+      /\bpushdown\b/i,           // Tricep Pushdown, Cable Pushdown
+      /\bkickback\b/i,           // Tricep Kickback
       /\boverhead\b/i            // Overhead Press (but exclude Overhead Squat via next step)
     ],
 
@@ -361,7 +363,14 @@
 
           case "arms":
             // Arms are ambiguous (triceps = push, biceps = pull)
-            // Default to upper_pull (most arm exercises are curls)
+            // Check exercise name to determine push vs pull
+            const nameLower = exerciseName.toLowerCase();
+            if (nameLower.includes("tricep") || nameLower.includes("pushdown") || 
+                nameLower.includes("kickback") || nameLower.includes("skull") ||
+                nameLower.includes("dip")) {
+              return "upper_push";
+            }
+            // Default to upper_pull for bicep curls
             return "upper_pull";
 
           case "core":
@@ -908,7 +917,8 @@
         color: color,
         message: message,
         daysAnalyzed: daysBack,
-        scientific_basis: "Dr. Stuart McGill - 15-25 sets/week for spine health"
+        scientific_basis: "Dr. Stuart McGill - 15-25 sets/week for spine health",
+        coreExercises: Array.from(coreExercises.entries()).sort((a, b) => b[1] - a[1])
       };
     },
 
@@ -1339,8 +1349,9 @@
 
       // Isolation exercises (single-joint movements)
       const isolationPatterns = [
-        "Curl", "Extension", "Fly", "Raise", "Kickback",
-        "Pullover", "Calf", "Shrug", "Crunch", "Plank"
+        "Curl", "Fly", "Kickback", "Pullover", "Calf Raise",
+        "Shrug", "Crunch", "Plank", "Lateral Raise", "Front Raise",
+        "Rear Delt", "Pec Deck", "Tricep Extension", "Leg Extension"
       ];
 
       recentLogs.forEach(log => {
@@ -2164,6 +2175,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
         </button>
         <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
           <div class="text-[10px] font-bold text-app-accent mb-2">DEDICATED CORE EXERCISES</div>
+          <div class="text-[9px] text-app-subtext/70 italic mb-2">Total sets over ${core.daysAnalyzed} days</div>
           ${core.coreExercises.map(([ex, sets]) => `
             <div class="flex justify-between text-[9px] text-app-subtext">
               <span>• ${ex}</span>
@@ -2244,7 +2256,8 @@ renderAdvancedAnalytics: function(daysBack = 30) {
         </button>
         <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
           <div class="text-[10px] font-bold text-app-accent mb-2">STABILITY-DEMANDING EXERCISES</div>
-          <div class="text-[9px] text-purple-300 mb-2">* Exercises with SECONDARY core engagement</div>
+          <div class="text-[9px] text-purple-300 mb-1">* Exercises with SECONDARY core engagement</div>
+          <div class="text-[9px] text-app-subtext/70 italic mb-2">Total sets over ${stability.daysAnalyzed} days</div>
           ${stability.stabilityExercises.map(([ex, sets]) => `
             <div class="flex justify-between text-[9px] text-app-subtext">
               <span>• ${ex}</span>
@@ -2319,6 +2332,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
             ▼ View Exercise Breakdown
           </button>
           <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+            <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${quadHams.daysAnalyzed} days</div>
             <div>
               <div class="flex justify-between text-[10px] mb-1">
                 <span class="text-white font-semibold">Quad-Dominant (${quadHams.quadVolume.toLocaleString()} kg):</span>
@@ -2400,6 +2414,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
               ▼ View Upper/Lower Breakdown
             </button>
             <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+              <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${pushPull.daysAnalyzed} days</div>
               <!-- Upper Body -->
               <div>
                 <div class="text-[10px] font-bold text-app-accent mb-2">UPPER BODY</div>
@@ -2547,6 +2562,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           ▼ View Exercise Breakdown
         </button>
         <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${hvRatios.daysAnalyzed} days</div>
           <!-- Horizontal Plane -->
           <div>
             <div class="text-[10px] font-bold text-app-accent mb-2">HORIZONTAL PLANE</div>
@@ -2690,6 +2706,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           ▼ View Exercise Breakdown
         </button>
         <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${unilateral.daysAnalyzed} days</div>
           <div>
             <div class="flex justify-between text-[10px] mb-1">
               <span class="text-white font-semibold">Unilateral (${unilateral.unilateralVolume.toLocaleString()} kg):</span>
@@ -2763,6 +2780,7 @@ renderAdvancedAnalytics: function(daysBack = 30) {
           ▼ View Exercise Breakdown
         </button>
         <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${compound.daysAnalyzed} days</div>
           <div>
             <div class="flex justify-between text-[10px] mb-1">
               <span class="text-white font-semibold">Compound (${compound.compoundVolume.toLocaleString()} kg):</span>
