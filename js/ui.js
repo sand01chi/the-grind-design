@@ -1261,21 +1261,54 @@
      * @param {HTMLElement} container - Content area container
      */
     renderContextMode: function(container) {
-      // Generate context using AI Bridge
+      // V30.5: Check for autoprompt from analytics or imbalance consultation
+      const autoprompt = localStorage.getItem('ai_autoprompt');
+      const autopromptSource = localStorage.getItem('ai_autoprompt_source');
+      
       let contextText = "";
-      if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
-        contextText = window.APP.aiBridge.getPromptContext("coach");
+      let isAutoprompt = false;
+      
+      if (autoprompt && (autopromptSource === 'analytics_consultation' || autopromptSource === 'imbalance_consultation')) {
+        // Use autoprompt from analytics or imbalance consultation
+        contextText = autoprompt;
+        isAutoprompt = true;
+        
+        // Clear autoprompt from localStorage (one-time use)
+        localStorage.removeItem('ai_autoprompt');
+        localStorage.removeItem('ai_autoprompt_source');
+        localStorage.removeItem('ai_autoprompt_timestamp');
+        
+        console.log(`[UI] Loaded autoprompt from ${autopromptSource}`);
       } else {
-        contextText = "[ERROR] AI Bridge module not loaded";
-        console.error("[UI] AI Bridge not available");
+        // Generate normal context using AI Bridge
+        if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
+          contextText = window.APP.aiBridge.getPromptContext("coach");
+        } else {
+          contextText = "[ERROR] AI Bridge module not loaded";
+          console.error("[UI] AI Bridge not available");
+        }
       }
 
       const html = `
         <div class="space-y-3">
-          <p class="text-xs text-slate-400">
-            Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif.
-            Salin teks ini untuk konsultasi AI.
-          </p>
+          ${isAutoprompt ? `
+            <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/50 rounded-xl p-3 mb-2">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="fas fa-brain text-blue-400"></i>
+                <span class="text-xs font-semibold text-blue-300">Auto-Consultation Active</span>
+              </div>
+              <p class="text-[10px] text-slate-400">
+                ${autopromptSource === 'analytics_consultation' 
+                  ? 'Prompt generated from Advanced Analytics with clinical insights + active program context'
+                  : 'Prompt generated from Body Part Imbalance Detection + exercise volume analysis'}
+              </p>
+            </div>
+          ` : `
+            <p class="text-xs text-slate-400">
+              Konteks di bawah berisi profil, log latihan terakhir, dan struktur program aktif.
+              Salin teks ini untuk konsultasi AI.
+            </p>
+          `}
 
           <textarea
             id="ai-context-textarea"
@@ -3531,13 +3564,38 @@
         },
         'core-info': {
           title: 'Core Training Volume',
-          text: 'Optimal range: 15-25 sets/week. Maintains spine health, athletic performance, and force transfer without overtraining.',
+          text: 'Optimal range: 15-25 sets/week. Maintains spine health, athletic performance, and force transfer without overtraining. Dedicated anti-movement work (planks, dead bugs).',
           source: 'Dr. Stuart McGill'
+        },
+        'stability-info': {
+          title: 'Core Stability Demand',
+          text: 'Volume from exercises with core as SECONDARY (unilateral work, standing cables). Complements but does NOT replace dedicated core training. Stability ≠ Strength.',
+          source: 'McGill & Boyle - Stability vs Strength'
         },
         'bw-info': {
           title: 'Bodyweight Contribution',
           text: 'Shows percentage of training volume from bodyweight exercises. Load estimated using biomechanics research (e.g., push-up = 64% bodyweight).',
           source: 'Ebben et al. (2011)'
+        },
+        'hv-info': {
+          title: 'Horizontal/Vertical Balance (V30.4)',
+          text: 'Horizontal (bench/row) optimal: 0.7-1.0 pull:push. Vertical (OHP/pulldown) optimal: 0.5-0.7. Different ratios due to biomechanics and injury risk profiles.',
+          source: 'Cressey (2019), Saeterbakken (2011)'
+        },
+        'freq-info': {
+          title: 'Training Frequency (V30.4)',
+          text: 'Optimal: 2-3x per week per muscle group for hypertrophy. Higher frequency allows better volume distribution and recovery. <2x suboptimal, >3x requires careful management.',
+          source: 'Schoenfeld et al. (2016), ACSM (2021)'
+        },
+        'uni-info': {
+          title: 'Unilateral Volume (V30.4)',
+          text: 'Target: ≥20% of total volume from unilateral exercises (single-leg, single-arm). Addresses bilateral deficit, corrects asymmetries, prevents injury.',
+          source: 'Boyle (2016), Myer et al. (2005)'
+        },
+        'comp-info': {
+          title: 'Compound/Isolation Ratio (V30.4)',
+          text: 'No universal optimal ratio - varies by goal. Strength: >70% compound. Hypertrophy: 50-70% balanced. Bodybuilding: 30-50% isolation-heavy. Informational only.',
+          source: 'Schoenfeld (2021), Gentil (2017)'
         }
       };
 

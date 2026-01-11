@@ -58,6 +58,8 @@
       /\b(lateral|front|rear.*delt|shoulder).*raise\b/i,  // Lateral/Front/Rear Delt Raises (excludes leg raises)
       /\bskull.*crusher\b/i,     // Skull Crushers
       /\btricep.*extension\b/i,  // Tricep Extensions
+      /\bpushdown\b/i,           // Tricep Pushdown, Cable Pushdown
+      /\bkickback\b/i,           // Tricep Kickback
       /\boverhead\b/i            // Overhead Press (but exclude Overhead Squat via next step)
     ],
 
@@ -361,7 +363,14 @@
 
           case "arms":
             // Arms are ambiguous (triceps = push, biceps = pull)
-            // Default to upper_pull (most arm exercises are curls)
+            // Check exercise name to determine push vs pull
+            const nameLower = exerciseName.toLowerCase();
+            if (nameLower.includes("tricep") || nameLower.includes("pushdown") || 
+                nameLower.includes("kickback") || nameLower.includes("skull") ||
+                nameLower.includes("dip")) {
+              return "upper_push";
+            }
+            // Default to upper_pull for bicep curls
             return "upper_pull";
 
           case "core":
@@ -377,7 +386,24 @@
       }
 
       // STEP 4: No match found
-      console.warn(`[STATS] classifyExercise: No classification for "${exerciseName}"`);
+      // V30.1: Skip warning for non-resistance exercises (cardio, mobility, activation, stretching)
+      const nonResistancePatterns = [
+        /^Cardio\s/i,           // "Cardio LISS Session", "Cardio Warmup"
+        /^Mobility\s/i,         // "Mobility Cat-Cow Stretch"
+        /^Activation\s/i,       // "Activation Glute Bridge"
+        /^Stretch\s/i,          // "Stretch Cat-Cow"
+        /\[Cardio\]/i,          // "[Cardio] LISS Session"
+        /\[Stretch\]/i,         // "[Stretch] Child Pose"
+        /LISS/i,                // "LISS Cardio", "LISS Session"
+        /Warmup.*Cardio/i,      // "Warmup Cardio"
+      ];
+      
+      const isNonResistance = nonResistancePatterns.some(pattern => pattern.test(exerciseName));
+      
+      if (!isNonResistance) {
+        console.warn(`[STATS] classifyExercise: No classification for "${exerciseName}"`);
+      }
+      
       return "unclassified";
     },
 
@@ -491,6 +517,8 @@
 
       let quadVolume = 0;
       let hamsVolume = 0;
+      const quadExercises = new Map(); // Track exercises
+      const hamsExercises = new Map();
 
       // Iterate through filtered log objects
       recentLogs.forEach(log => {
@@ -531,8 +559,10 @@
 
             if (classification === "quad_dominant") {
               quadVolume += adjustedVolume;
+              quadExercises.set(log.ex, (quadExercises.get(log.ex) || 0) + adjustedVolume);
             } else if (classification === "hams_dominant") {
               hamsVolume += adjustedVolume;
+              hamsExercises.set(log.ex, (hamsExercises.get(log.ex) || 0) + adjustedVolume);
             }
           });
         });
@@ -560,6 +590,8 @@
         ratio: parseFloat(ratio.toFixed(2)),
         status: status,
         color: color,
+        quadExercises: Array.from(quadExercises.entries()).sort((a, b) => b[1] - a[1]),
+        hamsExercises: Array.from(hamsExercises.entries()).sort((a, b) => b[1] - a[1]),
         daysAnalyzed: daysBack,
         scientific_basis: "Croisier et al. (2008) - ACL injury prevention"
       };
@@ -586,6 +618,10 @@
       let upperPull = 0;
       let lowerPush = 0;  // Quad-dominant
       let lowerPull = 0;  // Hams-dominant
+      const upperPushExercises = new Map(); // Track exercises
+      const upperPullExercises = new Map();
+      const lowerPushExercises = new Map();
+      const lowerPullExercises = new Map();
 
       // Iterate through filtered log objects
       recentLogs.forEach(log => {
@@ -627,23 +663,27 @@
               case "upper_push":
                 if (["chest", "shoulders", "arms"].includes(target.muscle)) {
                   upperPush += adjustedVolume;
+                  upperPushExercises.set(log.ex, (upperPushExercises.get(log.ex) || 0) + adjustedVolume);
                 }
                 break;
 
               case "upper_pull":
                 if (["back", "arms"].includes(target.muscle)) {
                   upperPull += adjustedVolume;
+                  upperPullExercises.set(log.ex, (upperPullExercises.get(log.ex) || 0) + adjustedVolume);
                 }
                 break;
 
               case "quad_dominant":
                 // Trust classification (mitigation applied)
                 lowerPush += adjustedVolume;
+                lowerPushExercises.set(log.ex, (lowerPushExercises.get(log.ex) || 0) + adjustedVolume);
                 break;
 
               case "hams_dominant":
                 // Trust classification (mitigation applied)
                 lowerPull += adjustedVolume;
+                lowerPullExercises.set(log.ex, (lowerPullExercises.get(log.ex) || 0) + adjustedVolume);
                 break;
             }
           });
@@ -680,6 +720,10 @@
         lowerPush: Math.round(lowerPush),
         lowerPull: Math.round(lowerPull),
         lowerRatio: parseFloat(lowerRatio.toFixed(2)),
+        upperPushExercises: Array.from(upperPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        upperPullExercises: Array.from(upperPullExercises.entries()).sort((a, b) => b[1] - a[1]),
+        lowerPushExercises: Array.from(lowerPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        lowerPullExercises: Array.from(lowerPullExercises.entries()).sort((a, b) => b[1] - a[1]),
         status: status,
         color: color,
         daysAnalyzed: daysBack,
@@ -811,6 +855,7 @@
       let totalSets = 0;
       const daysWithCore = new Set();
       const exercisesUsed = new Set();
+      const coreExercises = new Map(); // Track exercises with set count
 
       // Iterate through filtered logs
       recentLogs.forEach(log => {
@@ -827,6 +872,9 @@
 
           // Track variety
           exercisesUsed.add(log.ex);
+          
+          // Track exercise set count
+          coreExercises.set(log.ex, (coreExercises.get(log.ex) || 0) + sets);
         }
       });
 
@@ -869,7 +917,529 @@
         color: color,
         message: message,
         daysAnalyzed: daysBack,
-        scientific_basis: "Dr. Stuart McGill - 15-25 sets/week for spine health"
+        scientific_basis: "Dr. Stuart McGill - 15-25 sets/week for spine health",
+        coreExercises: Array.from(coreExercises.entries()).sort((a, b) => b[1] - a[1])
+      };
+    },
+
+    // ============================================================================
+    // V30.2: CORE STABILITY ANALYSIS (SECONDARY)
+    // ============================================================================
+
+    /**
+     * V30.2: Analyze core stability demand from compound exercises
+     * Tracks exercises where core has SECONDARY role (stabilization, not primary work)
+     * @param {number} daysBack - Number of days to analyze (default: 30)
+     * @returns {Object} Core stability metrics
+     *
+     * Scientific Basis: Stability work is NOT a substitute for dedicated core training
+     * - PRIMARY core work = anti-movement patterns (planks, dead bugs)
+     * - SECONDARY core work = reactive stabilization (unilateral exercises, standing cables)
+     */
+    analyzeCoreStability: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let totalStabilitySets = 0;
+      const daysWithStability = new Set();
+      const exercisesUsed = new Set();
+      const stabilityExercisesMap = new Map(); // Track exercises with set count
+
+      recentLogs.forEach(log => {
+        const targets = window.EXERCISE_TARGETS?.[log.ex];
+        if (!targets) return;
+
+        // Check if exercise has core as SECONDARY (not PRIMARY)
+        const hasCoreSecondary = targets.some(
+          t => t.muscle === "core" && t.role === "SECONDARY"
+        );
+        const hasCorePrimary = targets.some(
+          t => t.muscle === "core" && t.role === "PRIMARY"
+        );
+
+        if (hasCoreSecondary && !hasCorePrimary) {
+          const sets = log.d ? log.d.length : 0;
+          totalStabilitySets += sets;
+          daysWithStability.add(log.date);
+          exercisesUsed.add(log.ex);
+          
+          // Track exercise set count
+          stabilityExercisesMap.set(log.ex, (stabilityExercisesMap.get(log.ex) || 0) + sets);
+        }
+      });
+
+      const weeksAnalyzed = daysBack / 7;
+      const weeklySets = Math.round(totalStabilitySets / weeksAnalyzed);
+      const frequency = daysWithStability.size;
+      const variety = exercisesUsed.size;
+
+      // Status based on stability demand
+      let status, color, message;
+      if (weeklySets === 0) {
+        status = "none";
+        color = "gray";
+        message = "No stability work detected";
+      } else if (weeklySets < 10) {
+        status = "low";
+        color = "yellow";
+        message = "Limited stability demand";
+      } else if (weeklySets >= 10 && weeklySets <= 30) {
+        status = "adequate";
+        color = "green";
+        message = "Good stability volume from compounds";
+      } else {
+        status = "high";
+        color = "purple";
+        message = "High stability demand";
+      }
+
+      return {
+        totalSets: totalStabilitySets,
+        weeklySets: weeklySets,
+        frequency: frequency,
+        variety: variety,
+        stabilityExercises: Array.from(stabilityExercisesMap.entries()).sort((a, b) => b[1] - a[1]),
+        status: status,
+        color: color,
+        message: message,
+        daysAnalyzed: daysBack,
+        note: "Stability work complements but does NOT replace dedicated core training"
+      };
+    },
+
+    // ============================================================================
+    // V30.4: ADVANCED TRAINING ANALYSIS
+    // ============================================================================
+
+    /**
+     * V30.4: Calculate horizontal vs vertical push/pull ratios
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Horizontal and vertical push:pull ratios
+     * 
+     * Evidence: Cressey & Robertson (2019), Saeterbakken et al. (2011)
+     * Target: Horizontal 0.7-1.0:1, Vertical 0.5-0.7:1
+     */
+    calculateHorizontalVerticalRatios: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let horizontalPush = 0, horizontalPull = 0;
+      let verticalPush = 0, verticalPull = 0;
+
+      // Track exercises in each category
+      const horizontalPushExercises = new Map(); // exercise -> volume
+      const horizontalPullExercises = new Map();
+      const verticalPushExercises = new Map();
+      const verticalPullExercises = new Map();
+
+      // Horizontal push exercises
+      const horizontalPushPatterns = [
+        "Bench Press", "Chest Press", "Push Up", "Fly", "Dip",
+        "Incline Press", "Decline Press", "Pec Deck"
+      ];
+
+      // Horizontal pull exercises
+      const horizontalPullPatterns = [
+        "Row", "Face Pull", "Shrug"
+      ];
+
+      // Vertical push exercises (enhanced to catch all shoulder press variants)
+      const verticalPushPatterns = [
+        "Overhead Press", "Shoulder Press", "Military Press",
+        "Arnold Press", "Lateral Raise", "Front Raise"
+      ];
+      // Note: Pattern matching checks if exercise name INCLUDES any of these strings
+      // This catches: [Machine] Shoulder Press, [Barbell] Overhead Press, Seated Military Press, etc.
+
+      // Vertical pull exercises
+      const verticalPullPatterns = [
+        "Pull", "Lat Pulldown", "Chin", "Pull-Up"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        // Classify exercise ONCE per log (not per target to avoid duplicate counting)
+        const exName = log.ex.toUpperCase();
+        let category = null;
+
+        // EXCLUDE leg exercises first (prevent misclassification)
+        const isLegExercise = 
+          exName.includes("SQUAT") || exName.includes("LEG PRESS") || 
+          exName.includes("LEG CURL") || exName.includes("LEG EXTENSION") ||
+          exName.includes("CALF") || exName.includes("LUNGE") ||
+          exName.includes("HIP THRUST") || exName.includes("DEADLIFT") ||
+          exName.includes("RDL") || exName.includes("BULGARIAN");
+
+        if (isLegExercise) return; // Skip leg exercises entirely
+
+        // Determine category based on exercise name
+        if (horizontalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'hPush';
+        } else if (horizontalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'hPull';
+        } else if (verticalPushPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'vPush';
+        } else if (verticalPullPatterns.some(p => exName.includes(p.toUpperCase()))) {
+          category = 'vPull';
+        }
+
+        // Only process if exercise matches a category
+        if (!category) return;
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule for each target
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            // Add to appropriate category
+            if (category === 'hPush') {
+              horizontalPush += adjustedVolume;
+              horizontalPushExercises.set(log.ex, (horizontalPushExercises.get(log.ex) || 0) + adjustedVolume);
+            } else if (category === 'hPull') {
+              horizontalPull += adjustedVolume;
+              horizontalPullExercises.set(log.ex, (horizontalPullExercises.get(log.ex) || 0) + adjustedVolume);
+            } else if (category === 'vPush') {
+              verticalPush += adjustedVolume;
+              verticalPushExercises.set(log.ex, (verticalPushExercises.get(log.ex) || 0) + adjustedVolume);
+            } else if (category === 'vPull') {
+              verticalPull += adjustedVolume;
+              verticalPullExercises.set(log.ex, (verticalPullExercises.get(log.ex) || 0) + adjustedVolume);
+            }
+          });
+        });
+      });
+
+      // Calculate ratios (pull / push)
+      const horizontalRatio = horizontalPush > 0 ? horizontalPull / horizontalPush : 0;
+      const verticalRatio = verticalPush > 0 ? verticalPull / verticalPush : 0;
+
+      // Determine status for each plane
+      let hStatus, hColor;
+      if (horizontalRatio >= 0.7 && horizontalRatio <= 1.0) {
+        hStatus = "balanced";
+        hColor = "green";
+      } else if ((horizontalRatio >= 0.6 && horizontalRatio < 0.7) || (horizontalRatio > 1.0 && horizontalRatio <= 1.2)) {
+        hStatus = "monitor";
+        hColor = "yellow";
+      } else {
+        hStatus = "imbalance";
+        hColor = "red";
+      }
+
+      let vStatus, vColor;
+      if (verticalRatio >= 0.5 && verticalRatio <= 0.7) {
+        vStatus = "balanced";
+        vColor = "green";
+      } else if ((verticalRatio >= 0.4 && verticalRatio < 0.5) || (verticalRatio > 0.7 && verticalRatio <= 0.9)) {
+        vStatus = "monitor";
+        vColor = "yellow";
+      } else {
+        vStatus = "imbalance";
+        vColor = "red";
+      }
+
+      return {
+        horizontalPush: Math.round(horizontalPush),
+        horizontalPull: Math.round(horizontalPull),
+        horizontalRatio: parseFloat(horizontalRatio.toFixed(2)),
+        horizontalStatus: hStatus,
+        horizontalColor: hColor,
+        horizontalPushExercises: Array.from(horizontalPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        horizontalPullExercises: Array.from(horizontalPullExercises.entries()).sort((a, b) => b[1] - a[1]),
+        verticalPush: Math.round(verticalPush),
+        verticalPull: Math.round(verticalPull),
+        verticalRatio: parseFloat(verticalRatio.toFixed(2)),
+        verticalStatus: vStatus,
+        verticalColor: vColor,
+        verticalPushExercises: Array.from(verticalPushExercises.entries()).sort((a, b) => b[1] - a[1]),
+        verticalPullExercises: Array.from(verticalPullExercises.entries()).sort((a, b) => b[1] - a[1]),
+        daysAnalyzed: daysBack,
+        scientificBasis: "Cressey (2019) - Vertical pull:push ratio for shoulder health"
+      };
+    },
+
+    /**
+     * V30.4: Calculate training frequency per muscle group
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Frequency data per muscle group
+     * 
+     * Evidence: Schoenfeld et al. (2016), ACSM Guidelines (2021)
+     * Target: 2-3x per week per muscle group
+     */
+    calculateTrainingFrequency: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      // Track which days each muscle was trained
+      const muscleTrainingDays = {
+        chest: new Set(),
+        back: new Set(),
+        shoulders: new Set(),
+        arms: new Set(),
+        legs: new Set(),
+        core: new Set()
+      };
+
+      // Track exercises per muscle group with session count
+      const muscleExercises = {
+        chest: new Map(),
+        back: new Map(),
+        shoulders: new Map(),
+        arms: new Map(),
+        legs: new Map(),
+        core: new Map()
+      };
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        const date = log.date;
+
+        targets.forEach(target => {
+          if (target.role === "PRIMARY" && muscleTrainingDays[target.muscle]) {
+            muscleTrainingDays[target.muscle].add(date);
+            // Track exercise session count
+            muscleExercises[target.muscle].set(
+              log.ex, 
+              (muscleExercises[target.muscle].get(log.ex) || 0) + 1
+            );
+          }
+        });
+      });
+
+      // Calculate weekly frequency
+      const weeks = daysBack / 7;
+      const frequency = {};
+      const status = {};
+      const color = {};
+      const exercises = {};
+
+      Object.keys(muscleTrainingDays).forEach(muscle => {
+        const sessions = muscleTrainingDays[muscle].size;
+        const weeklyFreq = Math.round((sessions / weeks) * 10) / 10; // Round to 1 decimal
+
+        frequency[muscle] = weeklyFreq;
+
+        // Determine status based on Schoenfeld (2016) recommendations
+        if (weeklyFreq >= 2 && weeklyFreq <= 3) {
+          status[muscle] = "optimal";
+          color[muscle] = "green";
+        } else if ((weeklyFreq >= 1 && weeklyFreq < 2) || (weeklyFreq > 3 && weeklyFreq <= 4)) {
+          status[muscle] = "monitor";
+          color[muscle] = "yellow";
+        } else {
+          status[muscle] = "concern";
+          color[muscle] = "red";
+        }
+
+        // Convert exercise map to sorted array
+        exercises[muscle] = Array.from(muscleExercises[muscle].entries())
+          .sort((a, b) => b[1] - a[1]);
+      });
+
+      return {
+        frequency: frequency,
+        status: status,
+        color: color,
+        exercises: exercises,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Schoenfeld et al. (2016) - Training frequency for hypertrophy"
+      };
+    },
+
+    /**
+     * V30.4: Calculate unilateral vs bilateral training volume
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Unilateral volume percentage and status
+     * 
+     * Evidence: Boyle (2016), Myer et al. (2005)
+     * Target: ≥20% of total volume from unilateral exercises
+     */
+    calculateUnilateralVolume: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let unilateralVolume = 0;
+      let bilateralVolume = 0;
+      const unilateralExercises = new Map(); // Track unilateral exercises
+      const bilateralExercises = new Map(); // Track bilateral exercises
+
+      // Unilateral exercise patterns
+      const unilateralPatterns = [
+        "Single", "One Arm", "One Leg", "Bulgarian", "Lunge",
+        "Split Squat", "Step Up", "Pistol", "Single-Arm", "Single-Leg"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        const isUnilateral = unilateralPatterns.some(p => log.ex.includes(p));
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule for accurate volume
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            if (isUnilateral) {
+              unilateralVolume += adjustedVolume;
+              unilateralExercises.set(log.ex, (unilateralExercises.get(log.ex) || 0) + adjustedVolume);
+            } else {
+              bilateralVolume += adjustedVolume;
+              bilateralExercises.set(log.ex, (bilateralExercises.get(log.ex) || 0) + adjustedVolume);
+            }
+          });
+        });
+      });
+
+      const totalVolume = unilateralVolume + bilateralVolume;
+      const unilateralPercent = totalVolume > 0 ? (unilateralVolume / totalVolume) * 100 : 0;
+
+      // Determine status based on Boyle (2016) recommendations
+      let status, color;
+      if (unilateralPercent >= 20) {
+        status = "adequate";
+        color = "green";
+      } else if (unilateralPercent >= 15 && unilateralPercent < 20) {
+        status = "low";
+        color = "yellow";
+      } else {
+        status = "insufficient";
+        color = "red";
+      }
+
+      return {
+        unilateralVolume: Math.round(unilateralVolume),
+        bilateralVolume: Math.round(bilateralVolume),
+        totalVolume: Math.round(totalVolume),
+        unilateralPercent: parseFloat(unilateralPercent.toFixed(1)),
+        unilateralExercises: Array.from(unilateralExercises.entries()).sort((a, b) => b[1] - a[1]),
+        bilateralExercises: Array.from(bilateralExercises.entries()).sort((a, b) => b[1] - a[1]),
+        status: status,
+        color: color,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Boyle (2016) - Unilateral training for injury prevention"
+      };
+    },
+
+    /**
+     * V30.4: Calculate compound vs isolation exercise ratio
+     * @param {number} daysBack - Number of days to analyze
+     * @returns {Object} Compound/isolation breakdown (informational only)
+     * 
+     * Evidence: Schoenfeld (2021), Gentil et al. (2017), ACSM (2009)
+     * Note: No warnings - different goals have different optimal ratios
+     */
+    calculateCompoundIsolationRatio: function(daysBack = 30) {
+      const allLogs = LS_SAFE.getJSON("gym_hist", []);
+      const recentLogs = this._filterRecentLogs(allLogs, daysBack);
+
+      let compoundVolume = 0;
+      let isolationVolume = 0;
+      const compoundExercises = new Map(); // Track compound exercises
+      const isolationExercises = new Map(); // Track isolation exercises
+
+      // Isolation exercises (single-joint movements) - CHECK FIRST for priority
+      const isolationPatterns = [
+        "CALF", "LEG CURL", "LEG EXTENSION", "CURL", "FLY", 
+        "LATERAL RAISE", "FRONT RAISE", "REAR DELT", "PEC DECK",
+        "KICKBACK", "PULLOVER", "SHRUG", "CRUNCH", "PLANK",
+        "TRICEP EXTENSION"
+      ];
+
+      // Compound exercises (multi-joint movements)
+      const compoundPatterns = [
+        "SQUAT", "DEADLIFT", "PRESS", "ROW", "PULL", "CHIN",
+        "DIP", "LUNGE", "RDL", "HIP THRUST", "GOOD MORNING"
+      ];
+
+      recentLogs.forEach(log => {
+        const targets = EXERCISE_TARGETS[log.ex] || [];
+        if (!log.d || !Array.isArray(log.d)) return;
+
+        const exName = log.ex.toUpperCase();
+        // Check isolation FIRST (priority for single-joint movements)
+        const isIsolation = isolationPatterns.some(p => exName.includes(p));
+        const isCompound = !isIsolation && compoundPatterns.some(p => exName.includes(p));
+
+        log.d.forEach(set => {
+          const reps = parseInt(set.r) || 0;
+          let volume = 0;
+
+          if (log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]")) {
+            volume = this._calculateBodyweightVolume(log.ex, reps);
+          } else {
+            const weight = parseFloat(set.k) || 0;
+            volume = weight * reps;
+          }
+
+          // Apply half-set rule
+          targets.forEach(target => {
+            const multiplier = target.role === "PRIMARY" ? 1.0 : 0.5;
+            const adjustedVolume = volume * multiplier;
+
+            if (isCompound) {
+              compoundVolume += adjustedVolume;
+              compoundExercises.set(log.ex, (compoundExercises.get(log.ex) || 0) + adjustedVolume);
+            } else if (isIsolation) {
+              isolationVolume += adjustedVolume;
+              isolationExercises.set(log.ex, (isolationExercises.get(log.ex) || 0) + adjustedVolume);
+            }
+          });
+        });
+      });
+
+      const totalVolume = compoundVolume + isolationVolume;
+      const compoundPercent = totalVolume > 0 ? (compoundVolume / totalVolume) * 100 : 0;
+      const isolationPercent = totalVolume > 0 ? (isolationVolume / totalVolume) * 100 : 0;
+
+      // Determine training style (informational only, no warnings)
+      let trainingStyle;
+      if (compoundPercent >= 70) {
+        trainingStyle = "Strength/Athletic Focus";
+      } else if (compoundPercent >= 50 && compoundPercent < 70) {
+        trainingStyle = "Balanced Hypertrophy";
+      } else if (compoundPercent >= 30 && compoundPercent < 50) {
+        trainingStyle = "Bodybuilding/Aesthetic Focus";
+      } else {
+        trainingStyle = "Isolation-Heavy Program";
+      }
+
+      return {
+        compoundVolume: Math.round(compoundVolume),
+        isolationVolume: Math.round(isolationVolume),
+        totalVolume: Math.round(totalVolume),
+        compoundPercent: parseFloat(compoundPercent.toFixed(1)),
+        isolationPercent: parseFloat(isolationPercent.toFixed(1)),
+        compoundExercises: Array.from(compoundExercises.entries()).sort((a, b) => b[1] - a[1]),
+        isolationExercises: Array.from(isolationExercises.entries()).sort((a, b) => b[1] - a[1]),
+        trainingStyle: trainingStyle,
+        daysAnalyzed: daysBack,
+        scientificBasis: "Schoenfeld (2021) - Compound vs isolation for muscle development",
+        note: "No optimal ratio - varies by training goal (strength/hypertrophy/bodybuilding)"
       };
     },
 
@@ -1186,7 +1756,93 @@
       }
 
       // ========================================
-      // RULE 4: BODYWEIGHT CONTRIBUTION
+      // RULE 4: CORE STABILITY DEMAND (V30.2)
+      // ========================================
+      const stability = this.analyzeCoreStability(daysBack);
+      
+      // 4A: No Stability Work
+      if (stability.weeklySets === 0) {
+        insights.push({
+          id: "stability-none",
+          type: "warning",
+          category: "program-design",
+          priority: 3,
+          title: "⚠️ No Core Stability Demand",
+          metrics: `0 sets/week from unilateral or cable exercises`,
+          risk: "Missing functional stability development from compound movements",
+          action: "Include unilateral exercises (Bulgarian split squats, single-leg RDLs) and standing cable work to challenge core stability",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Unilateral exercises provide anti-rotation demands that complement dedicated core work",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+      
+      // 4B: Low Stability Work
+      else if (stability.weeklySets < 10) {
+        insights.push({
+          id: "stability-low",
+          type: "info",
+          category: "optimization",
+          priority: 4,
+          title: "ℹ️ Low Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "Consider adding more unilateral lower body exercises or standing cable work to increase stability demands",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Compound exercises with stability demands complement but don't replace dedicated core training",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+      
+      // 4C: Adequate Stability Work
+      else if (stability.weeklySets >= 10 && stability.weeklySets <= 20) {
+        insights.push({
+          id: "stability-adequate",
+          type: "success",
+          category: "program-design",
+          priority: 4,
+          title: "✅ Adequate Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "Current stability demand is appropriate. Ensure you're still meeting 15-25 sets/week of DEDICATED core training",
+          evidence: {
+            source: "McGill & Boyle",
+            citation: "Stability work from compounds complements dedicated anti-movement training",
+            url: null
+          },
+          icon: "✅",
+          color: "green"
+        });
+      }
+      
+      // 4D: High Stability Work
+      else if (stability.weeklySets > 20) {
+        insights.push({
+          id: "stability-high",
+          type: "info",
+          category: "optimization",
+          priority: 4,
+          title: "ℹ️ High Core Stability Demand",
+          metrics: `${stability.weeklySets} sets/week from compound stability work`,
+          action: "High stability demand is fine, but ensure recovery is adequate. This does NOT replace dedicated core training volume",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Stability demands are supplementary to, not a substitute for, dedicated core work",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+
+      // ========================================
+      // RULE 5: BODYWEIGHT CONTRIBUTION
       // ========================================
       if (bodyweight.bodyweightPercentage > 30) {
         insights.push({
@@ -1209,7 +1865,7 @@
       }
 
       // ========================================
-      // RULE 5: INSUFFICIENT DATA WARNING
+      // RULE 6: INSUFFICIENT DATA WARNING
       // ========================================
       if (uniqueDays < 3 || (quadHams.quadVolume + quadHams.hamsVolume) < 1000) {
         insights.push({
@@ -1225,6 +1881,195 @@
           color: "blue"
         });
       }
+
+      // ========================================
+      // RULE 7: HORIZONTAL/VERTICAL IMBALANCE (V30.4)
+      // ========================================
+      const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+      
+      // 7A: Horizontal Plane Imbalance
+      if (hvRatios.horizontalStatus === 'imbalance') {
+        if (hvRatios.horizontalRatio < 0.6) {
+          insights.push({
+            id: "horizontal-weak-pull",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Insufficient Horizontal Pulling",
+            metrics: `Horizontal Pull:Push = ${hvRatios.horizontalRatio} (Target: 0.7-1.0)`,
+            risk: "Shoulder Internal Rotation, Postural Issues",
+            action: "Increase rows, face pulls, and horizontal pulling volume",
+            evidence: {
+              source: "Cressey & Robertson (2019)",
+              citation: "Horizontal pull:push ratio critical for scapular stability",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        } else if (hvRatios.horizontalRatio > 1.2) {
+          insights.push({
+            id: "horizontal-weak-push",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Excessive Horizontal Pulling",
+            metrics: `Horizontal Pull:Push = ${hvRatios.horizontalRatio} (Target: 0.7-1.0)`,
+            risk: "Anterior Shoulder Weakness",
+            action: "Balance with more horizontal pressing volume (bench press, push-ups)",
+            evidence: {
+              source: "Cressey & Robertson (2019)",
+              citation: "Balanced horizontal plane work prevents shoulder dysfunction",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        }
+      }
+
+      // 7B: Vertical Plane Imbalance
+      if (hvRatios.verticalStatus === 'imbalance') {
+        if (hvRatios.verticalRatio < 0.4) {
+          insights.push({
+            id: "vertical-weak-pull",
+            type: "warning",
+            category: "balance",
+            priority: 2,
+            title: "⚠️ Insufficient Vertical Pulling",
+            metrics: `Vertical Pull:Push = ${hvRatios.verticalRatio} (Target: 0.5-0.7)`,
+            risk: "Shoulder Impingement Risk, Upper Cross Syndrome",
+            action: "Prioritize vertical pulling (lat pulldowns, pull-ups, chin-ups)",
+            evidence: {
+              source: "Saeterbakken et al. (2011)",
+              citation: "Vertical pulling essential for shoulder health and posture",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        } else if (hvRatios.verticalRatio > 0.9) {
+          insights.push({
+            id: "vertical-weak-push",
+            type: "warning",
+            category: "balance",
+            priority: 3,
+            title: "⚠️ Low Vertical Pressing Volume",
+            metrics: `Vertical Pull:Push = ${hvRatios.verticalRatio} (Target: 0.5-0.7)`,
+            risk: "Deltoid Underdevelopment",
+            action: "Add overhead pressing volume (OHP, dumbbell press, push press)",
+            evidence: {
+              source: "Saeterbakken et al. (2011)",
+              citation: "Vertical pressing develops deltoids and stabilizers",
+              url: null
+            },
+            icon: "⚠️",
+            color: "yellow"
+          });
+        }
+      }
+
+      // ========================================
+      // RULE 8: TRAINING FREQUENCY (V30.4)
+      // ========================================
+      const frequency = this.calculateTrainingFrequency(daysBack);
+      const lowFreqMuscles = [];
+      const highFreqMuscles = [];
+
+      Object.entries(frequency.frequency).forEach(([muscle, freq]) => {
+        if (freq < 2) lowFreqMuscles.push(`${muscle} (${freq}x)`);
+        if (freq > 3) highFreqMuscles.push(`${muscle} (${freq}x)`);
+      });
+
+      // 8A: Low Frequency
+      if (lowFreqMuscles.length > 0) {
+        insights.push({
+          id: "frequency-low",
+          type: "warning",
+          category: "program-design",
+          priority: 2,
+          title: "⚠️ Suboptimal Training Frequency",
+          metrics: `${lowFreqMuscles.join(', ')} trained <2x per week`,
+          risk: "Suboptimal Hypertrophy Stimulus",
+          action: "Increase to 2-3x per week per muscle group for optimal growth",
+          evidence: {
+            source: "Schoenfeld et al. (2016)",
+            citation: "2-3x per week frequency superior for hypertrophy vs 1x",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+
+      // 8B: High Frequency
+      if (highFreqMuscles.length > 0) {
+        insights.push({
+          id: "frequency-high",
+          type: "warning",
+          category: "recovery",
+          priority: 3,
+          title: "⚠️ High Training Frequency",
+          metrics: `${highFreqMuscles.join(', ')} trained >3x per week`,
+          risk: "Potential Overreaching",
+          action: "Monitor recovery. Consider reducing frequency or volume per session",
+          evidence: {
+            source: "ACSM Guidelines (2021)",
+            citation: "Frequency >3x beneficial only if volume and recovery are managed",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      }
+
+      // ========================================
+      // RULE 9: UNILATERAL VOLUME (V30.4)
+      // ========================================
+      const unilateral = this.calculateUnilateralVolume(daysBack);
+
+      if (unilateral.status === 'insufficient') {
+        insights.push({
+          id: "unilateral-insufficient",
+          type: "warning",
+          category: "injury-prevention",
+          priority: 2,
+          title: "⚠️ Insufficient Unilateral Training",
+          metrics: `${unilateral.unilateralPercent}% of volume is unilateral (Target: ≥20%)`,
+          risk: "Bilateral Deficit, Asymmetry Development",
+          action: "Add unilateral exercises: Bulgarian split squats, single-arm rows, lunges",
+          evidence: {
+            source: "Boyle (2016)",
+            citation: "Unilateral training addresses asymmetries and prevents injury",
+            url: null
+          },
+          icon: "⚠️",
+          color: "yellow"
+        });
+      } else if (unilateral.status === 'low') {
+        insights.push({
+          id: "unilateral-low",
+          type: "info",
+          category: "optimization",
+          priority: 3,
+          title: "ℹ️ Low Unilateral Volume",
+          metrics: `${unilateral.unilateralPercent}% unilateral volume (Target: ≥20%)`,
+          action: "Consider adding more single-leg/arm exercises for asymmetry prevention",
+          evidence: {
+            source: "Myer et al. (2005)",
+            citation: "Unilateral training reduces ACL injury risk in athletes",
+            url: null
+          },
+          icon: "ℹ️",
+          color: "blue"
+        });
+      }
+
+      // ========================================
+      // NOTE: NO RULE FOR COMPOUND/ISOLATION
+      // Per user request: "just give information about current training goal alignment, no need for warning"
+      // This is handled in UI only (Exercise Selection card shows training style classification)
+      // ========================================
 
       // ========================================
       // POST-PROCESSING
@@ -1268,6 +2113,875 @@
 
       return finalInsights;
     },
+
+// ============================================
+// V30.3: ADVANCED ANALYTICS TAB RENDERER
+// ============================================
+
+/**
+ * V30.3: Render Advanced Analytics Tab
+ * Consolidates Core metrics, Balance ratios, and Clinical insights
+ * @param {number} daysBack - Number of days to analyze (default: 30)
+ */
+renderAdvancedAnalytics: function(daysBack = 30) {
+  console.log("[STATS] Rendering Advanced Analytics tab");
+
+  // Get all analytics data
+  const quadHams = this.calculateQuadHamsRatio(daysBack);
+  const pushPull = this.calculatePushPullRatio(daysBack);
+  const core = this.analyzeCoreTraining(daysBack);
+  const stability = this.analyzeCoreStability(daysBack);
+  const insights = this.interpretWorkoutData(daysBack); // FIX: Use interpretWorkoutData instead of generateClinicalInsights
+
+  // === SECTION 1: CORE METRICS ===
+  const coreContainer = document.getElementById('klinik-advanced-core-metrics');
+  if (coreContainer) {
+    let coreHTML = '';
+
+    // Core Training Card
+    const coreBadgeClass = core.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           core.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+    const coreIcon = core.color === 'green' ? '✅' : core.color === 'yellow' ? '⚠️' : '🚨';
+    const coreProgress = Math.min((core.weeklySets / 25) * 100, 100);
+    const coreProgressColor = core.color === 'green' ? 'bg-emerald-500' :
+                              core.color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500';
+
+    coreHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">💪 Core Training</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('core-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${core.weeklySets}</span>
+          <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${coreBadgeClass}">
+            ${coreIcon} ${core.status.charAt(0).toUpperCase() + core.status.slice(1)}
+          </span>
+        </div>
+        <div class="mb-4">
+          <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+            <span>Target: 15-25 sets/week (McGill Guidelines)</span>
+            <span class="font-semibold text-white">${core.weeklySets}/25</span>
+          </div>
+          <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div class="h-2 ${coreProgressColor} transition-all" style="width: ${coreProgress}%;"></div>
+          </div>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Weekly Sets:</span>
+            <span class="font-semibold text-white">${core.weeklySets} sets</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Weekly Frequency:</span>
+            <span class="font-semibold text-white">${core.frequency}x per week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Exercise Variety:</span>
+            <span class="font-semibold text-white">${core.variety} movements</span>
+          </div>
+        </div>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
+          <div class="text-[10px] font-bold text-app-accent mb-2">DEDICATED CORE EXERCISES</div>
+          <div class="text-[9px] text-app-subtext/70 italic mb-2">Total sets over ${core.daysAnalyzed} days</div>
+          ${core.coreExercises.map(([ex, sets]) => `
+            <div class="flex justify-between text-[9px] text-app-subtext">
+              <span>• ${ex}</span>
+              <span>${sets} sets</span>
+            </div>
+          `).join('')}
+          ${core.coreExercises.length === 0 ? '<div class="text-[9px] text-app-subtext">No exercises logged</div>' : ''}
+        </div>
+      </div>
+    `;
+
+    // Core Stability Card
+    const stabilityBadgeClass = stability.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                                stability.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+                                stability.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-white/5 text-app-subtext';
+    const stabilityIcon = stability.color === 'green' ? '✅' :
+                          stability.color === 'purple' ? '🔄' :
+                          stability.color === 'yellow' ? '⚠️' : '➖';
+    const stabilityProgress = Math.min((stability.weeklySets / 20) * 100, 100);
+    const stabilityProgressColor = stability.color === 'green' ? 'bg-emerald-500' :
+                                    stability.color === 'purple' ? 'bg-purple-500' :
+                                    stability.color === 'yellow' ? 'bg-yellow-500' : 'bg-white/20';
+
+    coreHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🔄 Core Stability Demand</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('stability-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${stability.weeklySets}</span>
+          <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${stabilityBadgeClass}">
+            ${stabilityIcon} ${stability.status.charAt(0).toUpperCase() + stability.status.slice(1)}
+          </span>
+        </div>
+        <div class="mb-4">
+          <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+            <span>Target: 10-20 sets/week (from compounds)</span>
+            <span class="font-semibold text-white">${stability.weeklySets}/20</span>
+          </div>
+          <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div class="h-2 ${stabilityProgressColor} transition-all" style="width: ${stabilityProgress}%;"></div>
+          </div>
+        </div>
+        <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-3">
+          <p class="text-[10px] text-purple-300 leading-relaxed">
+            <strong>Note:</strong> Stability work from unilateral/cable exercises complements but does NOT replace dedicated core training (planks, dead bugs).
+          </p>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>From Compound Work:</span>
+            <span class="font-semibold text-white">${stability.weeklySets} sets/week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Weekly Frequency:</span>
+            <span class="font-semibold text-white">${stability.frequency}x per week</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Exercise Variety:</span>
+            <span class="font-semibold text-white">${stability.variety} movements</span>
+          </div>
+        </div>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-1">
+          <div class="text-[10px] font-bold text-app-accent mb-2">STABILITY-DEMANDING EXERCISES</div>
+          <div class="text-[9px] text-purple-300 mb-1">* Exercises with SECONDARY core engagement</div>
+          <div class="text-[9px] text-app-subtext/70 italic mb-2">Total sets over ${stability.daysAnalyzed} days</div>
+          ${stability.stabilityExercises.map(([ex, sets]) => `
+            <div class="flex justify-between text-[9px] text-app-subtext">
+              <span>• ${ex}</span>
+              <span>${sets} sets</span>
+            </div>
+          `).join('')}
+          ${stability.stabilityExercises.length === 0 ? '<div class="text-[9px] text-app-subtext">No exercises logged</div>' : ''}
+        </div>
+      </div>
+    `;
+
+    coreContainer.innerHTML = coreHTML;
+  }
+
+  // === SECTION 2: BALANCE RATIOS ===
+  const ratiosContainer = document.getElementById('klinik-advanced-ratios');
+  if (ratiosContainer) {
+    let ratiosHTML = '';
+
+    // Quad/Hams Ratio Card
+    if (quadHams.quadVolume > 0 || quadHams.hamsVolume > 0) {
+      const qhBadgeClass = quadHams.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           quadHams.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+      const qhIcon = quadHams.color === 'green' ? '✅' : quadHams.color === 'yellow' ? '⚠️' : '🚨';
+
+      // Calculate position for ratio marker (0-2 scale, show 0-1 range)
+      const markerPos = Math.min(Math.max(quadHams.ratio * 50, 0), 100);
+
+      ratiosHTML += `
+        <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-semibold text-white">🦵 Quad/Hamstring Balance</h4>
+            <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                    onclick="window.APP.ui.showTooltip('qh-info', event)"
+                    onmouseleave="window.APP.ui.hideTooltip()">
+              ℹ️
+            </button>
+          </div>
+          <div class="flex items-baseline mb-3">
+            <span class="text-4xl font-bold text-white">${quadHams.ratio}</span>
+            <span class="ml-2 text-xs text-app-subtext">Target: 0.6-0.8</span>
+          </div>
+          <div class="mb-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${qhBadgeClass}">
+              ${qhIcon} ${quadHams.status.charAt(0).toUpperCase() + quadHams.status.slice(1)}
+            </span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 25%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 25%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 35%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 55%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${markerPos}%;"></div>
+          </div>
+          <div class="h-px bg-white/10 my-3"></div>
+          <div class="text-xs text-app-subtext space-y-2">
+            <div class="flex justify-between">
+              <span>Quad Volume:</span>
+              <span class="font-semibold text-white">${quadHams.quadVolume.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Hams Volume:</span>
+              <span class="font-semibold text-white">${quadHams.hamsVolume.toLocaleString()} kg</span>
+            </div>
+          </div>
+          
+          <!-- Dropdown Breakdown -->
+          <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                  onclick="this.nextElementSibling.classList.toggle('hidden')">
+            ▼ View Exercise Breakdown
+          </button>
+          <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+            <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${quadHams.daysAnalyzed} days</div>
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold">Quad-Dominant (${quadHams.quadVolume.toLocaleString()} kg):</span>
+              </div>
+              ${quadHams.quadExercises.map(([ex, vol]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${Math.round(vol).toLocaleString()} kg</span>
+                </div>
+              `).join('')}
+              ${quadHams.quadExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold">Hams-Dominant (${quadHams.hamsVolume.toLocaleString()} kg):</span>
+              </div>
+              ${quadHams.hamsExercises.map(([ex, vol]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${Math.round(vol).toLocaleString()} kg</span>
+                </div>
+              `).join('')}
+              ${quadHams.hamsExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Push/Pull Ratio Card
+    if (pushPull.totalPush > 0 || pushPull.totalPull > 0) {
+      const ppBadgeClass = pushPull.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                           pushPull.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                           'bg-red-500/20 text-red-400';
+      const ppIcon = pushPull.color === 'green' ? '✅' : pushPull.color === 'yellow' ? '⚠️' : '🚨';
+
+      // Calculate position (0.8-1.4 range mapped to 0-100%)
+      const ppMarkerPos = Math.min(Math.max((pushPull.totalRatio - 0.8) / 0.6 * 100, 0), 100);
+
+      ratiosHTML += `
+        <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-semibold text-white">⚖️ Push/Pull Balance</h4>
+            <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                    onclick="window.APP.ui.showTooltip('pp-info', event)"
+                    onmouseleave="window.APP.ui.hideTooltip()">
+              ℹ️
+            </button>
+          </div>
+          <div class="flex items-baseline mb-3">
+            <span class="text-4xl font-bold text-white">${pushPull.totalRatio}</span>
+            <span class="ml-2 text-xs text-app-subtext">Target: 1.0-1.2</span>
+          </div>
+          <div class="mb-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${ppBadgeClass}">
+              ${ppIcon} ${pushPull.status.charAt(0).toUpperCase() + pushPull.status.slice(1)}
+            </span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 20%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 13.3%; left: 33.3%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 13.3%; left: 46.6%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 40%; left: 60%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${ppMarkerPos}%;"></div>
+          </div>
+          <div class="h-px bg-white/10 my-3"></div>
+          <div class="text-xs text-app-subtext space-y-2">
+            <div class="flex justify-between">
+              <span>Total Push:</span>
+              <span class="font-semibold text-white">${pushPull.totalPush.toLocaleString()} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Total Pull:</span>
+              <span class="font-semibold text-white">${pushPull.totalPull.toLocaleString()} kg</span>
+            </div>
+            <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                    onclick="this.nextElementSibling.classList.toggle('hidden')">
+              ▼ View Upper/Lower Breakdown
+            </button>
+            <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+              <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${pushPull.daysAnalyzed} days</div>
+              <!-- Upper Body -->
+              <div>
+                <div class="text-[10px] font-bold text-app-accent mb-2">UPPER BODY</div>
+                <div class="space-y-2">
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Push (${pushPull.upperPush.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.upperPushExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.upperPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Pull (${pushPull.upperPull.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.upperPullExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.upperPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Lower Body -->
+              <div>
+                <div class="text-[10px] font-bold text-app-accent mb-2">LOWER BODY</div>
+                <div class="space-y-2">
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Push/Quad-Dom (${pushPull.lowerPush.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.lowerPushExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.lowerPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                      <span class="text-white font-semibold">Pull/Hams-Dom (${pushPull.lowerPull.toLocaleString()} kg):</span>
+                    </div>
+                    ${pushPull.lowerPullExercises.map(([ex, vol]) => `
+                      <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                        <span>• ${ex}</span>
+                        <span>${Math.round(vol).toLocaleString()} kg</span>
+                      </div>
+                    `).join('')}
+                    ${pushPull.lowerPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    ratiosContainer.innerHTML = ratiosHTML;
+  }
+
+  // === SECTION 2.5: TRAINING ANALYSIS (V30.4) ===
+  const trainingContainer = document.getElementById('klinik-training-analysis');
+  if (trainingContainer) {
+    const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+    const frequency = this.calculateTrainingFrequency(daysBack);
+    const unilateral = this.calculateUnilateralVolume(daysBack);
+    const compound = this.calculateCompoundIsolationRatio(daysBack);
+
+    let trainingHTML = '';
+
+    // Horizontal/Vertical Ratios Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🎯 Horizontal/Vertical Balance</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('hv-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+
+        <!-- Horizontal Plane -->
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-app-subtext">Horizontal (Bench/Row)</span>
+            <span class="text-lg font-bold text-white">${hvRatios.horizontalRatio}</span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 25%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 25%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 30%; left: 35%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 65%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 25%; left: 75%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max(hvRatios.horizontalRatio / 2 * 100, 0), 98)}%;"></div>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+            hvRatios.horizontalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            hvRatios.horizontalColor === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${hvRatios.horizontalColor === 'green' ? '✅' : hvRatios.horizontalColor === 'yellow' ? '⚠️' : '🚨'} ${hvRatios.horizontalStatus}
+          </span>
+        </div>
+
+        <!-- Vertical Plane -->
+        <div class="mb-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-app-subtext">Vertical (OHP/Pulldown)</span>
+            <span class="text-lg font-bold text-white">${hvRatios.verticalRatio}</span>
+          </div>
+          <div class="relative h-2 bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 20%; left: 0;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 10%; left: 20%;"></div>
+            <div class="absolute h-2 bg-emerald-500/60" style="width: 20%; left: 30%;"></div>
+            <div class="absolute h-2 bg-yellow-500/60" style="width: 20%; left: 50%;"></div>
+            <div class="absolute h-2 bg-red-500/60 rounded-r-full" style="width: 30%; left: 70%;"></div>
+            <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1 transition-all" style="left: ${Math.min(Math.max((hvRatios.verticalRatio / 1.4) * 100, 0), 98)}%;"></div>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+            hvRatios.verticalColor === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            hvRatios.verticalColor === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${hvRatios.verticalColor === 'green' ? '✅' : hvRatios.verticalColor === 'yellow' ? '⚠️' : '🚨'} ${hvRatios.verticalStatus}
+          </span>
+        </div>
+
+        <div class="h-px bg-white/10 my-3"></div>
+        <p class="text-[10px] text-app-subtext mb-2">Target: H 0.7-1.0 | V 0.5-0.7 (Pull:Push)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${hvRatios.daysAnalyzed} days</div>
+          <!-- Horizontal Plane -->
+          <div>
+            <div class="text-[10px] font-bold text-app-accent mb-2">HORIZONTAL PLANE</div>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Push (${hvRatios.horizontalPush.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.horizontalPushExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.horizontalPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Pull (${hvRatios.horizontalPull.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.horizontalPullExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.horizontalPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Vertical Plane -->
+          <div>
+            <div class="text-[10px] font-bold text-app-accent mb-2">VERTICAL PLANE</div>
+            <div class="space-y-2">
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Push (${hvRatios.verticalPush.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.verticalPushExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.verticalPushExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-white font-semibold">Pull (${hvRatios.verticalPull.toLocaleString()} kg):</span>
+                </div>
+                ${hvRatios.verticalPullExercises.map(([ex, vol]) => `
+                  <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                    <span>• ${ex}</span>
+                    <span>${Math.round(vol).toLocaleString()} kg</span>
+                  </div>
+                `).join('')}
+                ${hvRatios.verticalPullExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Training Frequency Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">📅 Training Frequency</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('freq-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          ${Object.entries(frequency.frequency).map(([muscle, freq], index) => {
+            const exercisesList = frequency.exercises[muscle]
+              .map(([ex, sessions]) => `<div class="text-[9px] text-white mb-1">• ${ex} <span class="text-app-accent">(${sessions}x)</span></div>`)
+              .join('');
+            const tooltipHtml = exercisesList || '<div class="text-[9px] text-app-subtext">No exercises logged</div>';
+            
+            // Smart positioning: left column = left-0, middle = center, right = right-0
+            const col = index % 3;
+            const positionClass = col === 0 ? 'left-0' : col === 2 ? 'right-0' : 'left-1/2 -translate-x-1/2';
+            
+            return `
+              <div class="flex flex-col items-center bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors relative group overflow-visible">
+                <span class="text-[10px] text-app-subtext uppercase mb-1">${muscle}</span>
+                <span class="text-lg font-bold ${frequency.color[muscle] === 'green' ? 'text-emerald-400' : frequency.color[muscle] === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${freq}x</span>
+                
+                <!-- Hover Tooltip - Column-Aware Positioning -->
+                <div class="hidden group-hover:block absolute top-full ${positionClass} mt-2 z-50 w-[85vw] max-w-[280px]">
+                  <div class="bg-slate-900 border border-app-accent/30 rounded-lg p-3 shadow-xl">
+                    <div class="text-[10px] font-bold text-app-accent mb-2 uppercase">${muscle} Exercises:</div>
+                    <div class="max-h-48 overflow-y-auto">
+                      ${tooltipHtml}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <p class="text-[10px] text-app-subtext mb-2">Target: 2-3x per week per muscle (Schoenfeld 2016)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View All Exercises by Muscle
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total sessions over ${frequency.daysAnalyzed} days</div>
+          ${Object.entries(frequency.exercises).map(([muscle, exercises]) => `
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-white font-semibold uppercase">${muscle} (${frequency.frequency[muscle]}x/week):</span>
+              </div>
+              ${exercises.map(([ex, sessions]) => `
+                <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                  <span>• ${ex}</span>
+                  <span>${sessions} sessions</span>
+                </div>
+              `).join('')}
+              ${exercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    // Unilateral Volume Card
+    const uniMarkerPos = Math.min(Math.max(unilateral.unilateralPercent * 3.33, 0), 100); // 30% = 100%
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">🔄 Unilateral Volume</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('uni-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="flex items-baseline mb-3">
+          <span class="text-4xl font-bold text-white">${unilateral.unilateralPercent}%</span>
+          <span class="ml-2 text-xs text-app-subtext">of total volume</span>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${
+            unilateral.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+            unilateral.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }">
+            ${unilateral.color === 'green' ? '✅' : unilateral.color === 'yellow' ? '⚠️' : '🚨'} ${unilateral.status}
+          </span>
+        </div>
+        <div class="relative h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
+          <div class="absolute h-2 bg-red-500/60 rounded-l-full" style="width: 66.6%; left: 0;"></div>
+          <div class="absolute h-2 bg-emerald-500/60 rounded-r-full" style="width: 33.4%; left: 66.6%;"></div>
+          <div class="absolute h-4 w-1 bg-white rounded-full shadow-glow -mt-1" style="left: ${uniMarkerPos}%;"></div>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Unilateral:</span>
+            <span class="font-semibold text-white">${unilateral.unilateralVolume.toLocaleString()} kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Bilateral:</span>
+            <span class="font-semibold text-white">${unilateral.bilateralVolume.toLocaleString()} kg</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-app-subtext mt-2">Target: ≥20% for injury prevention (Boyle 2016)</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${unilateral.daysAnalyzed} days</div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Unilateral (${unilateral.unilateralVolume.toLocaleString()} kg):</span>
+            </div>
+            ${unilateral.unilateralExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${unilateral.unilateralExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Bilateral (${unilateral.bilateralVolume.toLocaleString()} kg):</span>
+            </div>
+            ${unilateral.bilateralExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${unilateral.bilateralExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Compound/Isolation Card
+    trainingHTML += `
+      <div class="bg-app-card rounded-2xl border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-white">⚙️ Exercise Selection</h4>
+          <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                  onclick="window.APP.ui.showTooltip('comp-info', event)"
+                  onmouseleave="window.APP.ui.hideTooltip()">
+            ℹ️
+          </button>
+        </div>
+        <div class="mb-3">
+          <div class="flex items-baseline mb-1">
+            <span class="text-2xl font-bold text-app-accent">${compound.compoundPercent}%</span>
+            <span class="ml-2 text-xs text-app-subtext">Compound</span>
+          </div>
+          <div class="flex items-baseline">
+            <span class="text-2xl font-bold text-purple-400">${compound.isolationPercent}%</span>
+            <span class="ml-2 text-xs text-app-subtext">Isolation</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400">
+            ℹ️ ${compound.trainingStyle}
+          </span>
+        </div>
+        <div class="h-px bg-white/10 my-3"></div>
+        <div class="text-xs text-app-subtext space-y-2">
+          <div class="flex justify-between">
+            <span>Compound:</span>
+            <span class="font-semibold text-white">${compound.compoundVolume.toLocaleString()} kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Isolation:</span>
+            <span class="font-semibold text-white">${compound.isolationVolume.toLocaleString()} kg</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-app-subtext mt-2">${compound.note}</p>
+        
+        <!-- Dropdown Breakdown -->
+        <button class="text-[10px] text-app-accent hover:text-white mt-2 transition-colors"
+                onclick="this.nextElementSibling.classList.toggle('hidden')">
+          ▼ View Exercise Breakdown
+        </button>
+        <div class="hidden mt-3 pt-3 border-t border-white/10 space-y-3">
+          <div class="text-[9px] text-app-subtext/70 italic mb-3">Total volume over ${compound.daysAnalyzed} days</div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Compound (${compound.compoundVolume.toLocaleString()} kg):</span>
+            </div>
+            ${compound.compoundExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${compound.compoundExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] mb-1">
+              <span class="text-white font-semibold">Isolation (${compound.isolationVolume.toLocaleString()} kg):</span>
+            </div>
+            ${compound.isolationExercises.map(([ex, vol]) => `
+              <div class="flex justify-between text-[9px] text-app-subtext pl-2">
+                <span>• ${ex}</span>
+                <span>${Math.round(vol).toLocaleString()} kg</span>
+              </div>
+            `).join('')}
+            ${compound.isolationExercises.length === 0 ? '<div class="text-[9px] text-app-subtext pl-2">No exercises logged</div>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    trainingContainer.innerHTML = trainingHTML;
+  }
+
+  // === SECTION 3: CLINICAL INSIGHTS ===
+  const insightsContainer = document.getElementById('klinik-advanced-insights');
+  if (insightsContainer) {
+    // Store insights for tooltip access
+    window.APP._currentInsights = insights;
+    
+    if (insights.length === 0) {
+      insightsContainer.innerHTML = `
+        <div class="text-center text-slate-500 py-6">
+          <div class="text-3xl mb-2">📊</div>
+          <div class="text-xs">Log more workouts to generate insights</div>
+        </div>
+      `;
+    } else {
+      let insightsHTML = '';
+      
+      insights.forEach(insight => {
+        const borderColor = insight.type === 'danger' ? 'border-l-red-500' :
+                            insight.type === 'warning' ? 'border-l-yellow-500' :
+                            insight.type === 'info' ? 'border-l-blue-500' :
+                            'border-l-emerald-500';
+        
+        const bgTint = insight.type === 'danger' ? 'bg-red-500/5' :
+                       insight.type === 'warning' ? 'bg-yellow-500/5' :
+                       insight.type === 'info' ? 'bg-blue-500/5' :
+                       'bg-emerald-500/5';
+        
+        const iconColor = insight.type === 'danger' ? 'text-red-400' :
+                          insight.type === 'warning' ? 'text-yellow-400' :
+                          insight.type === 'info' ? 'text-blue-400' :
+                          'text-emerald-400';
+        
+        const titleColor = insight.type === 'danger' ? 'text-red-300' :
+                           insight.type === 'warning' ? 'text-yellow-300' :
+                           insight.type === 'info' ? 'text-blue-300' :
+                           'text-emerald-300';
+        
+        const evidenceColor = insight.type === 'danger' ? 'text-red-400 hover:text-red-300' :
+                              insight.type === 'warning' ? 'text-yellow-400 hover:text-yellow-300' :
+                              insight.type === 'info' ? 'text-blue-400 hover:text-blue-300' :
+                              'text-emerald-400 hover:text-emerald-300';
+        
+        insightsHTML += `
+          <div class="glass-card rounded-xl border-l-4 ${borderColor} ${bgTint} p-3 transition-all">
+            <div class="flex items-start gap-3">
+              <div class="text-2xl ${iconColor} mt-0.5">
+                ${insight.icon}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold ${titleColor} mb-2">
+                  ${insight.title}
+                </h4>
+                <p class="text-xs text-app-subtext mb-2">
+                  ${insight.metrics}
+                </p>
+                ${insight.risk ? `
+                  <div class="text-xs text-app-subtext mb-2">
+                    <span class="font-semibold text-white">Risk:</span> ${insight.risk}
+                  </div>
+                ` : ''}
+                <div class="text-xs text-app-subtext mb-2">
+                  <span class="font-semibold text-white">Action:</span> ${insight.action}
+                </div>
+                ${insight.evidence ? `
+                  <div class="flex items-center text-[10px] mt-3 pt-2 border-t border-white/10">
+                    <span class="font-semibold text-app-subtext mr-1">Evidence:</span>
+                    <button class="${evidenceColor} underline transition-colors"
+                            onclick="window.APP.ui.showEvidenceTooltip('${insight.id}', event)"
+                            onmouseleave="window.APP.ui.hideTooltip()">
+                      ${insight.evidence.source}
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      // V30.5: Add AI Consultation button below insights
+      const consultButton = `
+        <div class="mt-4 pt-4 border-t border-white/10">
+          <button 
+            onclick="window.APP.stats.consultAIAboutInsights()" 
+            class="w-full px-4 py-3 rounded-xl font-semibold text-sm 
+                   bg-gradient-to-r from-blue-600 to-purple-600 
+                   hover:from-blue-500 hover:to-purple-500 
+                   text-white shadow-lg shadow-blue-900/50 
+                   transition-all duration-300 
+                   flex items-center justify-center gap-2
+                   active:scale-95">
+            <i class="fas fa-brain"></i>
+            <span>Konsultasi AI Tentang Insights</span>
+            <i class="fas fa-arrow-right text-xs"></i>
+          </button>
+          <p class="text-[10px] text-app-subtext text-center mt-2">
+            Auto-generate comprehensive prompt with active program context
+          </p>
+        </div>
+      `;
+      
+      insightsContainer.innerHTML = insightsHTML + consultButton;
+    }
+  }
+
+  console.log("[STATS] Advanced Analytics tab rendered");
+},
+
 // V29.0 PHASE 3: UI RENDERING FUNCTIONS
 // Temporary file - will be merged into stats.js
 
@@ -1506,6 +3220,84 @@ renderAdvancedRatios: function(daysBack = 30) {
   `;
 
   // ========================================
+  // V30.2: CORE STABILITY DEMAND CARD (SECONDARY)
+  // ========================================
+  const stability = this.analyzeCoreStability(daysBack);
+  
+  const stabilityBadgeClass = stability.color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
+                              stability.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+                              stability.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-white/5 text-app-subtext';
+
+  const stabilityIcon = stability.color === 'green' ? '✅' :
+                        stability.color === 'purple' ? '🔄' :
+                        stability.color === 'yellow' ? '⚠️' : '➖';
+
+  // Progress bar for stability (0-30 scale, show 0-20 target range)
+  const stabilityProgress = Math.min((stability.weeklySets / 20) * 100, 100);
+  const stabilityProgressColor = stability.color === 'green' ? 'bg-emerald-500' :
+                                  stability.color === 'purple' ? 'bg-purple-500' :
+                                  stability.color === 'yellow' ? 'bg-yellow-500' : 'bg-white/20';
+
+  html += `
+    <div class="bg-app-card rounded-2xl border border-white/10 p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-sm font-semibold text-white">🔄 Core Stability Demand</h4>
+        <button class="text-app-subtext hover:text-white text-sm transition-colors"
+                onclick="window.APP.ui.showTooltip('stability-info', event)"
+                onmouseleave="window.APP.ui.hideTooltip()">
+          ℹ️
+        </button>
+      </div>
+
+      <div class="flex items-baseline mb-3">
+        <span class="text-4xl font-bold text-white">${stability.weeklySets}</span>
+        <span class="ml-2 text-xs text-app-subtext">sets/week</span>
+      </div>
+
+      <div class="mb-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wide ${stabilityBadgeClass}">
+          ${stabilityIcon} ${stability.status.charAt(0).toUpperCase() + stability.status.slice(1)}
+        </span>
+      </div>
+
+      <div class="mb-4">
+        <div class="flex justify-between text-[10px] text-app-subtext mb-2">
+          <span>Target: 10-20 sets/week (from compounds)</span>
+          <span class="font-semibold text-white">${stability.weeklySets}/20</span>
+        </div>
+        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-2 ${stabilityProgressColor} transition-all"
+               style="width: ${stabilityProgress}%;"></div>
+        </div>
+      </div>
+
+      <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-3">
+        <p class="text-[10px] text-purple-300 leading-relaxed">
+          <strong>Note:</strong> Stability work from unilateral/cable exercises complements but does NOT replace dedicated core training (planks, dead bugs).
+        </p>
+      </div>
+
+      <div class="h-px bg-white/10 my-3"></div>
+
+      <div class="text-xs text-app-subtext space-y-2">
+        <div class="flex justify-between">
+          <span>From Compound Work:</span>
+          <span class="font-semibold text-white">${stability.weeklySets} sets/week</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Exercise Variety:</span>
+          <span class="font-semibold text-white">${stability.variety} exercises</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Frequency:</span>
+          <span class="font-semibold text-white">${stability.frequency} days/month</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // ========================================
   // V30.0 Phase 4: BODYWEIGHT CONTRIBUTION CARD (Dark Theme)
   // ========================================
   const bwPercentage = bodyweight.bodyweightPercentage || 0;
@@ -1634,12 +3426,13 @@ renderAdvancedRatios: function(daysBack = 30) {
       const prefix = isKlinikView ? 'klinik' : 'stats';
       const contentSuffix = isKlinikView ? '-content' : '-view';
 
-      // Hide all tab content views
+      // V30.3: Added 'advanced' to views array
       const views = [
         `${prefix}-dashboard${contentSuffix}`,
         `${prefix}-chart${contentSuffix}`,
         `${prefix}-table${contentSuffix}`,
         `${prefix}-bodyparts${contentSuffix}`,
+        `${prefix}-advanced${contentSuffix}`,
       ];
       views.forEach((id) => {
         const el = document.getElementById(id);
@@ -1648,7 +3441,7 @@ renderAdvancedRatios: function(daysBack = 30) {
 
       // Also hide modal views if they exist (for backward compatibility)
       if (isKlinikView) {
-        ["stats-dashboard-view", "stats-chart-view", "stats-table-view", "stats-bodyparts-view"].forEach(id => {
+        ["stats-dashboard-view", "stats-chart-view", "stats-table-view", "stats-bodyparts-view", "stats-advanced-view"].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add("hidden");
         });
@@ -1674,8 +3467,8 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
       }
 
-      // Update tab button states
-      ["dashboard", "chart", "table", "bodyparts"].forEach((tab) => {
+      // V30.3: Update tab button states (added 'advanced')
+      ["dashboard", "chart", "table", "bodyparts", "advanced"].forEach((tab) => {
         // Try klinik tabs first, then modal tabs
         const btn = document.getElementById(`${prefix}-tab-${tab}`) || document.getElementById(`tab-${tab}`);
         if (btn) {
@@ -1691,6 +3484,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         chart: "Grafik Tren",
         table: "Tabel Klinis",
         bodyparts: "Body Parts",
+        advanced: "Advanced Analytics",
       };
 
       const labelEl = document.getElementById(isKlinikView ? "klinik-active-tab-label" : "active-tab-label");
@@ -1746,6 +3540,21 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (el) el.classList.remove("hidden");
 
         APP.stats.updateBodyParts();
+
+        if (vitalEl) {
+          vitalEl.classList.add("hidden");
+          vitalEl.style.display = "none";
+        }
+        if (exerciseSelector) {
+          exerciseSelector.classList.add("hidden");
+          exerciseSelector.style.display = "none";
+        }
+      } else if (t === "advanced") {
+        // V30.3: Advanced Analytics Tab
+        const el = document.getElementById(`${prefix}-advanced${contentSuffix}`);
+        if (el) el.classList.remove("hidden");
+
+        APP.stats.renderAdvancedAnalytics();
 
         if (vitalEl) {
           vitalEl.classList.add("hidden");
@@ -2726,12 +4535,258 @@ renderAdvancedRatios: function(daysBack = 30) {
       promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
       promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes) , Tri-Option System , Full Metadata.`;
 
-      APP.ui.showManualCopy(promptText);
+      // Store prompt for AI view to pickup (V30.5 pattern)
+      localStorage.setItem('ai_autoprompt', promptText);
+      localStorage.setItem('ai_autoprompt_source', 'imbalance_consultation');
+      localStorage.setItem('ai_autoprompt_timestamp', Date.now().toString());
 
-      APP.ui.showToast(
-        "📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.",
-        "success"
-      );
+      // Show loading feedback
+      window.APP.ui.showToast("Menyiapkan konsultasi AI...", "info");
+
+      // Navigate to AI view after brief delay (smooth UX)
+      setTimeout(() => {
+        if (window.APP.nav && window.APP.nav.switchView) {
+          window.APP.nav.switchView('ai');
+        } else {
+          console.error("[STATS] Navigation function not available");
+          window.APP.ui.showToast("AI view tidak tersedia", "error");
+        }
+      }, 300);
+    },
+
+    /**
+     * V30.5: Prepare comprehensive AI consultation from analytics insights
+     * Includes all clinical insights + current active program context
+     * @param {Array} insights - Array of insight objects from interpretWorkoutData()
+     * @returns {String} Formatted consultation prompt for AI
+     */
+    prepareAnalyticsConsultation: function(insights) {
+      if (!insights || insights.length === 0) {
+        console.warn("[STATS] No insights available for consultation");
+        return null;
+      }
+
+      // Get comprehensive analytics data
+      const daysBack = 30;
+      const pushPull = this.calculatePushPullRatio(daysBack);
+      const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+      const frequency = this.calculateTrainingFrequency(daysBack);
+      const unilateral = this.calculateUnilateralVolume(daysBack);
+
+      // Get current active program (exclude spontaneous)
+      const program = window.APP.state?.workoutData || {};
+      const sessionIds = Object.keys(program).filter(id => id !== "spontaneous");
+      
+      // Group insights by severity
+      const dangers = insights.filter(i => i.type === 'danger');
+      const warnings = insights.filter(i => i.type === 'warning');
+      const infos = insights.filter(i => i.type === 'info' || i.type === 'success');
+
+      // Build consultation prompt
+      let prompt = "Saya mendapat hasil analisis dari Advanced Analytics dan butuh bantuan Anda:\n\n";
+
+      // Section 1: Clinical Insights with Exercise Breakdowns
+      prompt += "=== CLINICAL INSIGHTS DETECTED ===\n\n";
+
+      if (dangers.length > 0) {
+        prompt += "🚨 CRITICAL ISSUES:\n";
+        dangers.forEach(d => {
+          prompt += `\n• ${d.title}\n`;
+          if (d.metrics) prompt += `  Metrics: ${d.metrics}\n`;
+          if (d.risk) prompt += `  Risk: ${d.risk}\n`;
+          if (d.action) prompt += `  Suggested Action: ${d.action}\n`;
+          if (d.evidence && d.evidence.source) prompt += `  Evidence: ${d.evidence.source}\n`;
+        });
+        prompt += "\n";
+      }
+
+      if (warnings.length > 0) {
+        prompt += "⚠️ WARNINGS:\n";
+        warnings.forEach(w => {
+          prompt += `\n• ${w.title}\n`;
+          if (w.metrics) prompt += `  Metrics: ${w.metrics}\n`;
+          
+          // Add exercise breakdown for specific insights
+          if (w.id === 'push-pull-moderate-push' || w.id === 'push-pull-severe-push') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    UPPER PUSH (${pushPull.upperPush}kg total):\n`;
+            pushPull.upperPushExercises.slice(0, 5).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    UPPER PULL (${pushPull.upperPull}kg total):\n`;
+            pushPull.upperPullExercises.slice(0, 5).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
+          if (w.id === 'frequency-low') {
+            prompt += `  Exercise Breakdown:\n`;
+            Object.entries(frequency.frequency).forEach(([muscle, freq]) => {
+              if (freq < 2 && frequency.exercises[muscle].length > 0) {
+                prompt += `    ${muscle.toUpperCase()} (${freq}x/week):\n`;
+                frequency.exercises[muscle].slice(0, 3).forEach(([ex, count]) => {
+                  prompt += `      - ${ex}: ${count} sesi\n`;
+                });
+              }
+            });
+          }
+          
+          if (w.id === 'unilateral-insufficient') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    UNILATERAL (${unilateral.unilateralPercent}% - ${unilateral.unilateralVolume}kg):\n`;
+            unilateral.unilateralExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    BILATERAL (${(100 - unilateral.unilateralPercent).toFixed(1)}% - ${unilateral.bilateralVolume}kg):\n`;
+            unilateral.bilateralExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
+          if (w.id === 'vertical-weak-push') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    VERTICAL PUSH (${hvRatios.verticalPush}kg total):\n`;
+            hvRatios.verticalPushExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    VERTICAL PULL (${hvRatios.verticalPull}kg total):\n`;
+            hvRatios.verticalPullExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
+          if (w.risk) prompt += `  Risk: ${w.risk}\n`;
+          if (w.action) prompt += `  Suggested Action: ${w.action}\n`;
+          if (w.evidence && w.evidence.source) prompt += `  Evidence: ${w.evidence.source}\n`;
+        });
+        prompt += "\n";
+      }
+
+      if (infos.length > 0) {
+        prompt += "ℹ️ INFORMATIONAL:\n";
+        infos.forEach(info => {
+          prompt += `\n• ${info.title}\n`;
+          if (info.metrics) prompt += `  ${info.metrics}\n`;
+        });
+        prompt += "\n";
+      }
+
+      // Section 2: Current Active Program Context (Full Detail)
+      prompt += "=== PROGRAM AKTIF SAAT INI ===\n\n";
+      
+      if (sessionIds.length > 0) {
+        sessionIds.forEach(id => {
+          const session = program[id];
+          prompt += `${session.label || id}: "${session.title || 'Untitled'}"\n`;
+          prompt += `- Total Exercises: ${session.exercises?.length || 0}\n`;
+          
+          // Calculate total volume for this session (in KG)
+          let sessionVolume = 0;
+          if (session.exercises && session.exercises.length > 0) {
+            session.exercises.forEach(ex => {
+              if (ex.type !== "cardio") {
+                const sets = ex.sets || 3;
+                const firstOption = ex.options?.[0] || {};
+                const targetWeight = parseFloat(firstOption.t_k) || 0;
+                const targetReps = firstOption.t_r ? parseInt(firstOption.t_r.split('-')[0]) : 10;
+                sessionVolume += sets * targetWeight * targetReps;
+              }
+            });
+          }
+          prompt += `- Estimated Volume: ~${Math.round(sessionVolume)}kg total\n`;
+          
+          // List ALL exercises (not limited)
+          if (session.exercises && session.exercises.length > 0) {
+            session.exercises.forEach((ex, idx) => {
+              if (ex.type === "cardio") {
+                prompt += `  ${idx + 1}. CARDIO: ${ex.target_duration || 30}min @ ${ex.target_hr_zone || 'Zone 2'}\n`;
+              } else {
+                const firstOption = ex.options?.[0] || {};
+                const exerciseName = firstOption.n || "Unknown";
+                const sets = ex.sets || 3;
+                const targetWeight = parseFloat(firstOption.t_k) || 0;
+                const targetReps = firstOption.t_r ? parseInt(firstOption.t_r.split('-')[0]) : 10;
+                const exerciseVolume = sets * targetWeight * targetReps;
+                
+                const metadata = [];
+                metadata.push(`${sets} sets × ${targetWeight}kg`);
+                metadata.push(`~${Math.round(exerciseVolume)}kg vol`);
+                if (ex.rest) metadata.push(`${ex.rest}s rest`);
+                
+                const metaStr = metadata.length > 0 ? ` (${metadata.join(', ')})` : '';
+                prompt += `  ${idx + 1}. ${exerciseName}${metaStr}\n`;
+              }
+            });
+          }
+          prompt += "\n";
+        });
+      } else {
+        prompt += "Tidak ada program aktif terdeteksi (semua workout spontaneous)\n\n";
+      }
+
+      // Section 3: Questions for AI
+      prompt += "=== PERTANYAAN ===\n\n";
+      prompt += "Berdasarkan insights dan program aktif di atas, saya mohon bantuan Anda untuk:\n\n";
+      prompt += "1. **Analisis Prioritas:** Masalah mana yang harus ditangani PERTAMA dan mengapa?\n\n";
+      prompt += "2. **Modifikasi Program:** Exercise apa yang perlu:\n";
+      prompt += "   - Ditambahkan (sebutkan 3-5 exercise spesifik)\n";
+      prompt += "   - Dikurangi volume/frequency-nya\n";
+      prompt += "   - Dirotasi keluar dari program\n\n";
+      prompt += "3. **Split Training Optimal:** Berdasarkan imbalances yang ada, apakah struktur program saya (";
+      prompt += `${sessionIds.map(id => program[id].label || id).join(', ')}`;
+      prompt += ") sudah optimal? Atau perlu reorganisasi?\n\n";
+      prompt += "4. **Timeline Perbaikan:** Berapa lama (dalam minggu) untuk melihat improvement signifikan?\n\n";
+      prompt += "5. **Rekomendasi Exercise:** Jika perlu tambahan exercise, berikan dalam format JSON (program_import schema) ";
+      prompt += "yang bisa saya import langsung ke program.\n\n";
+
+      // Footer
+      prompt += "--- \n";
+      prompt += "Format response: Bahasa Indonesia, analisis evidence-based, actionable recommendations.\n";
+      prompt += "Prioritaskan SAFETY dan PROGRESSION yang sustainable.\n";
+
+      return prompt;
+    },
+
+    /**
+     * V30.5: Trigger AI consultation with analytics insights
+     * Navigates to AI view with auto-populated consultation prompt
+     */
+    consultAIAboutInsights: function() {
+      console.log("[STATS] Initiating AI consultation from analytics insights");
+
+      // Get current insights (use cached if available, otherwise recalculate)
+      const insights = window.APP._currentInsights || this.interpretWorkoutData(30);
+
+      if (!insights || insights.length === 0) {
+        window.APP.ui.showToast("Tidak ada insights untuk konsultasi", "warning");
+        return;
+      }
+
+      // Prepare consultation prompt
+      const consultationPrompt = this.prepareAnalyticsConsultation(insights);
+
+      if (!consultationPrompt) {
+        window.APP.ui.showToast("Gagal menyiapkan konsultasi", "error");
+        return;
+      }
+
+      // Store prompt for AI view to pickup
+      localStorage.setItem('ai_autoprompt', consultationPrompt);
+      localStorage.setItem('ai_autoprompt_source', 'analytics_consultation');
+      localStorage.setItem('ai_autoprompt_timestamp', Date.now().toString());
+
+      // Show loading feedback
+      window.APP.ui.showToast("Menyiapkan konsultasi AI...", "info");
+
+      // Navigate to AI view after brief delay (smooth UX)
+      setTimeout(() => {
+        if (window.APP.nav && window.APP.nav.switchView) {
+          window.APP.nav.switchView('ai');
+        } else {
+          console.error("[STATS] Navigation function not available");
+          window.APP.ui.showToast("AI view tidak tersedia", "error");
+        }
+      }, 300);
     },
 
     updateChart: () => {
@@ -3635,15 +5690,8 @@ renderAdvancedRatios: function(daysBack = 30) {
       // Render dashboard data (This Week vs Last Week)
       this.renderKlinikDashboard();
 
-      // V30.0 Phase 3.5: Initialize advanced ratios (function auto-detects klinik context)
-      if (window.APP.stats.renderAdvancedRatios) {
-        window.APP.stats.renderAdvancedRatios(30);
-      }
-
-      // V30.0 Phase 3.5: Render insights (function auto-detects klinik context)
-      if (window.APP.ui && window.APP.ui.renderInsightCards) {
-        window.APP.ui.renderInsightCards(30);
-      }
+      // V30.3: Advanced ratios moved to dedicated "Advanced Analytics" tab
+      // No longer rendered here - they're now in renderAdvancedAnalytics()
 
       console.log("[STATS] Klinik View initialized");
     },

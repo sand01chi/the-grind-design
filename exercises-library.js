@@ -5,6 +5,11 @@ const VOLUME_DISTRIBUTION = {
 };
 
 const EXERCISE_TARGETS = {
+  // ========================================
+  // CHEST EXERCISES
+  // ========================================
+  
+  // Barbell Pressing
   "[Barbell] Bench Press": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
@@ -13,47 +18,211 @@ const EXERCISE_TARGETS = {
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[DB] Flat Dumbbell Press": [
+  
+  // Dumbbell Pressing
+  "[DB] Flat Press": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[DB] Incline Dumbbell Press": [
+  "[DB] Incline Press": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  "[DB] Fly": [{ muscle: "chest", role: "PRIMARY" }],
+  
+  // Machine Pressing
   "[Machine] Chest Press": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Cable] Cable Fly": [{ muscle: "chest", role: "PRIMARY" }],
   "[Machine] Incline Chest Press": [
     { muscle: "chest", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  "[Machine] Smith Machine Incline Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Decline Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Converging Incline Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "shoulders", role: "SECONDARY" },
+  ],
+  "[Machine] Wide Chest Press": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Machine] Close Grip Press Machine": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Unilateral Chest Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Machine] Vertical Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Seated Dip Machine": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
   "[Machine] Pec Deck Fly": [{ muscle: "chest", role: "PRIMARY" }],
+  
+  // Cable Chest
+  "[Cable] Fly": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Fly (High to Low)": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Fly (Low-to-Mid)": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Single Arm Fly": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Incline Fly": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Crossover (High-to-Low)": [{ muscle: "chest", role: "PRIMARY" }],
+  "[Cable] Crossover (Low-to-High)": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "shoulders", role: "SECONDARY" },
+  ],
+  "[Cable] Press (Standing)": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Press": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  
+  // Bodyweight Chest
+  "[Bodyweight] Push Up (Slow Tempo)": [
+    { muscle: "chest", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
 
-  "[Barbell] Barbell Deadlift": [
+  // ========================================
+  // BACK EXERCISES
+  // ========================================
+  
+  // Barbell Back
+  "[Barbell] Deadlift": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "legs", role: "SECONDARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Barbell] Barbell Row": [
+  "[Barbell] Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[DB] One Arm DB Row": [
+  
+  // Dumbbell Back
+  "[DB] One Arm Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Cable] Lat Pulldown (wide)": [
+  "[DB] Chest Supported Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Cable] Seated Cable Row": [
+  
+  // Machine Rows
+  "[Machine] Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Machine] Machine Row": [
+  "[Machine] High Row (Upper Back Bias)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "shoulders", role: "SECONDARY" },
+  ],
+  "[Machine] Low Row (Lat Bias)": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Chest Supported T-Bar Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] T-Bar Row (Chest Support)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Converging Row": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Wide Grip Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Underhand Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Hammer Grip Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Reverse Grip Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Single Arm Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  
+  // Machine/Cable Pulldowns
+  "[Machine] Converging Lat Pulldown": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Wide Grip Pulldown (Lat Width)": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Close Neutral Grip Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Machine] Reverse Grip Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Lat Pulldown (Wide)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Lat Pulldown (Close Grip)": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Neutral Grip Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Pulldown": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Straight Arm Pulldown": [{ muscle: "back", role: "PRIMARY" }],
+  
+  // Specialized Back Machines
+  "[Machine] Pullover Machine (Nautilus)": [{ muscle: "back", role: "PRIMARY" }],
+  "[Machine] Assisted Pull-Up": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  
+  // Cable Back
+  "[Cable] Seated Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
+  "[Cable] High Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Low Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Underhand Row": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Row": [
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
@@ -61,84 +230,205 @@ const EXERCISE_TARGETS = {
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "back", role: "SECONDARY" },
   ],
-  "[BW] Push Up (Slow Tempo)": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
 
+  // ========================================
+  // SHOULDER EXERCISES
+  // ========================================
+  
+  // Barbell Shoulders
   "[Barbell] Overhead Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
   ],
-  "[DB] Dumbbell Shoulder Press": [
+  "[Barbell] Seated Overhead Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  
+  // Dumbbell Shoulders
+  "[DB] Shoulder Press": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  
+  // Machine Shoulders
   "[Machine] Smith Machine Shoulder Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[DB] DB Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "[Cable] Cable Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "[Machine] Machine Shoulder Press": [
+  "[Machine] Shoulder Press": [
     { muscle: "shoulders", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
-  "[Machine] Reverse Pec Deck": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Machine] Lateral Raise Machine": [{ muscle: "shoulders", role: "PRIMARY" }],
+  "[Machine] Reverse Pec Deck (Rear Delt)": [{ muscle: "shoulders", role: "PRIMARY" }],
+  
+  // Cable Shoulders
+  "[Cable] Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Front Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Rear Delt Fly": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Upright Row": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Single Arm Lateral Raise": [
+    { muscle: "shoulders", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
 
-  "[Barbell] Barbell Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "[DB] Dumbbell Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "[Cable] Cable Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  // ========================================
+  // ARM EXERCISES
+  // ========================================
+  
+  // Biceps - Barbell
+  "[Barbell] Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Barbell] Skullcrushers (EZ Bar)": [{ muscle: "arms", role: "PRIMARY" }],
+  
+  // Biceps/Triceps - Dumbbell
+  "[DB] Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[DB] Incline Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[DB] Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[DB] Skullcrusher": [{ muscle: "arms", role: "PRIMARY" }],
+  "[DB] Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
+  
+  // Arms - Machine
   "[Machine] Bicep Machine": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Machine] Preacher Curl Machine": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Machine] Tricep Extension Machine": [{ muscle: "arms", role: "PRIMARY" }],
+  
+  // Arms - Cable
+  "[Cable] Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Preacher Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Concentration Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Tricep Pushdown (Rope)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Tricep Pushdown (Bar)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Tricep Pushdown (V-Bar)": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Single Arm Pushdown": [{ muscle: "arms", role: "PRIMARY" }],
+  "[Cable] Kickback": [{ muscle: "arms", role: "PRIMARY" }],
+  
+  // Compound Triceps
   "[Barbell] Close-Grip Bench Press": [
     { muscle: "arms", role: "PRIMARY" },
     { muscle: "chest", role: "SECONDARY" },
   ],
-  "[DB] Dumbbell Skullcrusher": [{ muscle: "arms", role: "PRIMARY" }],
-  "[Cable] Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
-  "[Cable] Tricep Pushdown (Rope)": [{ muscle: "arms", role: "PRIMARY" }],
-  "[DB] Incline DB Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "[Barbell] Skullcrushers (EZ Bar)": [{ muscle: "arms", role: "PRIMARY" }],
-  "[DB] Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "[Cable] Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
 
-  "[Barbell] Barbell Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Barbell] Barbell Front Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Leg Press (Quad Bias)": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Hack Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Dumbbell Goblet Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Leg Press (Glute Bias)": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Barbell] RDL (Barbell)": [
+  // ========================================
+  // LEG EXERCISES
+  // ========================================
+  
+  // Barbell Legs
+  "[Barbell] Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Barbell] Front Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Barbell] RDL": [
     { muscle: "legs", role: "PRIMARY" },
     { muscle: "back", role: "SECONDARY" },
   ],
-  "[Machine] Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Seated Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Forward Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Dumbbell Legs
+  "[DB] Goblet Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[DB] Goblet Squat (Heels Elevated)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[DB] Bulgarian Split Squat": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Forward Lunge": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Walking Lunge": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Split Squat (Static)": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] RDL": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[DB] Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
+  "[DB] Single Leg Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[DB] Seated Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Machine Squat Variations
   "[Machine] Smith Machine Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[DB] Bulgarian Split Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Hack Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Pendulum Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] V-Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Belt Squat": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Reverse Hack Squat (Glute Bias)": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" },
+  ],
+  
+  // Machine Leg Press Variations
+  "[Machine] Leg Press (Quad Bias)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Leg Press (Glute Bias)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Leg Press (Quad Bias/Low Stance)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Leg Press (Glute Bias/High Stance)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Vertical Leg Press": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Single Leg Press": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  
+  // Machine Hip/Glute
+  "[Machine] Hip Thrust Machine (Glute Drive)": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Glute Kickback Machine": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Hip Abduction Machine": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Hip Adduction Machine": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Machine Hamstrings
+  "[Machine] Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Seated Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Standing Single Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Machine Quad Isolation
+  "[Machine] Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Machine Calves
+  "[Machine] Seated Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Standing Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Donkey Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Leg Press Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
+  "[Machine] Smith Machine Seated Calf": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Cable Legs
+  "[Cable] Pull Through": [
+    { muscle: "legs", role: "PRIMARY" },
+    { muscle: "back", role: "SECONDARY" },
+    { muscle: "core", role: "SECONDARY" },
+  ],
+  "[Cable] Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
+  
+  // Bodyweight Legs
+  "[Bodyweight] Sissy Squat": [{ muscle: "legs", role: "PRIMARY" }],
 
-  "[Barbell] Barbell Bench Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "[Barbell] Barbell Deadlift": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "legs", role: "SECONDARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "[Barbell] Barbell Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Barbell] Barbell Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "[Barbell] Overhead Press": [
-    { muscle: "shoulders", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-
+  // ========================================
+  // MOBILITY, CORE, CARDIO (Non-Resistance)
+  // ========================================
+  
   "Mobility Cat-Cow Stretch": [],
   "Mobility Thoracic Extension (Foam Roller)": [],
   "Mobility Open Book Stretch": [],
@@ -146,202 +436,34 @@ const EXERCISE_TARGETS = {
   "Mobility Spider-Man Lunge": [],
   "Mobility 90/90 Hip Switch": [],
 
+  // Core Exercises (with resistance tags where applicable)
+  "[Bodyweight] Plank": [{ muscle: "core", role: "PRIMARY" }],
+  "[Bodyweight] Deadbug": [{ muscle: "core", role: "PRIMARY" }],
+  "[Bodyweight] Side Plank": [{ muscle: "core", role: "PRIMARY" }],
+  "[Bodyweight] Ab Rollout": [{ muscle: "core", role: "PRIMARY" }],
+  "[Cable] Woodchop": [
+    { muscle: "core", role: "PRIMARY" },
+    { muscle: "shoulders", role: "SECONDARY" },
+  ],
+  "[Cable] Crunches": [{ muscle: "core", role: "PRIMARY" }],
+  
+  // Non-resistance exercises (no tags)
   "Core Deadbug": [],
   "Core Bird Dog": [],
   "Core Plank": [],
-
   "Activation Glute Bridge": [],
   "Activation Single Leg Glute Bridge": [],
   "Activation Clamshell": [],
   "Cardio LISS Session": [],
   "Cardio Warmup Cardio": [],
 
-  "Flat Dumbbell Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Dumbbell Chest Supported Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "T-Bar Row (Chest Support)": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Smith Machine Incline Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Incline DB Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Dumbbell Fly": [{ muscle: "chest", role: "PRIMARY" }],
-  "Fly (High to Low)": [{ muscle: "chest", role: "PRIMARY" }],
-
-  "Seated Cable Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Lat Pulldown (Wide)": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Neutral Grip Pulldown": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Assisted Pull Up": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "One Arm DB Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Single Arm Machine Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Single Arm Cable Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-
-  "Dumbbell Shoulder Press": [
-    { muscle: "shoulders", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Seated Overhead Press": [
-    { muscle: "shoulders", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "Lateral Raise Machine": [{ muscle: "shoulders", role: "PRIMARY" }],
-
-  "Tricep Pushdown (Rope)": [{ muscle: "arms", role: "PRIMARY" }],
-  "Skullcrushers (EZ Bar)": [{ muscle: "arms", role: "PRIMARY" }],
-  "Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
-  "Incline DB Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
-
-  "RDL (Barbell)": [
-    { muscle: "legs", role: "PRIMARY" },
-    { muscle: "back", role: "SECONDARY" },
-  ],
-  "Dumbbell RDL": [
-    { muscle: "legs", role: "PRIMARY" },
-    { muscle: "back", role: "SECONDARY" },
-  ],
-  "Pull Through": [{ muscle: "legs", role: "PRIMARY" }],
-  "Lying Dumbbell Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "Goblet Squat (Heels Elevated)": [{ muscle: "legs", role: "PRIMARY" }],
-  "Bulgarian Split Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Forward Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "Walking Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "Split Squat (Static)": [{ muscle: "legs", role: "PRIMARY" }],
-  "Sissy Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
-  "Standing Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Leg Press Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Single Leg Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Smith Machine Seated Calf": [{ muscle: "legs", role: "PRIMARY" }],
-  "Seated DB Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-
-  "Machine Chest Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Barbell Bench Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Machine Incline Chest Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Dumbbell Incline DB Press": [
-    { muscle: "chest", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Machine Pec Deck Fly": [{ muscle: "chest", role: "PRIMARY" }],
-  "Cable Fly (High to Low)": [{ muscle: "chest", role: "PRIMARY" }],
-  "Dumbbell Fly": [{ muscle: "chest", role: "PRIMARY" }],
-
-  "Machine T-Bar Row (Chest Support)": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Cable Lat Pulldown (Wide)": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Machine Assisted Pull Up": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Cable Neutral Grip Pulldown": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Dumbbell One Arm DB Row": [
-    { muscle: "back", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Machine Shoulder Press": [
-    { muscle: "shoulders", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Barbell Seated Overhead Press": [
-    { muscle: "shoulders", role: "PRIMARY" },
-    { muscle: "arms", role: "SECONDARY" },
-  ],
-  "Dumbbell DB Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-  "Cable Lateral Raise": [{ muscle: "shoulders", role: "PRIMARY" }],
-
-  "Cable Tricep Pushdown (Rope)": [{ muscle: "arms", role: "PRIMARY" }],
-  "Barbell Skullcrushers (EZ Bar)": [{ muscle: "arms", role: "PRIMARY" }],
-  "Dumbbell Overhead Tricep Extension": [{ muscle: "arms", role: "PRIMARY" }],
-  "Dumbbell Incline DB Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "Dumbbell Hammer Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "Cable Bayesian Curl": [{ muscle: "arms", role: "PRIMARY" }],
-  "Machine Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "Machine Seated Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "Cable Pull Through": [
-    { muscle: "legs", role: "PRIMARY" },
-    { muscle: "back", role: "SECONDARY" },
-  ],
-  "Machine Leg Press": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Bulgarian Split Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Goblet Squat (Heels Elevated)": [
-    { muscle: "legs", role: "PRIMARY" },
-  ],
-  "Machine Standing Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Machine Leg Press Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Single Leg Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Machine Hack Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Smith Machine Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Goblet Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Forward Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Walking Lunge": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Split Squat (Static)": [{ muscle: "legs", role: "PRIMARY" }],
-  "Machine Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
-  "Bodyweight Sissy Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "Cable Leg Extension": [{ muscle: "legs", role: "PRIMARY" }],
-  "Machine Seated Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-  "Dumbbell Seated DB Calf Raise": [{ muscle: "legs", role: "PRIMARY" }],
-
 // ========================================
-  // V26.5 EXPANSION - MACHINE VARIATIONS
+  // V26.5+ EXPANSION - ADVANCED MACHINE VARIATIONS
   // ========================================
   
   // LEGS - SQUAT MACHINES
   "[Machine] Pendulum Squat": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] V-Squat": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Hack Squat": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Belt Squat": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Reverse Hack Squat (Glute Bias)": [
     { muscle: "legs", role: "PRIMARY" },
@@ -349,8 +471,6 @@ const EXERCISE_TARGETS = {
   ],
   
   // LEGS - LEG PRESS VARIATIONS
-  "[Machine] Leg Press (Quad Bias/Low Stance)": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Leg Press (Glute Bias/High Stance)": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Vertical Leg Press": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Single Leg Press": [
     { muscle: "legs", role: "PRIMARY" },
@@ -363,8 +483,6 @@ const EXERCISE_TARGETS = {
   "[Machine] Hip Adduction Machine": [{ muscle: "legs", role: "PRIMARY" }],
   
   // LEGS - HAMSTRING MACHINES
-  "[Machine] Lying Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
-  "[Machine] Seated Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   "[Machine] Standing Single Leg Curl": [{ muscle: "legs", role: "PRIMARY" }],
   
   // BACK - ROW VARIATIONS
@@ -468,7 +586,7 @@ const EXERCISES_LIBRARY = {
       note: "Set incline pada 30-45 derajat. Fokus pada kontrol bar saat turun (eccentric) hingga menyentuh dada bagian atas. Jangan biarkan bar memantul di dada.",
     },
     {
-      n: "[DB] Flat Dumbbell Press",
+      n: "[DB] Flat Press",
       t_r: "8-10",
       t_k: 15,
       vid: "https://www.youtube.com/watch?v=VmB1G1K7v94",
@@ -476,7 +594,7 @@ const EXERCISES_LIBRARY = {
       note: "Turunkan dumbbell selama 3 detik. Stretch dada maksimal di posisi bawah tanpa membiarkan bahu berotasi ke depan. Dorong eksplosif ke arah tengah.",
     },
     {
-      n: "[DB] Incline Dumbbell Press",
+      n: "[DB] Incline Press",
       t_r: "10-12",
       t_k: 17.5,
       vid: "https://www.youtube.com/watch?v=8iPEnn-ltC8",
@@ -492,7 +610,7 @@ const EXERCISES_LIBRARY = {
       note: "Atur kursi agar handle sejajar tengah dada. Fokus pada dorongan murni dari dada, hindari penggunaan momentum tubuh. Jangan kunci siku sepenuhnya (soft-lock).",
     },
     {
-      n: "[Cable] Cable Fly",
+      n: "[Cable] Fly",
       t_r: "12-15",
       t_k: 10,
       vid: "https://www.youtube.com/watch?v=Iwe6AmxVf7o",
@@ -578,11 +696,64 @@ const EXERCISES_LIBRARY = {
       note: "Cables setinggi lutut atau lebih rendah. Step forward, torso upright. Pull handles up dan together ke face level. Squeeze upper pec, control return.<br><br>⚠️ CLINICAL: Target upper chest yang biasanya undertrained. Light weight - focus contraction quality. Anterior deltoid will assist - normal.",
       vid: ""
     },
+    
+    // ========================================
+    // V30.2 EXPANSION - CABLE CHEST VARIANTS
+    // ========================================
+    {
+      n: "[Cable] Fly (Low-to-Mid)",
+      t_r: "12-15",
+      bio: "Low cable angle with upward arc targets lower-to-mid pectoralis major. Fill gap between standard flat fly and extreme low-to-high crossover.",
+      note: "Cables di hip height. Step forward, slight forward lean. Arc handles up ke chest level dengan natural converging path. Squeeze peak contraction.<br><br>⚠️ CLINICAL: Lower pec emphasis tanpa extreme ROM. Safer alternative untuk shoulder-sensitive clients. Control eccentric - don't bounce.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Fly",
+      t_r: "12-15",
+      bio: "Unilateral cable fly expose imbalances dan increase anti-rotation core demand. Enhanced pec stretch vs bilateral version.",
+      note: "Satu cable per set. Stand perpendicular, brace core. Pull across body ke midline, control return tanpa torso rotation. Match reps both sides.<br><br>⚠️ CLINICAL: High core stability demand. Assess bilateral imbalances - adjust volume if >15% gap. Start light untuk build unilateral control.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Incline Fly",
+      t_r: "12-15",
+      bio: "Incline bench (30-45°) dengan cables emphasize upper pec fibers. Constant tension advantage vs dumbbell incline fly.",
+      note: "Set incline bench between cables. Lie back, cables setinggi bench level. Arc handles up dan together overhead. Deep stretch, control eccentric.<br><br>⚠️ CLINICAL: Superior untuk upper chest isolation. Cables maintain tension di top (vs DB yang lose tension). Monitor shoulder comfort di deep stretch.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Press (Standing)",
+      t_r: "10-12",
+      bio: "Standing cable press add core anti-extension demand vs machine press. Functional strength transfer untuk pushing patterns.",
+      note: "Cables setinggi chest. Step forward stagger stance. Press forward dengan core braced, control return. Avoid excessive torso lean. Match reps both stances.<br><br>⚠️ CLINICAL: Sport-specific pressing (athletes). Higher core demand vs seated. Reduce load vs machine - focus stability. Not for pure hypertrophy.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Press",
+      t_r: "12-15",
+      bio: "Unilateral cable press maximum anti-rotation demand. Expose bilateral strength deficits dan improve single-arm pressing control.",
+      note: "Satu cable chest height. Stagger stance, brace core hard. Press forward strict, resist rotation. Control return. Start weak side.<br><br>⚠️ CLINICAL: Extreme core demand - proper bracing essential. Excellent untuk rotational sport athletes. Start very light untuk assess stability. May expose significant imbalances.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Vertical Press",
+      t_r: "10-12",
+      bio: "Unique vertical pressing angle target upper pec dan anterior deltoid. Machine stability allow heavier loading vs free weight vertical press.",
+      note: "Sit dengan back support, grip handles overhead position. Press straight up dengan slight inward arc. Control eccentric, no bounce di bottom.<br><br>⚠️ CLINICAL: Unique stimulus untuk upper chest. Not common equipment - use if available. Alternative: low incline press (20-30°). Watch untuk shoulder impingement di overhead position.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Seated Dip Machine",
+      t_r: "10-12",
+      bio: "Machine dip emphasize lower pec dan triceps dengan reduced shoulder stress vs free dips. Locked path reduce stabilizer demand.",
+      note: "Sit, grip handles, press down dengan elbows tucked. Focus pada lower pec contraction dan tricep lockout. Control return, maintain tension.<br><br>⚠️ CLINICAL: Safer alternative untuk shoulder-sensitive vs free dips. Good compound finisher. High tricep involvement - count sebagai arm volume. Avoid jika anterior shoulder pain.",
+      vid: ""
+    },
   ],
 
   back: [
     {
-      n: "[Barbell] Barbell Deadlift",
+      n: "[Barbell] Deadlift",
       t_r: "3-5",
       t_k: 80,
       vid: "https://www.youtube.com/watch?v=op9kVnSso6Q",
@@ -590,7 +761,7 @@ const EXERCISES_LIBRARY = {
       note: "Keep lats engaged (bayangkan menjepit ketiak). Drive hips forward eksplosif. Jaga neutral spine; jangan biarkan lower back melengkung (rounding) saat beban meninggalkan lantai.",
     },
     {
-      n: "[Barbell] Barbell Row",
+      n: "[Barbell] Row",
       t_r: "6-8",
       t_k: 50,
       vid: "https://www.youtube.com/watch?v=9efgcAjQe7E",
@@ -598,7 +769,7 @@ const EXERCISES_LIBRARY = {
       note: "Bent-over posisi 45-60 derajat. Tarik bar ke arah perut bawah (navel). Squeeze scapula di puncak dan kontrol fase eksentrik (saat menurunkan bar).",
     },
     {
-      n: "[DB] One Arm DB Row",
+      n: "[DB] One Arm Row",
       t_r: "8-10",
       t_k: 22.5,
       vid: "https://www.youtube.com/watch?v=pYcpY20QaE8",
@@ -606,7 +777,7 @@ const EXERCISES_LIBRARY = {
       note: "Tarik dumbbell melengkung ke arah pinggul (Hip), bukan lurus ke atas. Ini memastikan aktivasi Lats bawah lebih optimal dan mengurangi dominasi bicep.",
     },
     {
-      n: "[Cable] Lat Pulldown (wide)",
+      n: "[Cable] Lat Pulldown (Wide)",
       t_r: "10-12",
       t_k: 55,
       vid: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
@@ -614,7 +785,7 @@ const EXERCISES_LIBRARY = {
       note: "Tarik bar ke arah dada atas (clavicula). Bayangkan siku ingin dimasukkan ke saku celana belakang. Hindari menggunakan momentum tubuh yang berlebihan.",
     },
     {
-      n: "[Cable] Seated Cable Row",
+      n: "[Cable] Seated Row",
       t_r: "10-12",
       t_k: 50,
       vid: "https://www.youtube.com/watch?v=GZbfZ033f74",
@@ -622,7 +793,7 @@ const EXERCISES_LIBRARY = {
       note: "Duduk tegak, lutut sedikit ditekuk. Inisiasi gerakan dengan menarik belikat ke belakang, baru tekuk siku. Rasakan full stretch pada otot punggung saat posisi awal.",
     },
     {
-      n: "[Machine] Machine Row",
+      n: "[Machine] Row",
       t_r: "10-12",
       t_k: 45,
       vid: "https://www.youtube.com/watch?v=NwzUje3z0qY",
@@ -730,6 +901,73 @@ const EXERCISES_LIBRARY = {
       note: "Kneel pada platform, grip pull-up bar. Assistance settings support sebagian bodyweight. Pull dengan lat initiation hingga chin clears bar. Control descent.<br><br>⚠️ CLINICAL: Excellent untuk building pull-up strength progressively. Reduce assistance incrementally. Core bracing critical - avoid swinging.",
       vid: ""
     },
+    
+    // ========================================
+    // V30.2 EXPANSION - BACK CABLE & MACHINE VARIANTS
+    // ========================================
+    {
+      n: "[Machine] Wide Grip Row",
+      t_r: "10-12",
+      bio: "Wide grip maximize outer lat activation dan increase upper back width stimulus. Reduced range of motion vs narrow grip but superior lateral fiber recruitment.",
+      note: "Grip wide handles (1.5x shoulder width). Chest support engaged. Pull dengan wide elbow path. Retract scapula, squeeze peak contraction. Control eccentric.<br><br>⚠️ CLINICAL: Reduced ROM normal dengan wide grip. Focus pada quality contraction bukan heavy load. Good untuk lat width lagging.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Underhand Row",
+      t_r: "10-12",
+      bio: "Underhand grip shift load distribution ke lower lat dan significantly increase bicep involvement. Natural pulling pattern dengan reduced shoulder stress.",
+      note: "Grip underhand shoulder-width. Chest support. Pull dengan elbows tucked, lead dengan lat. Bicep assists heavily. Control tempo 2-1-2.<br><br>⚠️ CLINICAL: Wrist-friendly grip position. High bicep demand - may limit lat training. Consider arm fatigue dalam programming. Good variation untuk joint health.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Hammer Grip Row",
+      t_r: "10-12",
+      bio: "Neutral hammer grip optimize elbow path untuk mid-back thickness. Balance antara lat activation dan rhomboid/mid-trap recruitment. Joint-friendly grip.",
+      note: "Grip neutral handles. Chest support. Pull dengan elbows close, natural arc. Equal emphasis lat dan mid-back. Squeeze hard di contraction. Control return.<br><br>⚠️ CLINICAL: Most joint-friendly row grip. Excellent untuk high-volume back work. Balanced muscle recruitment - good main row variant.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Lat Pulldown (Close Grip)",
+      t_r: "10-12",
+      bio: "Close grip enhance lat thickness emphasis dan allow deeper stretch di top position. Increased ROM vs wide grip permit heavier loading dengan better MMC.",
+      note: "Grip attachment close (6-12 inches). Sit secure, pull ke sternum. Lead dengan lat, drive elbows down dan back. Full stretch overhead, deep contraction bottom.<br><br>⚠️ CLINICAL: Superior ROM untuk lat development vs wide grip. Safer shoulder position untuk impingement history. Bicep involvement moderate.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Pulldown",
+      t_r: "12-15",
+      bio: "Unilateral pulldown expose bilateral strength imbalances dan increase anti-lateral flexion core demand. Enhanced lat stretch vs bilateral version.",
+      note: "Satu handle per set. Sit atau kneel. Pull dengan strict form, resist torso rotation. Full stretch overhead, complete contraction ke chest. Match reps both sides.<br><br>⚠️ CLINICAL: Assess imbalances - adjust volume if >15% gap. High core demand. Start light untuk control. Excellent rehab tool (unilateral weakness).",
+      vid: ""
+    },
+    {
+      n: "[Cable] Straight Arm Pulldown",
+      t_r: "12-15",
+      bio: "Pure lat isolation dengan locked elbow position eliminate bicep involvement. Focus pada lat stretch-to-contract tanpa arm fatigue limiting factor.",
+      note: "Grip bar straight arms. Slight forward lean. Pull bar ke thighs dengan locked elbows, lead dengan lats only. Full stretch overhead, squeeze contraction.<br><br>⚠️ CLINICAL: Zero bicep - true lat isolation. Light weight necessary. Excellent lat activation primer pre-compound pulls. Don't bend elbows - defeats purpose.",
+      vid: ""
+    },
+    {
+      n: "[Cable] High Row",
+      t_r: "10-12",
+      bio: "High cable angle maximize upper back (traps, rhomboids, posterior delt) activation. Standing version add core stability demand vs machine high row.",
+      note: "Cable setinggi face. Stand atau slight lean back. Pull handles ke upper chest dengan high elbow position. Retract scapula hard, squeeze 1 sec.<br><br>⚠️ CLINICAL: Excellent posture correction exercise. Avoid shrugging - depress scapula first. Can replace machine high row if unavailable.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Low Row",
+      t_r: "10-12",
+      bio: "Low cable angle shift emphasis ke mid-to-lower lat. Standing cable row add core anti-extension demand vs seated machine version.",
+      note: "Cable setinggi lower chest/abdomen. Stand dengan slight hinge. Pull handles ke lower chest, elbows close. Lead dengan lat, squeeze contraction. Core braced.<br><br>⚠️ CLINICAL: Core stability critical - maintain neutral spine. Functional pulling pattern. May fatigue lower back - monitor form.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Underhand Row",
+      t_r: "10-12",
+      bio: "Underhand cable row combine lat emphasis dengan significant bicep involvement. Natural supinated grip reduce shoulder strain vs pronated grips.",
+      note: "Cable chest height. Grip underhand. Pull ke lower chest dengan elbows tucked forward. Bicep assists lat heavily. Control tempo, squeeze peak.<br><br>⚠️ CLINICAL: Wrist-friendly grip. High bicep demand - factor into arm volume. Good variation untuk joint health. Alternative untuk barbell underhand row.",
+      vid: ""
+    },
   ],
 
   shoulders: [
@@ -742,7 +980,7 @@ const EXERCISES_LIBRARY = {
       note: "Genggaman sedikit lebih lebar dari bahu. Mundurkan dagu (double chin) saat bar naik agar tidak terbentur. Kunci core dan bokong untuk menjaga stabilitas lumbal.",
     },
     {
-      n: "[DB] Dumbbell Shoulder Press",
+      n: "[DB] Shoulder Press",
       t_r: "8-10",
       t_k: 15,
       vid: "https://www.youtube.com/watch?v=qEwKCR5JCog",
@@ -758,7 +996,7 @@ const EXERCISES_LIBRARY = {
       note: "Posisi bangku harus tepat di bawah bar. Fokus pada dorongan eksplosif ke atas dan kontrol penuh saat menurunkan bar ke setinggi dagu.",
     },
     {
-      n: "[DB] DB Lateral Raise",
+      n: "[DB] Lateral Raise",
       t_r: "15-20",
       t_k: 6,
       vid: "https://www.youtube.com/watch?v=3VcKaXpzqRo",
@@ -766,15 +1004,46 @@ const EXERCISES_LIBRARY = {
       note: "Strict form wajib. Angkat beban sedikit ke depan (Scapular Plane). Pastikan posisi kelengkeng sedikit lebih tinggi dari jempol di puncak gerakan. Jangan mengayun badan.",
     },
     {
-      n: "[Cable] Cable Lateral Raise",
+      n: "[Cable] Lateral Raise",
       t_r: "15-20",
       t_k: 5,
       vid: "https://www.youtube.com/watch?v=PzmHZSqw4H4",
       bio: "Memberikan tegangan konstan (Constant Tension) di seluruh rentang gerak, terutama di posisi otot memanjang.",
       note: "Kabel setinggi lutut atau bawah. Silangkan kabel di belakang badan untuk stretch maksimal. Kontrol fase negatif (saat tangan turun) secara perlahan.",
     },
+    // ========================================
+    // V30.2 EXPANSION - SHOULDER CABLE VARIANTS
+    // ========================================
     {
-      n: "[Machine] Machine Shoulder Press",
+      n: "[Cable] Front Raise",
+      t_r: "12-15",
+      bio: "Anterior deltoid isolation dengan constant cable tension. Superior untuk front delt hypertrophy vs dumbbell due to maintained tension throughout ROM.",
+      note: "Cable setinggi hip, grip handle atau rope. Raise straight arm ke shoulder level (90°), pause 1 sec. Control descent, maintain tension bottom. No momentum.<br><br>⚠️ CLINICAL: Anterior delt often overtrained - assess need. Good untuk pressing strength carryover. Don't raise past 90° - unnecessary stress.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Rear Delt Fly",
+      t_r: "12-15",
+      bio: "Cable rear delt fly provide constant tension advantage vs dumbbell bent-over fly. Posterior deltoid isolation critical untuk shoulder health dan balanced development.",
+      note: "Cables cross-body, grip opposite handles. Bend forward 45°. Pull handles apart dengan slight elbow bend, squeeze rear delts. Control return, no momentum.<br><br>⚠️ CLINICAL: Essential untuk posture correction. Undertrained muscle - prioritize. Light weight, focus contraction quality. Breathe - don't hold breath.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Upright Row",
+      t_r: "10-12",
+      bio: "Compound trap dan medial deltoid exercise dengan constant cable tension. Vertical pull pattern recruit upper trap, mid-trap, dan medial delt synergistically.",
+      note: "Cable low, grip rope atau bar narrow. Pull vertical ke chin level, elbows drive up dan out. Pause peak, control descent. Lead dengan elbows.<br><br>⚠️ CLINICAL: May aggravate shoulder impingement - stop jika pain. Wide grip safer. Alternative: cable lateral raise for medial delt. Monitor shoulder comfort.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Lateral Raise",
+      t_r: "12-15",
+      bio: "Unilateral cable lateral raise expose bilateral imbalances dan allow focused medial deltoid isolation. Enhanced ROM vs bilateral version due to no opposite arm interference.",
+      note: "Cable low opposite side. Cross body, brace core. Raise arm ke shoulder level strict. Resist torso lean. Control descent. Match reps both sides.<br><br>⚠️ CLINICAL: Assess imbalances - common di overhead athletes. Core stability critical. Start light. Don't lean away - defeats isolation purpose.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Shoulder Press",
       t_r: "10-12",
       t_k: 27.5,
       vid: "https://www.youtube.com/watch?v=WvLMauqrnK8",
@@ -818,7 +1087,7 @@ const EXERCISES_LIBRARY = {
 
   arms: [
     {
-      n: "[Barbell] Barbell Curl",
+      n: "[Barbell] Curl",
       t_r: "8-10",
       t_k: 25,
       vid: "https://www.youtube.com/watch?v=lyn7kj8v_XU",
@@ -826,7 +1095,7 @@ const EXERCISES_LIBRARY = {
       note: "Kunci siku di samping rusuk. Hindari ayunan pinggang (ego lifting). Fokus pada kontraksi puncak dan turunkan beban secara terkontrol selama 2-3 detik.",
     },
     {
-      n: "[DB] Dumbbell Curl",
+      n: "[DB] Curl",
       t_r: "10-12",
       t_k: 10,
       vid: "https://www.youtube.com/watch?v=ykJmrZ5v0Oo",
@@ -834,7 +1103,7 @@ const EXERCISES_LIBRARY = {
       note: "Mulai dengan telapak tangan menghadap paha, putar ke arah langit-langit saat mengangkat. Pastikan rentang gerak penuh (Full ROM) dari bawah hingga ke atas.",
     },
     {
-      n: "[Cable] Cable Curl",
+      n: "[Cable] Curl",
       t_r: "12-15",
       t_k: 15,
       vid: "https://www.youtube.com/watch?v=AsAVbBko26w",
@@ -858,7 +1127,7 @@ const EXERCISES_LIBRARY = {
       note: "Genggaman setinggi bahu (jangan terlalu sempit untuk menjaga kesehatan pergelangan tangan). Siku tetap rapat ke arah rusuk (tucked) saat bar turun ke dada tengah.",
     },
     {
-      n: "[DB] Dumbbell Skullcrusher",
+      n: "[DB] Skullcrusher",
       t_r: "10-12",
       t_k: 8,
       vid: "https://www.youtube.com/watch?v=d_KZxkY_0cM",
@@ -882,7 +1151,7 @@ const EXERCISES_LIBRARY = {
       note: "Kunci siku di rusuk. Buka tali (spread) di bawah untuk lateral head.",
     },
     {
-      n: "[DB] Incline DB Curl",
+      n: "[DB] Incline Curl",
       t_r: "12-15",
       t_k: 8,
       vid: "https://www.youtube.com/watch?v=soxrZlIl35U",
@@ -914,6 +1183,62 @@ const EXERCISES_LIBRARY = {
       note: "Membelakangi kabel. Biarkan tangan tertarik ke belakang, lalu curl.",
     },
     // ========================================
+    // V30.2 EXPANSION - CABLE ARM VARIANTS
+    // ========================================
+    
+    // BICEP CABLE VARIANTS
+    {
+      n: "[Cable] Hammer Curl",
+      t_r: "12-15",
+      bio: "Neutral grip cable curl emphasize brachialis dan brachioradialis dengan constant tension. Superior untuk forearm dan bicep thickness vs dumbbell hammer curl.",
+      note: "Cable low, grip rope neutral (palms facing). Curl ke shoulder dengan strict form, elbows pinned. Squeeze peak, control descent. No momentum.<br><br>⚠️ CLINICAL: Joint-friendly grip. Build elbow flexor strength across multiple muscles. Good untuk grip strength carryover. Lighter than standard curl.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Preacher Curl",
+      t_r: "12-15",
+      bio: "Preacher bench dengan cable provide constant tension advantage vs barbell/dumbbell. Isolate biceps dengan arm pad elimination body momentum totally.",
+      note: "Preacher bench facing cable. Arms di pad, grip bar/rope. Curl dengan strict bicep contraction only. Control eccentric, maintain tension bottom. No full extension lockout.<br><br>⚠️ CLINICAL: True isolation - can't cheat. May trigger bicep cramps - pace sets. Elbow safety: don't hyperextend bottom. Superior MMC vs free weight.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Concentration Curl",
+      t_r: "12-15",
+      bio: "Single arm cable curl dengan seated position enhance bicep peak contraction. Constant tension dan isolation advantage vs dumbbell concentration curl.",
+      note: "Sit atau lean, cable low. Single handle, brace elbow di inner thigh. Curl strict dengan supination emphasis di peak. Squeeze hard, control descent. Match reps.<br><br>⚠️ CLINICAL: Maximum bicep isolation. Light weight necessary. Focus contraction quality, not load. May trigger cramps - proper pacing.",
+      vid: ""
+    },
+    
+    // TRICEP CABLE VARIANTS
+    {
+      n: "[Cable] Tricep Pushdown (Bar)",
+      t_r: "12-15",
+      bio: "Straight bar pushdown with overhand grip emphasize medial dan lateral tricep head. Wrist-neutral position reduce strain vs rope attachment.",
+      note: "Cable high, grip straight bar overhand shoulder-width. Elbows pinned sides. Push down dengan full extension, squeeze tricep. Control return 90°. No elbow flare.<br><br>⚠️ CLINICAL: Classic tricep isolation. May stress wrists - switch to EZ bar if discomfort. Full lockout safe here unlike pressing. Light weight for volume.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Tricep Pushdown (V-Bar)",
+      t_r: "12-15",
+      bio: "Angled V-bar grip optimize wrist comfort dan allow natural elbow path. Balanced tricep head recruitment dengan joint-friendly positioning.",
+      note: "Cable high, grip V-bar. Elbows pinned, push down dengan full extension. Squeeze lockout, control return. Slight inward angle natural dengan V-grip.<br><br>⚠️ CLINICAL: Most wrist-friendly pushdown variant. Good untuk high-volume tricep work. Balance antara rope dan straight bar. Recommended main pushdown variant.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Single Arm Pushdown",
+      t_r: "12-15",
+      bio: "Unilateral tricep pushdown expose bilateral imbalances dan allow enhanced ROM. Single arm focus improve mind-muscle connection vs bilateral version.",
+      note: "Cable high, single handle. One arm per set. Elbow pinned side, push down full extension. Squeeze lockout, control return. Match reps both arms. Start weak side.<br><br>⚠️ CLINICAL: Assess imbalances - adjust volume accordingly. Enhanced ROM vs bilateral. Core stability moderate. Good finisher for tricep work.",
+      vid: ""
+    },
+    {
+      n: "[Cable] Kickback",
+      t_r: "15-20",
+      bio: "Cable kickback provide constant tension advantage vs dumbbell kickback. Tricep long head emphasis dengan full elbow extension di horizontal plane.",
+      note: "Cable low, single handle. Hinge forward 45°. Upper arm parallel floor, kickback dengan elbow extension. Squeeze peak lockout, control return. No shoulder movement.<br><br>⚠️ CLINICAL: Light weight necessary. Superior tension vs dumbbell (gravity issue). Good finisher. Core bracing required untuk maintain hinge. Focus contraction quality.",
+      vid: ""
+    },
+    // ========================================
     // V26.5 EXPANSION - ARM MACHINES
     // ========================================
     
@@ -935,7 +1260,7 @@ const EXERCISES_LIBRARY = {
 
   legs: [
     {
-      n: "[Barbell] Barbell Squat",
+      n: "[Barbell] Squat",
       t_r: "6-10",
       t_k: 60,
       vid: "https://www.youtube.com/watch?v=gcNh17Ckjgg",
@@ -943,7 +1268,7 @@ const EXERCISES_LIBRARY = {
       note: "Chest up, knee tracking mengikuti arah jari kaki. Turun sedalam mungkin selama punggung bawah tidak melengkung (butt wink). Inhale di atas, tahan brace saat turun.",
     },
     {
-      n: "[Barbell] Barbell Front Squat",
+      n: "[Barbell] Front Squat",
       t_r: "6-8",
       t_k: 40,
       vid: "https://www.youtube.com/watch?v=vX_Xp_6Xm0M",
@@ -967,7 +1292,7 @@ const EXERCISES_LIBRARY = {
       note: "Turun pelan 3 detik. Pastikan seluruh punggung menempel rapat di sandaran. Fokus pada dorongan melalui mid-foot dan tumit.",
     },
     {
-      n: "[DB] Dumbbell Goblet Squat",
+      n: "[DB] Goblet Squat",
       t_r: "10-12",
       t_k: 25,
       vid: "https://www.youtube.com/watch?v=MeIiIdhvXT4",
@@ -983,7 +1308,7 @@ const EXERCISES_LIBRARY = {
       note: "Tempatkan kaki di bagian paling ATAS platform dengan jarak lebar. Dorong dengan tumit untuk memaksimalkan aktivasi gluteus.",
     },
     {
-      n: "[Barbell] RDL (Barbell)",
+      n: "[Barbell] RDL",
       t_r: "8-10",
       t_k: 70,
       vid: "https://www.youtube.com/watch?v=JCXUYuzwNrM",
@@ -1149,6 +1474,24 @@ const EXERCISES_LIBRARY = {
       vid: ""
     },
     
+    // ========================================
+    // V30.2 EXPANSION - LEG MACHINE VARIANTS
+    // ========================================
+    {
+      n: "[Machine] Glute Kickback Machine",
+      t_r: "12-15",
+      bio: "Isolated hip extension dengan knee flexed 90°, pure glute activation dengan hamstring minimized. Resistance curve peak di full extension for maximum glute contraction.",
+      note: "Berdiri one leg, working leg di platform dengan knee bent. Kick back hingga full hip extension. Squeeze glute peak contraction, hold 1 sec. Control return.<br><br>⚠️ CLINICAL: True glute isolation - hamstring contribution minimal karena knee flexed. Excellent untuk glute activation dan hypertrophy. Avoid lumbar hyperextension di kickback.",
+      vid: ""
+    },
+    {
+      n: "[Machine] Donkey Calf Raise",
+      t_r: "15-20",
+      bio: "Bent-over position dengan hip flexed ~90° maximize gastrocnemius stretch dan activation. Horizontal load path unique stimulus vs vertical calf raise variations.",
+      note: "Hinge forward 90°, pad di lower back/hips. Balls of feet di platform edge. Rise onto toes maksimal, hold peak 1-2 sec. Lower untuk deep stretch di bottom.<br><br>⚠️ CLINICAL: Superior gastrocnemius stretch vs standing calf raise. May aggravate lower back - brace core properly. Old-school exercise - rare equipment, highly effective.",
+      vid: ""
+    },
+    
     // HAMSTRING MACHINES
     {
       n: "[Machine] Lying Leg Curl",
@@ -1191,7 +1534,7 @@ const EXERCISES_LIBRARY = {
       bio: "Side plank, lift hips tinggi, garis lurus dari kepala ke kaki, oblique brace.",
     },
     {
-      n: "[Cable] Cable Woodchop",
+      n: "[Cable] Woodchop",
       t_r: "12-15",
       bio: "Cable anti-rotation woodchop, rotate & extend, core stability dengan dynamic movement.",
     },
@@ -1201,7 +1544,7 @@ const EXERCISES_LIBRARY = {
       bio: "Ab wheel rollout, full ROM stretch, return dengan kontrol, core braced penuh.",
     },
     {
-      n: "[Cable] Cable Crunches",
+      n: "[Cable] Crunches",
       t_r: "15-20",
       bio: "High-cable crunch, flex di lower abs, squeeze puncak, high reps untuk pump.",
     },
@@ -1275,7 +1618,7 @@ const EXERCISES_LIBRARY = {
 
   compound: [
     {
-      n: "[Barbell] Barbell Bench Press",
+      n: "[Barbell] Bench Press",
       t_r: "5-8",
       t_k: 60,
       vid: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
@@ -1283,7 +1626,7 @@ const EXERCISES_LIBRARY = {
       note: "Gunakan full body tension; tekan kaki ke lantai (leg drive). Turunkan bar terkontrol ke sternum bawah. Dorong secara eksplosif sambil menjaga belikat tetap menempel pada bench.",
     },
     {
-      n: "[Barbell] Barbell Deadlift",
+      n: "[Barbell] Deadlift",
       t_r: "3-5",
       t_k: 80,
       vid: "https://www.youtube.com/watch?v=op9kVnSso6Q",
@@ -1291,7 +1634,7 @@ const EXERCISES_LIBRARY = {
       note: "Hinge pada pinggul, bukan menekuk punggung. Tarik 'slack' keluar dari bar sebelum angkat. Jaga bar tetap menempel pada tulang kering sepanjang gerakan untuk efisiensi mekanik.",
     },
     {
-      n: "[Barbell] Barbell Squat",
+      n: "[Barbell] Squat",
       t_r: "6-8",
       t_k: 60,
       vid: "https://www.youtube.com/watch?v=gcNh17Ckjgg",
@@ -1299,7 +1642,7 @@ const EXERCISES_LIBRARY = {
       note: "Chest up dan brace core seolah akan dipukul di perut. Turun hingga paha minimal sejajar lantai (Parallel). Pastikan tumit tidak terangkat saat posisi bawah.",
     },
     {
-      n: "[Barbell] Barbell Row",
+      n: "[Barbell] Row",
       t_r: "6-8",
       t_k: 50,
       vid: "https://www.youtube.com/watch?v=9efgcAjQe7E",

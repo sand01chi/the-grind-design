@@ -859,7 +859,7 @@
         <!-- V30.0 Spontaneous Mode Button with Glow Effect -->
         <section class="mb-2">
           <button
-            onclick="window.APP.nav.loadWorkout('spontaneous')"
+            onclick="APP.ui.openModal('spontaneous')"
             class="w-full py-4 rounded-3xl spontaneous-btn-bg flex items-center justify-center gap-3 group active:scale-[0.98] transition-transform"
           >
             <i class="fa-solid fa-person-running fa-lg text-app-accent group-hover:animate-pulse"></i>
@@ -1068,6 +1068,13 @@
               >
                 💪
               </button>
+              <button
+                id="klinik-tab-advanced"
+                onclick="APP.stats.switchTab('advanced')"
+                class="tab-btn inactive w-12 h-12 flex items-center justify-center text-xl rounded-lg transition-all"
+              >
+                🔬
+              </button>
             </div>
             <div class="text-center">
               <span
@@ -1232,26 +1239,62 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- V29.0: ADVANCED RATIOS SECTION -->
-            <div class="mt-6">
+          <!-- V30.3: Advanced Analytics Tab Content -->
+          <div
+            id="klinik-advanced-content"
+            class="glass-panel p-4 rounded-xl border border-white/10 min-h-[350px] overflow-y-auto no-scrollbar mb-4 hidden"
+          >
+            <div class="mb-4">
               <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
                 <i class="fa-solid fa-chart-line"></i> Advanced Analytics
-                <span class="text-[9px] font-normal text-slate-500">(V29.0)</span>
+                <span class="text-[9px] font-normal text-slate-500">(V30.3)</span>
               </h3>
-              <div id="klinik-advanced-ratios-container" class="space-y-3">
-                <!-- Cards will be rendered by renderAdvancedRatios() -->
+              <p class="text-[10px] text-slate-400 italic mb-4">
+                Evidence-based metrics, balance ratios, and clinical insights derived from your training data.
+              </p>
+            </div>
+
+            <!-- Core Metrics Section -->
+            <div class="mb-6">
+              <h4 class="text-xs text-slate-300 font-bold mb-3 flex items-center gap-2">
+                💪 Core Training Metrics
+              </h4>
+              <div id="klinik-advanced-core-metrics" class="space-y-3">
+                <!-- Core Training and Stability cards will be rendered here -->
               </div>
             </div>
 
-            <!-- V29.0: TRAINING INSIGHTS PANEL -->
-            <div class="mt-6">
-              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+            <!-- Balance Ratios Section -->
+            <div class="mb-6">
+              <h4 class="text-xs text-slate-300 font-bold mb-3 flex items-center gap-2">
+                ⚖️ Balance Ratios
+              </h4>
+              <div id="klinik-advanced-ratios" class="space-y-3">
+                <!-- Push/Pull and Quad/Hams cards will be rendered here -->
+              </div>
+            </div>
+
+            <!-- Training Analysis Section (V30.4) -->
+            <div class="mb-6">
+              <h4 class="text-xs text-slate-300 font-bold mb-3 flex items-center gap-2">
+                📊 Training Analysis
+                <span class="text-[9px] font-normal text-slate-500">(Evidence-Based)</span>
+              </h4>
+              <div id="klinik-training-analysis" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- Training analysis cards will be rendered here -->
+              </div>
+            </div>
+
+            <!-- Clinical Insights Section -->
+            <div class="mb-6">
+              <h4 class="text-xs text-slate-300 font-bold mb-3 flex items-center gap-2">
                 <i class="fa-solid fa-lightbulb"></i> Clinical Insights
                 <span class="text-[9px] font-normal text-slate-500">(Evidence-Based)</span>
-              </h3>
-              <div id="klinik-insights-container" class="space-y-2">
-                <!-- Insight cards will be rendered by renderInsightCards() -->
+              </h4>
+              <div id="klinik-advanced-insights" class="space-y-2">
+                <!-- Clinical insight cards will be rendered here -->
               </div>
             </div>
           </div>

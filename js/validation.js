@@ -389,11 +389,171 @@
       return maxScore > 0 ? bestMatch : null;
     },
 
+    // ========================================
+    // FUZZY EXERCISE MATCHING WITH CACHING
+    // V30.1+ Legacy Name Support
+    // ========================================
+    
+    _fuzzyMatchCache: new Map(),
+    
+    // Legacy name mapping for backwards compatibility
+    _legacyNameMap: {
+      // Chest - Legacy names
+      "Flat Dumbbell Press": "[DB] Flat Press",
+      "[DB] Flat Dumbbell Press": "[DB] Flat Press",
+      "Incline DB Press": "[DB] Incline Press",
+      "[DB] Incline Dumbbell Press": "[DB] Incline Press",
+      "Dumbbell Fly": "[DB] Fly",
+      "Smith Machine Incline Press": "[Machine] Smith Machine Incline Press",
+      "Fly (High to Low)": "[Cable] Fly (High to Low)",
+      "Cable Fly (High to Low)": "[Cable] Fly (High to Low)",
+      "Machine Chest Press": "[Machine] Chest Press",
+      "Machine Incline Chest Press": "[Machine] Incline Chest Press",
+      "Machine Pec Deck Fly": "[Machine] Pec Deck Fly",
+      "[Cable] Cable Fly": "[Cable] Fly",
+      
+      // Back - Legacy names
+      "[Barbell] Barbell Deadlift": "[Barbell] Deadlift",
+      "Barbell Deadlift": "[Barbell] Deadlift",
+      "[Barbell] Barbell Row": "[Barbell] Row",
+      "Barbell Row": "[Barbell] Row",
+      "One Arm DB Row": "[DB] One Arm Row",
+      "[DB] One Arm DB Row": "[DB] One Arm Row",
+      "Dumbbell One Arm DB Row": "[DB] One Arm Row",
+      "Dumbbell Chest Supported Row": "[DB] Chest Supported Row",
+      "T-Bar Row (Chest Support)": "[Machine] T-Bar Row (Chest Support)",
+      "Machine T-Bar Row (Chest Support)": "[Machine] Chest Supported T-Bar Row",
+      "Seated Cable Row": "[Cable] Seated Row",
+      "[Cable] Seated Cable Row": "[Cable] Seated Row",
+      "Lat Pulldown (Wide)": "[Cable] Lat Pulldown (Wide)",
+      "[Cable] Lat Pulldown (wide)": "[Cable] Lat Pulldown (Wide)",
+      "Cable Lat Pulldown (Wide)": "[Cable] Lat Pulldown (Wide)",
+      "Neutral Grip Pulldown": "[Cable] Neutral Grip Pulldown",
+      "Cable Neutral Grip Pulldown": "[Cable] Neutral Grip Pulldown",
+      "Assisted Pull Up": "[Machine] Assisted Pull-Up",
+      "Machine Assisted Pull Up": "[Machine] Assisted Pull-Up",
+      "Single Arm Machine Row": "[Machine] Single Arm Row",
+      "Single Arm Cable Row": "[Cable] Single Arm Row",
+      "[Machine] Machine Row": "[Machine] Row",
+      
+      // Shoulders - Legacy names
+      "Dumbbell Shoulder Press": "[DB] Shoulder Press",
+      "[DB] Dumbbell Shoulder Press": "[DB] Shoulder Press",
+      "Seated Overhead Press": "[Barbell] Seated Overhead Press",
+      "Barbell Seated Overhead Press": "[Barbell] Seated Overhead Press",
+      "Lateral Raise": "[DB] Lateral Raise",
+      "Dumbbell DB Lateral Raise": "[DB] Lateral Raise",
+      "[DB] DB Lateral Raise": "[DB] Lateral Raise",
+      "Lateral Raise Machine": "[Machine] Lateral Raise Machine",
+      "Cable Lateral Raise": "[Cable] Lateral Raise",
+      "[Cable] Cable Lateral Raise": "[Cable] Lateral Raise",
+      "[Machine] Machine Shoulder Press": "[Machine] Shoulder Press",
+      "Machine Shoulder Press": "[Machine] Shoulder Press",
+      "[Machine] Reverse Pec Deck": "[Machine] Reverse Pec Deck (Rear Delt)",
+      
+      // Arms - Legacy names
+      "[Barbell] Barbell Curl": "[Barbell] Curl",
+      "Barbell Curl": "[Barbell] Curl",
+      "[DB] Dumbbell Curl": "[DB] Curl",
+      "Dumbbell Curl": "[DB] Curl",
+      "[Cable] Cable Curl": "[Cable] Curl",
+      "Cable Curl": "[Cable] Curl",
+      "Tricep Pushdown (Rope)": "[Cable] Tricep Pushdown (Rope)",
+      "Cable Tricep Pushdown (Rope)": "[Cable] Tricep Pushdown (Rope)",
+      "Skullcrushers (EZ Bar)": "[Barbell] Skullcrushers (EZ Bar)",
+      "Barbell Skullcrushers (EZ Bar)": "[Barbell] Skullcrushers (EZ Bar)",
+      "Overhead Tricep Extension": "[Cable] Overhead Tricep Extension",
+      "Dumbbell Overhead Tricep Extension": "[DB] Overhead Tricep Extension",
+      "Incline DB Curl": "[DB] Incline Curl",
+      "Dumbbell Incline DB Curl": "[DB] Incline Curl",
+      "[DB] Incline DB Curl": "[DB] Incline Curl",
+      "Hammer Curl": "[DB] Hammer Curl",
+      "Dumbbell Hammer Curl": "[DB] Hammer Curl",
+      "Bayesian Curl": "[Cable] Bayesian Curl",
+      "Cable Bayesian Curl": "[Cable] Bayesian Curl",
+      "[DB] Dumbbell Skullcrusher": "[DB] Skullcrusher",
+      "Dumbbell Skullcrusher": "[DB] Skullcrusher",
+      
+      // Legs - Legacy names
+      "[Barbell] Barbell Squat": "[Barbell] Squat",
+      "Barbell Squat": "[Barbell] Squat",
+      "[Barbell] Barbell Front Squat": "[Barbell] Front Squat",
+      "Barbell Front Squat": "[Barbell] Front Squat",
+      "RDL (Barbell)": "[Barbell] RDL",
+      "[Barbell] RDL (Barbell)": "[Barbell] RDL",
+      "Dumbbell RDL": "[DB] RDL",
+      "Pull Through": "[Cable] Pull Through",
+      "Cable Pull Through": "[Cable] Pull Through",
+      "Lying Dumbbell Leg Curl": "[DB] Lying Leg Curl",
+      "Dumbbell Lying Leg Curl": "[DB] Lying Leg Curl",
+      "Lying Leg Curl": "[Machine] Lying Leg Curl",
+      "Machine Lying Leg Curl": "[Machine] Lying Leg Curl",
+      "Goblet Squat (Heels Elevated)": "[DB] Goblet Squat (Heels Elevated)",
+      "Dumbbell Goblet Squat (Heels Elevated)": "[DB] Goblet Squat (Heels Elevated)",
+      "[DB] Dumbbell Goblet Squat": "[DB] Goblet Squat",
+      "Dumbbell Goblet Squat": "[DB] Goblet Squat",
+      "Bulgarian Split Squat": "[DB] Bulgarian Split Squat",
+      "Dumbbell Bulgarian Split Squat": "[DB] Bulgarian Split Squat",
+      "Forward Lunge": "[DB] Forward Lunge",
+      "Dumbbell Forward Lunge": "[DB] Forward Lunge",
+      "Walking Lunge": "[DB] Walking Lunge",
+      "Dumbbell Walking Lunge": "[DB] Walking Lunge",
+      "Split Squat (Static)": "[DB] Split Squat (Static)",
+      "Dumbbell Split Squat (Static)": "[DB] Split Squat (Static)",
+      "Sissy Squat": "[Bodyweight] Sissy Squat",
+      "Bodyweight Sissy Squat": "[Bodyweight] Sissy Squat",
+      "Leg Extension": "[Machine] Leg Extension",
+      "Machine Leg Extension": "[Machine] Leg Extension",
+      "Cable Leg Extension": "[Cable] Leg Extension",
+      "Standing Calf Raise": "[Machine] Standing Calf Raise",
+      "Machine Standing Calf Raise": "[Machine] Standing Calf Raise",
+      "Leg Press Calf Raise": "[Machine] Leg Press Calf Raise",
+      "Machine Leg Press Calf Raise": "[Machine] Leg Press Calf Raise",
+      "Single Leg Calf Raise": "[DB] Single Leg Calf Raise",
+      "Dumbbell Single Leg Calf Raise": "[DB] Single Leg Calf Raise",
+      "Smith Machine Seated Calf": "[Machine] Smith Machine Seated Calf",
+      "Seated DB Calf Raise": "[DB] Seated Calf Raise",
+      "Dumbbell Seated DB Calf Raise": "[DB] Seated Calf Raise",
+      "Machine Seated Leg Curl": "[Machine] Seated Leg Curl",
+      "Smith Machine Squat": "[Machine] Smith Machine Squat",
+      "Machine Hack Squat": "[Machine] Hack Squat",
+      "Machine Leg Press": "[Machine] Leg Press (Quad Bias)", // Default to Quad Bias
+      "Leg Press": "[Machine] Leg Press (Quad Bias)", // Default to Quad Bias
+      
+      // Core - Legacy names
+      "[Cable] Cable Woodchop": "[Cable] Woodchop",
+      "Cable Woodchop": "[Cable] Woodchop",
+      "[Cable] Cable Crunches": "[Cable] Crunches",
+      "Cable Crunches": "[Cable] Crunches",
+      
+      // BW to Bodyweight normalization
+      "[BW] Push Up (Slow Tempo)": "[Bodyweight] Push Up (Slow Tempo)",
+    },
+    
     fuzzyMatchExercise: function (exerciseName) {
       if (!exerciseName) return null;
 
+      // Check cache first for performance
+      if (this._fuzzyMatchCache.has(exerciseName)) {
+        return this._fuzzyMatchCache.get(exerciseName);
+      }
+
+      // 1. Exact match in EXERCISE_TARGETS
       if (EXERCISE_TARGETS[exerciseName]) {
+        this._fuzzyMatchCache.set(exerciseName, exerciseName);
         return exerciseName;
+      }
+
+      // 2. Check legacy name mapping (direct backwards compatibility)
+      if (this._legacyNameMap[exerciseName]) {
+        const canonical = this._legacyNameMap[exerciseName];
+        if (EXERCISE_TARGETS[canonical]) {
+          console.log(
+            `[FUZZY] ✅ Legacy Mapping: "${exerciseName}" → "${canonical}"`
+          );
+          this._fuzzyMatchCache.set(exerciseName, canonical);
+          return canonical;
+        }
       }
 
       const originalName = exerciseName;
@@ -409,6 +569,7 @@
 
       const libraryKeys = Object.keys(EXERCISE_TARGETS);
 
+      // 3. Stripped character match (case-insensitive, no special chars)
       for (let key of libraryKeys) {
         const cleanKey = strip(key);
 
@@ -416,9 +577,11 @@
           console.log(
             `[FUZZY] ✅ Canonical Match: "${originalName}" → "${key}"`
           );
+          this._fuzzyMatchCache.set(exerciseName, key);
           return key;
         }
 
+        // Match without equipment tag bracket
         const keyWithoutBracket = key.replace(/^\[.*?\]\s*/, "");
         const cleanKeyNoBracket = strip(keyWithoutBracket);
 
@@ -426,10 +589,12 @@
           console.log(
             `[FUZZY] ✅ No-Prefix Match: "${originalName}" → "${key}"`
           );
+          this._fuzzyMatchCache.set(exerciseName, key);
           return key;
         }
       }
 
+      // 4. Pattern-based matching (try common equipment tags)
       const patterns = [
         (name) => name.replace(/^\[.*?\]\s*/, ""),
         (name) => `[Machine] ${name}`,
@@ -440,6 +605,11 @@
         (name) => `[Bodyweight] ${name}`,
         (name) => name.replace(/\bDB\b/gi, "Dumbbell"),
         (name) => name.replace(/\bDumbbell\b/gi, "DB"),
+        // Additional patterns for common variations
+        (name) => `[Machine] ${name.replace(/^Machine\s+/i, "")}`,
+        (name) => `[Cable] ${name.replace(/^Cable\s+/i, "")}`,
+        (name) => `[Barbell] ${name.replace(/^Barbell\s+/i, "")}`,
+        (name) => `[DB] ${name.replace(/^Dumbbell\s+/i, "")}`,
       ];
 
       for (let pattern of patterns) {
@@ -449,15 +619,23 @@
             console.log(
               `[FUZZY] ✅ Pattern Match: "${originalName}" → "${normalized}"`
             );
+            this._fuzzyMatchCache.set(exerciseName, normalized);
             return normalized;
           }
         } catch (e) {}
       }
 
+      // No match found
       console.warn(
         `[FUZZY] ❌ No canonical match for: "${originalName}"`
       );
+      this._fuzzyMatchCache.set(exerciseName, null);
       return null;
+    },
+    
+    clearFuzzyMatchCache: function() {
+      this._fuzzyMatchCache.clear();
+      console.log("[FUZZY] Cache cleared");
     },
 
     validateExerciseIntegrity: function (sessionData) {

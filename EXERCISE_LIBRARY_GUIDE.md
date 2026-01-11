@@ -1,14 +1,18 @@
 # 📚 EXERCISE LIBRARY GUIDE - THE GRIND DESIGN
 
-**Version:** V26.6  
-**Last Updated:** December 31, 2025  
+**Version:** V30.2 (Library Expansion)  
+**Last Updated:** January 11, 2026  
 **Purpose:** Guide for adding, modifying, and managing exercises in the library
 
 ---
 
 ## 📖 Overview
 
-The Exercise Library is the heart of THE GRIND DESIGN. It contains 100+ exercises with clinical biomechanics notes, execution cues, and safety warnings. This guide explains how to add new exercises or modify existing ones.
+The Exercise Library is the heart of THE GRIND DESIGN. It contains 180+ exercises with clinical biomechanics notes, execution cues, and safety warnings. This guide explains how to add new exercises or modify existing ones.
+
+**V30.2 Update:** Added 29 new cable and machine exercise variants with biomechanically accurate muscle targeting.
+
+**V30.1 Update:** Comprehensive standardization of exercise naming conventions with backwards compatibility support for historical data.
 
 ---
 
@@ -74,24 +78,25 @@ const EXERCISES_LIBRARY = {
 
 ---
 
-## ✅ NAMING CONVENTIONS (V26.5+)
+## ✅ NAMING CONVENTIONS (V30.1+)
 
 ### **Equipment Tag Format**
 
 **CRITICAL:** Exercise names MUST start with equipment tag in brackets
 
 ```javascript
-// ✅ CORRECT
-"[Barbell] Bench Press"
-"[Machine] Leg Press"
-"[DB] Dumbbell Curl"
-"[Cable] Tricep Pushdown"
-"[Bodyweight] Pull-Up"
+// ✅ CORRECT (V30.1 Standardized)
+"[Barbell] Bench Press"        // Clean, no redundancy
+"[Machine] Lying Leg Curl"     // Descriptive, standardized
+"[DB] Flat Press"              // Use [DB] not [Dumbbell]
+"[Cable] Tricep Pushdown (Rope)"
+"[Bodyweight] Push Up (Slow Tempo)"
 
 // ❌ WRONG
-"Bench Press"              // Missing tag
-"Barbell Bench Press"      // Tag not in brackets
-"[Barbell]Bench Press"     // Missing space after bracket
+"Bench Press"                  // Missing tag
+"[Barbell] Barbell Bench Press" // Redundant "Barbell"
+"[DB] Flat Dumbbell Press"     // Redundant "Dumbbell" after [DB]
+"[Barbell]Bench Press"         // Missing space after bracket
 ```
 
 ### **Standard Tags**
@@ -99,34 +104,40 @@ const EXERCISES_LIBRARY = {
 | Tag | Use For | Example |
 |-----|---------|---------|
 | `[Barbell]` | Barbell exercises | `[Barbell] Squat` |
-| `[DB]` | Dumbbell exercises | `[DB] Bicep Curl` |
-| `[Dumbbell]` | Alternative to [DB] | `[Dumbbell] Row` |
-| `[Machine]` | All machine exercises | `[Machine] Leg Press` |
+| `[DB]` | Dumbbell exercises (ALWAYS use [DB]) | `[DB] Curl` |
+| `[Machine]` | All machine exercises including Smith | `[Machine] Leg Press (Quad Bias)` |
 | `[Cable]` | Cable exercises | `[Cable] Fly` |
 | `[Bodyweight]` | No equipment | `[Bodyweight] Push-Up` |
-| `[Smith]` | Smith machine | `[Smith] Squat` |
+
+**V30.1 Changes:**
+- ✅ **STANDARDIZED:** Use `[DB]` ONLY (never `[Dumbbell]` or `[BW]`)
+- ✅ **REMOVED:** Redundant equipment names (e.g., `[Barbell] Barbell Squat` → `[Barbell] Squat`)
+- ✅ **CONSOLIDATED:** Smith machines use `[Machine]` tag (e.g., `[Machine] Smith Machine Squat`)
+- ✅ **BACKWARDS COMPATIBLE:** Legacy names auto-resolve via fuzzy matching
 
 **Why Tags Matter:**
 - Plate calculator auto-detects exercise type
-- `[Barbell]` → Shows barbell plate calculator
-- `[Machine]` → Shows pin/stack selector
+- `[Barbell]` → Shows barbell plate calculator (20kg bar)
+- `[Machine]` + "Leg Press" or "Hack Squat" → Plate-loaded machine calculator (0kg base)
 - `[DB]` → Shows dumbbell selector
+- `[Machine]` (others) → Shows pin/stack selector
 
 ---
 
-### **Machine Exercise Naming (V26.5)**
+### **Machine Exercise Naming (V30.1)**
 
-For machines with multiple biomechanical variations, add focus/bias descriptor:
+For machines with multiple biomechanical variations, add focus/bias descriptor in parentheses:
 
 ```javascript
-// ✅ GOOD - Specifies targeting
-"[Machine] Leg Press (Quad Bias/Low Stance)"
-"[Machine] Leg Press (Glute Bias/High Stance)"
-"[Machine] High Row (Upper Back Bias)"
-"[Machine] Low Row (Lat Bias)"
+// ✅ GOOD - Specifies targeting/variation
+"[Machine] Leg Press (Quad Bias)"          // Low foot placement
+"[Machine] Leg Press (Glute Bias)"         // High foot placement
+"[Machine] High Row (Upper Back Bias)"     // Pull angle targets traps
+"[Machine] Low Row (Lat Bias)"             // Pull angle targets lats
+"[Machine] Reverse Hack Squat (Glute Bias)" // Glute-dominant variant
 
-// ❌ BAD - Too generic
-"[Machine] Leg Press"  // Which stance? What target?
+// ❌ BAD - Too generic (avoid for new exercises)
+"[Machine] Leg Press"  // Which stance? Quad or Glute bias?
 "[Machine] Row"        // High or low? What angle?
 ```
 
@@ -135,10 +146,73 @@ For machines with multiple biomechanical variations, add focus/bias descriptor:
 [Machine] Exercise Name (Target/Variant)
 ```
 
-**Examples:**
-- `[Machine] Reverse Hack Squat (Glute Bias)`
-- `[Machine] Converging Row`
-- `[Machine] Decline Press`
+**Common Descriptors:**
+- **Leg Press:** `(Quad Bias)`, `(Glute Bias)`, `(Quad Bias/Low Stance)`, `(Glute Bias/High Stance)`
+- **Rows:** `(Upper Back Bias)`, `(Lat Bias)`
+- **Presses:** `(Chest)`, `(Incline)`, `(Decline)`, `(Converging)`
+- **Pulldowns:** `(Lat Width)`, `(Wide Grip)`, `(Close Neutral Grip)`
+- **Delt:** `(Rear Delt)`
+
+**Default Mapping for Legacy Data:**
+- "Leg Press" or "Machine Leg Press" without descriptor → Defaults to `[Machine] Leg Press (Quad Bias)` (most common variant)
+
+---
+
+### **V30.1 Naming Principles**
+
+1. **No Redundancy:** Don't repeat equipment name after tag
+   - ✅ `[Barbell] Deadlift`
+   - ❌ `[Barbell] Barbell Deadlift`
+
+2. **Consistent Abbreviations:** Always use `[DB]` for dumbbells
+   - ✅ `[DB] Shoulder Press`
+   - ❌ `[Dumbbell] Shoulder Press`
+
+3. **Remove Redundant "Cable" / "Machine":**
+   - ✅ `[Cable] Fly`
+   - ❌ `[Cable] Cable Fly`
+
+4. **Space After Bracket (always):**
+   - ✅ `[Machine] Row`
+   - ❌ `[Machine]Row`
+
+5. **Biomechanical Descriptors (when needed):**
+   - ✅ `[Machine] Leg Press (Quad Bias)` - Clear intent
+   - ⚠️ `[Machine] Leg Press` - Ambiguous, avoid for new entries
+
+---
+
+### **V30.1 Backwards Compatibility**
+
+**Dual-Support System:** Historical workout data automatically resolves to new standardized names.
+
+**How It Works:**
+- `validation.js` contains comprehensive legacy name mapping (150+ mappings)
+- Old names like `"Flat Dumbbell Press"` auto-resolve to `"[DB] Flat Press"`
+- Fuzzy matching with caching ensures fast lookups
+- **NO DATA MIGRATION REQUIRED** - historical logs work seamlessly
+
+**Legacy Name Examples:**
+```javascript
+// These ALL resolve to the same canonical exercise:
+"Flat Dumbbell Press"          → "[DB] Flat Press"
+"[DB] Flat Dumbbell Press"     → "[DB] Flat Press"
+"Dumbbell Flat Press"          → "[DB] Flat Press"
+
+// Barbell redundancy resolved:
+"[Barbell] Barbell Squat"      → "[Barbell] Squat"
+"Barbell Squat"                → "[Barbell] Squat"
+
+// Machine defaults:
+"Leg Press"                    → "[Machine] Leg Press (Quad Bias)" // Default
+"Machine Leg Press"            → "[Machine] Leg Press (Quad Bias)"
+```
+
+**For Developers:**
+- Check `js/validation.js` lines ~400-550 for full legacy mapping
+- Add new legacy names to `_legacyNameMap` object
+- Cache automatically improves performance on repeated lookups
+- Call `APP.validation.clearFuzzyMatchCache()` if needed after bulk updates
 
 ---
 
@@ -677,5 +751,196 @@ PRIMARY, SECONDARY
 
 ---
 
-**Last Updated:** December 31, 2025 (V26.6)  
+## 📋 V30.1 CHANGELOG - Exercise Library Standardization
+
+### **What Changed**
+
+#### **1. Exercise Naming Standardization**
+- ✅ **Removed Redundancy:** All exercises with redundant equipment names updated
+  - `[Barbell] Barbell Bench Press` → `[Barbell] Bench Press`
+  - `[DB] Flat Dumbbell Press` → `[DB] Flat Press`
+  - `[Cable] Cable Fly` → `[Cable] Fly`
+  - ~50 exercises cleaned up
+
+#### **2. Consistent Abbreviations**
+- ✅ **[DB] Only:** Standardized all dumbbell exercises to use `[DB]` tag
+  - No more mixed `[Dumbbell]` or `[BW]` tags
+  - `[DB] Dumbbell Curl` → `[DB] Curl`
+  - `[BW] Push Up` → `[Bodyweight] Push Up`
+
+#### **3. Smith Machine Consolidation**
+- ✅ **[Machine] Tag:** Smith machines now use `[Machine]` tag with "Smith Machine" in name
+  - `[Machine] Smith Machine Squat`
+  - `[Machine] Smith Machine Shoulder Press`
+  - Consistent with other machine equipment
+
+#### **4. Biomechanical Descriptors Added**
+- ✅ **Machine Variants:** Added descriptors for specificity
+  - `[Machine] Leg Press (Quad Bias)` - Low foot placement
+  - `[Machine] Leg Press (Glute Bias)` - High foot placement
+  - `[Machine] High Row (Upper Back Bias)` - Trap emphasis
+  - `[Machine] Low Row (Lat Bias)` - Lat emphasis
+  - ~20 machine exercises now include descriptors
+
+#### **5. Backwards Compatibility Implementation**
+- ✅ **Legacy Name Mapping:** 150+ legacy names automatically resolve
+  - Added comprehensive mapping in `validation.js`
+  - Caching system for improved performance
+  - Zero impact on historical workout data
+  - No data migration required
+
+### **Impact Assessment**
+
+| Component | Impact | Status |
+|-----------|---------|--------|
+| **EXERCISE_TARGETS** | 150+ exercises renamed | ✅ Complete |
+| **EXERCISES_LIBRARY** | All `n` properties updated to match | ✅ Complete |
+| **Fuzzy Matching** | Enhanced with legacy mapping + cache | ✅ Complete |
+| **Plate Calculator** | No changes (tag detection unchanged) | ✅ Compatible |
+| **Historical Data** | Auto-resolves via fuzzy matching | ✅ Compatible |
+| **Volume Analytics** | Uses canonical names automatically | ✅ Compatible |
+| **Exercise Picker UI** | Displays standardized names | ✅ Complete |
+
+### **Testing Checklist**
+
+- [x] EXERCISE_TARGETS keys match EXERCISES_LIBRARY `n` values
+- [x] No duplicate entries in EXERCISE_TARGETS
+- [x] Legacy names resolve correctly via fuzzy matching
+- [ ] Plate calculator identifies [Barbell] and [Machine] correctly
+- [ ] Historical workout logs load without errors
+- [ ] Volume distribution calculates correctly
+- [ ] Exercise picker displays all exercises
+- [ ] No console errors on app initialization
+
+### **Files Modified**
+
+- `exercises-library.js` - EXERCISE_TARGETS & EXERCISES_LIBRARY standardized
+- `js/validation.js` - Enhanced fuzzy matching with caching & legacy mapping
+- `EXERCISE_LIBRARY_GUIDE.md` - Updated naming conventions documentation
+
+---
+
+**Last Updated:** January 10, 2026 (V30.1 Library Polish)  
+
+---
+
+## 📋 CHANGELOG - V30.2 LIBRARY EXPANSION
+
+**Date:** January 11, 2026  
+**Branch:** v30.2-library-expansion  
+**Focus:** Cable and machine exercise variants for comprehensive training options
+
+### **What's New - 29 Exercises Added**
+
+#### **Chest Exercises (7 new)**
+**Cable Variants:**
+- `[Cable] Fly (Low-to-Mid)` - Lower-to-mid pec emphasis with upward arc
+- `[Cable] Single Arm Fly` - Unilateral chest fly with anti-rotation core demand
+- `[Cable] Incline Fly` - Upper pec cable fly with constant tension advantage
+- `[Cable] Press (Standing)` - Functional standing cable press with core stability
+- `[Cable] Single Arm Press` - Maximum anti-rotation demand unilateral press
+
+**Machine Variants:**
+- `[Machine] Vertical Press` - Unique vertical pressing angle for upper pec
+- `[Machine] Seated Dip Machine` - Lower pec/tricep emphasis with reduced shoulder stress
+
+#### **Back Exercises (9 new)**
+**Machine Row Variants:**
+- `[Machine] Wide Grip Row` - Outer lat width emphasis with wide elbow path
+- `[Machine] Underhand Row` - Lower lat focus with high bicep involvement
+- `[Machine] Hammer Grip Row` - Neutral grip for mid-back thickness, joint-friendly
+
+**Cable Pulldown Variants:**
+- `[Cable] Lat Pulldown (Close Grip)` - Enhanced lat thickness with deeper stretch
+- `[Cable] Single Arm Pulldown` - Unilateral lat work exposing imbalances
+- `[Cable] Straight Arm Pulldown` - Pure lat isolation, zero bicep involvement
+
+**Cable Row Variants:**
+- `[Cable] High Row` - Upper back (traps, rhomboids) emphasis with standing position
+- `[Cable] Low Row` - Mid-to-lower lat emphasis with core anti-extension demand
+- `[Cable] Underhand Row` - Natural supinated grip reduces shoulder strain
+
+#### **Shoulder Exercises (4 new)**
+**Cable Variants:**
+- `[Cable] Front Raise` - Anterior deltoid isolation with constant tension
+- `[Cable] Rear Delt Fly` - Posterior deltoid fly for posture correction
+- `[Cable] Upright Row` - Compound trap/medial delt with vertical pull
+- `[Cable] Single Arm Lateral Raise` - Unilateral medial delt exposing imbalances
+
+#### **Arm Exercises (7 new)**
+**Cable Bicep Variants:**
+- `[Cable] Hammer Curl` - Brachialis/brachioradialis emphasis, neutral grip
+- `[Cable] Preacher Curl` - Cable preacher with constant tension advantage
+- `[Cable] Concentration Curl` - Single arm bicep peak emphasis
+
+**Cable Tricep Variants:**
+- `[Cable] Tricep Pushdown (Bar)` - Straight bar overhand for medial/lateral head
+- `[Cable] Tricep Pushdown (V-Bar)` - Angled V-bar for wrist comfort
+- `[Cable] Single Arm Pushdown` - Unilateral tricep with enhanced ROM
+- `[Cable] Kickback` - Cable kickback with constant tension vs dumbbell
+
+#### **Leg Exercises (2 new)**
+**Machine Variants:**
+- `[Machine] Glute Kickback Machine` - Pure glute isolation with knee flexed
+- `[Machine] Donkey Calf Raise` - Maximum gastrocnemius stretch, horizontal load
+
+### **Muscle Targeting Principles Applied**
+
+All new exercises follow biomechanically accurate muscle targeting:
+- **PRIMARY role:** Main working muscles based on joint actions
+- **SECONDARY role:** Supporting/synergist muscles
+- **Scientific basis:** Proper SECONDARY designation (e.g., core for unilateral work, opposite muscle groups for compound movements)
+
+**Examples:**
+```javascript
+// Unilateral exercises add core SECONDARY
+"[Cable] Single Arm Fly": [
+  { muscle: "chest", role: "PRIMARY" },
+  { muscle: "core", role: "SECONDARY" }  // Anti-rotation demand
+]
+
+// Compound pulling adds arms SECONDARY
+"[Cable] High Row": [
+  { muscle: "back", role: "PRIMARY" },
+  { muscle: "arms", role: "SECONDARY" }  // Elbow flexion involvement
+]
+
+// Pure isolation = PRIMARY only
+"[Cable] Straight Arm Pulldown": [
+  { muscle: "back", role: "PRIMARY" }  // Locked elbow, zero bicep
+]
+```
+
+### **Exercise Metadata Quality**
+
+All V30.2 exercises include:
+- ✅ **`t_r`** - Target rep range (10-12, 12-15, or 15-20 based on exercise type)
+- ✅ **`bio`** - Biomechanics explanation (movement science, muscle fiber recruitment)
+- ✅ **`note`** - Execution cues + clinical warnings (with ⚠️ CLINICAL: sections)
+- ✅ **`vid`** - Video URL field (empty "" for now, can be populated later)
+
+**Clinical Warning Format:**
+```
+note: "Setup and execution cues. Form points.<br><br>⚠️ CLINICAL: Safety considerations. Contraindications. Modifications for special populations."
+```
+
+### **V30.2 Testing Checklist**
+
+- [x] All EXERCISE_TARGETS entries have matching EXERCISES_LIBRARY entries
+- [x] No JavaScript errors in exercises-library.js
+- [x] Proper muscle targeting (PRIMARY/SECONDARY) based on biomechanics
+- [x] All exercises follow V30.1 naming conventions
+- [ ] Exercise picker UI displays new exercises correctly
+- [ ] Volume analytics calculate correctly with new exercises
+- [ ] No console errors when selecting new exercises
+- [ ] Exercise search finds new variants
+
+### **Files Modified**
+
+- `exercises-library.js` - Added 29 new exercises to EXERCISE_TARGETS and EXERCISES_LIBRARY
+- `EXERCISE_LIBRARY_GUIDE.md` - Updated version to V30.2, added changelog
+
+---
+
+**Last Updated:** January 11, 2026 (V30.2 Library Expansion)  
 **Maintainer:** THE GRIND DESIGN Team

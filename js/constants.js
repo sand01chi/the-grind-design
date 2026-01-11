@@ -73,7 +73,7 @@
               note: "Tahan Puncak",
             },
             {
-              n: "[Machine] Leg Curl",
+              n: "[Machine] Lying Leg Curl",
               t_r: "15-20",
               bio: "Jaga pinggul tetap menempel di pad.",
             },
@@ -104,7 +104,7 @@
           note: "Full Stretch",
           options: [
             {
-              n: "[Cable] Lat Pulldown",
+              n: "[Cable] Lat Pulldown (Wide)",
               t_r: "10-12",
               bio: "Biarkan lats terulur maksimal di atas.",
             },
@@ -116,7 +116,7 @@
           note: "Control Weight",
           options: [
             {
-              n: "[Machine] Leg Press",
+              n: "[Machine] Leg Press (Quad Bias)",
               t_r: "10-12",
               bio: "Jangan biarkan lutut goyang (valgus).",
             },
@@ -286,7 +286,7 @@
           note: "Primary compound pull - back thickness",
           options: [
             {
-              n: "[Barbell] Barbell Row",
+              n: "[Barbell] Row",
               t_r: "8-10",
               t_k: 50,
               vid: "https://www.youtube.com/watch?v=9efgcAjQe7E",
@@ -316,7 +316,7 @@
           note: "Vertical pull - back width",
           options: [
             {
-              n: "[Cable] Lat Pulldown (wide)",
+              n: "[Cable] Lat Pulldown (Wide)",
               t_r: "10-12",
               t_k: 55,
               vid: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
@@ -331,7 +331,7 @@
           note: "Arm isolation - biceps",
           options: [
             {
-              n: "[Barbell] Barbell Curl",
+              n: "[Barbell] Curl",
               t_r: "10-12",
               t_k: 25,
               vid: "https://www.youtube.com/watch?v=lyn7kj8v_XU",
@@ -354,7 +354,7 @@
           note: "Primary compound - quad dominant",
           options: [
             {
-              n: "[Barbell] Barbell Squat",
+              n: "[Barbell] Squat",
               t_r: "6-8",
               t_k: 80,
               vid: "https://www.youtube.com/watch?v=gcNh17Ckjgg",
@@ -369,7 +369,7 @@
           note: "Hip hinge - posterior chain",
           options: [
             {
-              n: "[Barbell] RDL (Barbell)",
+              n: "[Barbell] RDL",
               t_r: "8-10",
               t_k: 70,
               vid: "https://www.youtube.com/watch?v=JCXUYuzwNrM",
