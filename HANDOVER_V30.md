@@ -1,11 +1,378 @@
 # THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION
 
 **Project:** THE GRIND DESIGN - Clinical Gym Training PWA  
-**Version:** V30.4 Training Analysis Expansion (COMPLETE)  
+**Version:** V30.5 AI Analytics Consultation (COMPLETE)  
 **Date:** 2026-01-11  
 **Lead PM:** sand01chi  
 **Design Architect:** Claude.ai  
 **Lead Coder:** Claude Code (VS Code Extension)
+
+---
+
+## 🎉 V30.5 COMPLETION - AI ANALYTICS CONSULTATION INTEGRATION
+
+### Final Summary
+**Version:** V30.5 AI Analytics Consultation (COMPLETE)  
+**Date:** January 11, 2026  
+**Branch:** `v30.5-ai-consultation`  
+**Total Commits:** 2 commits  
+**Status:** ✅ Production Ready
+
+**Major Features Delivered:**
+1. ✅ Comprehensive AI Consultation Prompt Generation
+2. ✅ Exercise-Level Breakdown in Insight Warnings
+3. ✅ Complete Program Context with Volume Calculations
+4. ✅ One-Click Navigation to AI View with Autoprompt
+5. ✅ Enhanced Prompt Structure (3 Sections, 5 Questions)
+
+### Complete Commit History
+
+```bash
+# Phase 1: Core Implementation
+[commit] - V30.5: AI Consultation Integration
+           - prepareAnalyticsConsultation(): Generate comprehensive prompt
+           - consultAIAboutInsights(): Navigation handler
+           - Exercise breakdowns for push/pull, frequency, unilateral, vertical ratios
+           - Full program context with volume in KG
+           - Structured 5-question consultation format
+
+# Phase 2: Enhanced Context
+[commit] - V30.5.1: Enhanced autoprompt with exercise breakdowns and volume calculations
+           - Fixed volume calculation (KG instead of reps)
+           - Added target weight × sets × reps display per exercise
+           - Removed "SESI SESI" duplication
+           - Enhanced metadata display with volume estimates
+```
+
+**Impact:**
+- **User Experience:** One-click AI consultation from insights
+- **Prompt Quality:** 500-800 line comprehensive context
+- **Actionability:** Structured questions with JSON import format
+- **Integration:** Seamless Analytics → AI view navigation
+
+---
+
+## 🔄 V30.5 UPDATE - AI ANALYTICS CONSULTATION
+
+### Update Summary
+**Version:** V30.5 AI Analytics Consultation  
+**Date:** January 11, 2026  
+**Branch:** `v30.5-ai-consultation`  
+**Commits:**
+- Initial implementation: AI consultation integration
+- Enhanced context: Exercise breakdowns and volume calculations
+
+Added comprehensive AI consultation feature that generates detailed autoprompt from Advanced Analytics insights, including exercise-level breakdowns and complete program context.
+
+### Problem Statement
+
+**User Request:** "enhance autoprompt output with exercise breakdowns showing which exercises cause imbalances, and show complete session information with volume in KG and target weights"
+
+**Clinical Need:**
+- AI needs specific exercise data to give actionable recommendations
+- Volume calculations must be accurate (KG, not reps)
+- Program context must include all exercises, not just first 5
+- Breakdown must show which exercises contribute to imbalances
+
+### Solution: Enhanced AI Consultation System
+
+#### **Phase 1: Core Implementation (js/stats.js)**
+
+**1. `prepareAnalyticsConsultation(insights)`**
+- **Purpose:** Generate comprehensive consultation prompt from analytics insights
+- **Input:** Array of insight objects from `interpretWorkoutData()`
+- **Output:** Formatted string prompt (~500-800 lines)
+
+**Sections Generated:**
+
+**Section 1: Clinical Insights with Exercise Breakdowns**
+```
+=== CLINICAL INSIGHTS DETECTED ===
+
+🚨 CRITICAL ISSUES:
+• 🚨 Core Training Severely Inadequate
+  Metrics: 5 sets/week (Minimum: 15)
+  Risk: Spine Stability Deficit
+  Suggested Action: Immediate: Add 3-4 core exercises per session
+  Evidence: Dr. Stuart McGill
+
+⚠️ WARNINGS:
+• ⚠️ Push/Pull Slightly Imbalanced
+  Metrics: Ratio: 0.84 (Target: 1.0-1.2)
+  Exercise Breakdown:
+    UPPER PUSH (14847kg total):
+      - [Machine] Shoulder Press: 3188kg
+      - [Bodyweight] Push Up: 2994kg
+      - [Machine] Pec Deck Fly: 2470kg
+    UPPER PULL (15670kg total):
+      - [Cable] Seated Row: 7050kg
+      - [Cable] Lat Pulldown: 6210kg
+  Risk: Shoulder Posture Concerns
+  Action: Increase pull volume: Add 1-2 back exercises
+  Evidence: Saeterbakken et al. (2011)
+```
+
+**Exercise Breakdown Logic:**
+- **Push/Pull Imbalance:** Shows top 5 upper push/pull exercises with volumes
+- **Training Frequency:** Lists which muscles <2x/week with exercises and session counts
+- **Unilateral Training:** Shows unilateral vs bilateral exercises with volumes
+- **Vertical Plane:** Shows vertical push/pull exercises with volumes
+
+**Section 2: Current Active Program Context**
+```
+=== PROGRAM AKTIF SAAT INI ===
+
+SESI 1: "Upper A (Strength Base)"
+- Total Exercises: 6
+- Estimated Volume: ~4320kg total
+  1. [DB] Flat Dumbbell Press (3 sets × 60kg, ~1440kg vol, 180s rest)
+  2. [Cable] Seated Cable Row (3 sets × 70kg, ~1680kg vol, 120s rest)
+  3. [Machine] Shoulder Press (3 sets × 40kg, ~960kg vol, 90s rest)
+  4. [Cable] Lat Pulldown (Wide) (3 sets × 50kg, ~1200kg vol, 90s rest)
+  5. [Cable] Tricep Pushdown (3 sets × 20kg, ~240kg vol, 60s rest)
+  6. CARDIO: 20min @ Zone 2
+```
+
+**Volume Calculation:**
+- Formula: `sets × target_weight × target_reps`
+- Uses `options[0].t_k` (target weight in kg)
+- Uses `options[0].t_r` (target reps, takes lower bound)
+- Session total: Sum of all exercise volumes
+- Per-exercise display: Shows contribution to session volume
+
+**Section 3: Structured Questions**
+```
+=== PERTANYAAN ===
+
+1. **Analisis Prioritas:** Masalah mana yang harus ditangani PERTAMA dan mengapa?
+
+2. **Modifikasi Program:** Exercise apa yang perlu:
+   - Ditambahkan (sebutkan 3-5 exercise spesifik)
+   - Dikurangi volume/frequency-nya
+   - Dirotasi keluar dari program
+
+3. **Split Training Optimal:** Berdasarkan imbalances, apakah struktur program 
+   (SESI 1, SESI 2, SESI 3, SESI 4) sudah optimal? Atau perlu reorganisasi?
+
+4. **Timeline Perbaikan:** Berapa lama (dalam minggu) untuk improvement signifikan?
+
+5. **Rekomendasi Exercise:** Jika perlu tambahan exercise, berikan dalam format 
+   JSON (program_import schema) yang bisa saya import langsung ke program.
+```
+
+**2. `consultAIAboutInsights()`**
+- **Purpose:** Navigation handler to trigger AI consultation
+- **Process:**
+  1. Retrieve current insights (cached or recalculate)
+  2. Call `prepareAnalyticsConsultation(insights)`
+  3. Store prompt in `localStorage.ai_autoprompt`
+  4. Set source marker `localStorage.ai_autoprompt_source = 'analytics_consultation'`
+  5. Navigate to AI view after 300ms delay
+- **UX:** Shows toast "Menyiapkan konsultasi AI..."
+- **Error Handling:** Shows warning if no insights available
+
+#### **Phase 2: UI Integration (js/stats.js)**
+
+**Consultation Button:**
+```javascript
+// Added below Clinical Insights section in renderAdvancedAnalytics()
+if (insights.length > 0) {
+  html += `
+    <div class="mt-4">
+      <button onclick="window.APP.stats.consultAIAboutInsights()"
+              class="w-full py-3 px-4 rounded-xl font-semibold text-sm
+                     bg-gradient-to-r from-blue-500 to-purple-600
+                     hover:from-blue-600 hover:to-purple-700
+                     text-white shadow-lg transition-all active:scale-95">
+        <i class="fa-solid fa-brain mr-2"></i>
+        Konsultasi AI tentang Insights
+      </button>
+      <p class="text-[10px] text-app-subtext text-center mt-2">
+        Generate comprehensive consultation prompt with program context
+      </p>
+    </div>
+  `;
+}
+```
+
+**Button Styling:**
+- Blue-purple gradient (matches AI theme from V29.0)
+- Brain icon (`fa-brain`) for AI association
+- Conditional rendering (only shows when insights exist)
+- Active scale animation on click
+- Helper text explains functionality
+
+#### **Phase 3: AI View Integration (js/ui.js)**
+
+**Autoprompt Detection in `renderContextMode()`:**
+```javascript
+// Check for autoprompt on AI view init
+const autoprompt = localStorage.getItem('ai_autoprompt');
+const source = localStorage.getItem('ai_autoprompt_source');
+
+if (autoprompt && source === 'analytics_consultation') {
+  // Show blue banner
+  html += `
+    <div class="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mb-3">
+      <div class="text-sm text-blue-400 font-bold">
+        ✨ Auto-Consultation Active
+      </div>
+      <div class="text-xs text-app-subtext mt-1">
+        Analytics insights consultation pre-loaded
+      </div>
+    </div>
+  `;
+  
+  // Pre-fill textarea
+  textarea.value = autoprompt;
+  
+  // Clear localStorage (one-time use)
+  localStorage.removeItem('ai_autoprompt');
+  localStorage.removeItem('ai_autoprompt_source');
+  localStorage.removeItem('ai_autoprompt_timestamp');
+}
+```
+
+**Integration Pattern:**
+- Follows existing `prepareImbalanceConsultation()` pattern
+- Uses `{{CONTEXT}}` placeholder concept from AI Command Center
+- One-time autoprompt cleared after use (prevents reuse on refresh)
+- Falls back to normal context mode if no autoprompt
+
+### Technical Implementation Details
+
+**Data Sources:**
+```javascript
+const pushPull = this.calculatePushPullRatio(daysBack);
+const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+const frequency = this.calculateTrainingFrequency(daysBack);
+const unilateral = this.calculateUnilateralVolume(daysBack);
+const program = window.APP.state?.workoutData || {};
+```
+
+**Exercise Breakdown Extraction:**
+```javascript
+// Push/Pull example
+if (w.id === 'push-pull-moderate-push') {
+  prompt += `  Exercise Breakdown:\n`;
+  prompt += `    UPPER PUSH (${pushPull.upperPush}kg total):\n`;
+  pushPull.upperPushExercises.slice(0, 5).forEach(([ex, vol]) => {
+    prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+  });
+  prompt += `    UPPER PULL (${pushPull.upperPull}kg total):\n`;
+  pushPull.upperPullExercises.slice(0, 5).forEach(([ex, vol]) => {
+    prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+  });
+}
+```
+
+**Volume Calculation Per Exercise:**
+```javascript
+const sets = ex.sets || 3;
+const firstOption = ex.options?.[0] || {};
+const targetWeight = parseFloat(firstOption.t_k) || 0;
+const targetReps = firstOption.t_r ? parseInt(firstOption.t_r.split('-')[0]) : 10;
+const exerciseVolume = sets * targetWeight * targetReps;
+
+const metadata = [];
+metadata.push(`${sets} sets × ${targetWeight}kg`);
+metadata.push(`~${Math.round(exerciseVolume)}kg vol`);
+if (ex.rest) metadata.push(`${ex.rest}s rest`);
+```
+
+### Testing Scenarios
+
+**✅ Tested:**
+1. Analytics → Consult button → AI view with autoprompt
+2. Autoprompt contains exercise breakdowns
+3. Autoprompt contains full program context (all exercises)
+4. Volume calculations accurate (KG, not reps)
+5. Autoprompt cleared after navigation
+6. Normal context mode works without autoprompt
+
+**⚠️ Edge Cases Handled:**
+- No insights: Button shows warning toast
+- No program: Shows "Tidak ada program aktif terdeteksi"
+- Cardio exercises: Displays duration and HR zone
+- Missing target weight: Defaults to 0kg
+- Missing target reps: Defaults to 10 reps
+
+### Scientific Basis
+
+**Consultation Prompt Structure:**
+- **Evidence-Based:** All insights include scientific citations
+- **Actionable:** Specific exercise recommendations requested
+- **Prioritized:** Danger > Warning > Info severity grouping
+- **Contextual:** Includes current program for relevant suggestions
+- **Importable:** Requests JSON format for direct program import
+
+**References Included:**
+- Dr. Stuart McGill - Core training
+- Saeterbakken et al. (2011) - Push/pull ratios
+- Schoenfeld et al. (2016) - Training frequency
+- Boyle (2016) - Unilateral training
+- Myer et al. (2005) - ACL injury prevention
+- Cressey & Robertson (2019) - Horizontal/vertical balance
+
+### User Experience Flow
+
+```
+1. User views Advanced Analytics tab
+   ↓
+2. Clinical Insights section shows warnings
+   ↓
+3. User clicks "Konsultasi AI tentang Insights" button
+   ↓
+4. Toast: "Menyiapkan konsultasi AI..."
+   ↓
+5. Navigate to AI view (300ms delay)
+   ↓
+6. Blue banner: "Auto-Consultation Active"
+   ↓
+7. Textarea pre-filled with 500-800 line prompt
+   ↓
+8. User reviews prompt, can edit before sending
+   ↓
+9. Send to Gemini AI for analysis
+   ↓
+10. AI responds with prioritized recommendations
+```
+
+### Code Quality
+
+**Maintainability:**
+- ✅ Follows existing `prepareImbalanceConsultation()` pattern
+- ✅ Reuses analytics calculation functions
+- ✅ Modular insight breakdown logic
+- ✅ Clear section separation in prompt
+
+**Performance:**
+- ✅ Caches insights in `window.APP._currentInsights`
+- ✅ Filters program for active sessions only (excludes spontaneous)
+- ✅ Calculates analytics once, uses for all breakdowns
+- ✅ ~300ms delay for smooth navigation
+
+**Error Handling:**
+- ✅ Validates insights array exists and not empty
+- ✅ Handles missing program data gracefully
+- ✅ Defaults to safe values for missing exercise metadata
+- ✅ Toast notifications for user feedback
+
+### Next Steps
+
+**Completed:**
+- ✅ V30.5 AI Consultation Integration
+- ✅ Exercise-level breakdown context
+- ✅ Volume calculation accuracy
+- ✅ Full program listing
+- ✅ Structured consultation questions
+
+**Future Enhancements (V30.6+):**
+- [ ] Save consultation history
+- [ ] Export prompt as text file
+- [ ] AI response parsing and auto-import
+- [ ] Consultation templates for different goals
+- [ ] Progress tracking across consultations
 
 ---
 

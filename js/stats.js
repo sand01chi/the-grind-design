@@ -4555,6 +4555,13 @@ renderAdvancedRatios: function(daysBack = 30) {
         return null;
       }
 
+      // Get comprehensive analytics data
+      const daysBack = 30;
+      const pushPull = this.calculatePushPullRatio(daysBack);
+      const hvRatios = this.calculateHorizontalVerticalRatios(daysBack);
+      const frequency = this.calculateTrainingFrequency(daysBack);
+      const unilateral = this.calculateUnilateralVolume(daysBack);
+
       // Get current active program (exclude spontaneous)
       const program = window.APP.state?.workoutData || {};
       const sessionIds = Object.keys(program).filter(id => id !== "spontaneous");
@@ -4567,7 +4574,7 @@ renderAdvancedRatios: function(daysBack = 30) {
       // Build consultation prompt
       let prompt = "Saya mendapat hasil analisis dari Advanced Analytics dan butuh bantuan Anda:\n\n";
 
-      // Section 1: Clinical Insights
+      // Section 1: Clinical Insights with Exercise Breakdowns
       prompt += "=== CLINICAL INSIGHTS DETECTED ===\n\n";
 
       if (dangers.length > 0) {
@@ -4587,6 +4594,56 @@ renderAdvancedRatios: function(daysBack = 30) {
         warnings.forEach(w => {
           prompt += `\n• ${w.title}\n`;
           if (w.metrics) prompt += `  Metrics: ${w.metrics}\n`;
+          
+          // Add exercise breakdown for specific insights
+          if (w.id === 'push-pull-moderate-push' || w.id === 'push-pull-severe-push') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    UPPER PUSH (${pushPull.upperPush}kg total):\n`;
+            pushPull.upperPushExercises.slice(0, 5).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    UPPER PULL (${pushPull.upperPull}kg total):\n`;
+            pushPull.upperPullExercises.slice(0, 5).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
+          if (w.id === 'frequency-low') {
+            prompt += `  Exercise Breakdown:\n`;
+            Object.entries(frequency.frequency).forEach(([muscle, freq]) => {
+              if (freq < 2 && frequency.exercises[muscle].length > 0) {
+                prompt += `    ${muscle.toUpperCase()} (${freq}x/week):\n`;
+                frequency.exercises[muscle].slice(0, 3).forEach(([ex, count]) => {
+                  prompt += `      - ${ex}: ${count} sesi\n`;
+                });
+              }
+            });
+          }
+          
+          if (w.id === 'unilateral-insufficient') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    UNILATERAL (${unilateral.unilateralPercent}% - ${unilateral.unilateralVolume}kg):\n`;
+            unilateral.unilateralExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    BILATERAL (${(100 - unilateral.unilateralPercent).toFixed(1)}% - ${unilateral.bilateralVolume}kg):\n`;
+            unilateral.bilateralExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
+          if (w.id === 'vertical-weak-push') {
+            prompt += `  Exercise Breakdown:\n`;
+            prompt += `    VERTICAL PUSH (${hvRatios.verticalPush}kg total):\n`;
+            hvRatios.verticalPushExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+            prompt += `    VERTICAL PULL (${hvRatios.verticalPull}kg total):\n`;
+            hvRatios.verticalPullExercises.slice(0, 3).forEach(([ex, vol]) => {
+              prompt += `      - ${ex}: ${Math.round(vol)}kg\n`;
+            });
+          }
+          
           if (w.risk) prompt += `  Risk: ${w.risk}\n`;
           if (w.action) prompt += `  Suggested Action: ${w.action}\n`;
           if (w.evidence && w.evidence.source) prompt += `  Evidence: ${w.evidence.source}\n`;
@@ -4603,7 +4660,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         prompt += "\n";
       }
 
-      // Section 2: Current Active Program Context
+      // Section 2: Current Active Program Context (Full Detail)
       prompt += "=== PROGRAM AKTIF SAAT INI ===\n\n";
       
       if (sessionIds.length > 0) {
@@ -4612,23 +4669,45 @@ renderAdvancedRatios: function(daysBack = 30) {
           prompt += `${session.label || id}: "${session.title || 'Untitled'}"\n`;
           prompt += `- Total Exercises: ${session.exercises?.length || 0}\n`;
           
-          // List exercises (first 5 per session)
+          // Calculate total volume for this session (in KG)
+          let sessionVolume = 0;
           if (session.exercises && session.exercises.length > 0) {
-            const exerciseList = session.exercises.slice(0, 5).map((ex, idx) => {
-              if (ex.type === "cardio") {
-                return `  ${idx + 1}. CARDIO: ${ex.target_duration || 30}min @ ${ex.target_hr_zone || 'Zone 2'}`;
-              } else {
-                const firstOption = ex.options?.[0]?.n || "Unknown";
-                return `  ${idx + 1}. ${firstOption} (${ex.sets || 3} sets)`;
+            session.exercises.forEach(ex => {
+              if (ex.type !== "cardio") {
+                const sets = ex.sets || 3;
+                const firstOption = ex.options?.[0] || {};
+                const targetWeight = parseFloat(firstOption.t_k) || 0;
+                const targetReps = firstOption.t_r ? parseInt(firstOption.t_r.split('-')[0]) : 10;
+                sessionVolume += sets * targetWeight * targetReps;
               }
-            }).join('\n');
-            prompt += exerciseList;
-            
-            if (session.exercises.length > 5) {
-              prompt += `\n  ... +${session.exercises.length - 5} more exercises`;
-            }
+            });
           }
-          prompt += "\n\n";
+          prompt += `- Estimated Volume: ~${Math.round(sessionVolume)}kg total\n`;
+          
+          // List ALL exercises (not limited)
+          if (session.exercises && session.exercises.length > 0) {
+            session.exercises.forEach((ex, idx) => {
+              if (ex.type === "cardio") {
+                prompt += `  ${idx + 1}. CARDIO: ${ex.target_duration || 30}min @ ${ex.target_hr_zone || 'Zone 2'}\n`;
+              } else {
+                const firstOption = ex.options?.[0] || {};
+                const exerciseName = firstOption.n || "Unknown";
+                const sets = ex.sets || 3;
+                const targetWeight = parseFloat(firstOption.t_k) || 0;
+                const targetReps = firstOption.t_r ? parseInt(firstOption.t_r.split('-')[0]) : 10;
+                const exerciseVolume = sets * targetWeight * targetReps;
+                
+                const metadata = [];
+                metadata.push(`${sets} sets × ${targetWeight}kg`);
+                metadata.push(`~${Math.round(exerciseVolume)}kg vol`);
+                if (ex.rest) metadata.push(`${ex.rest}s rest`);
+                
+                const metaStr = metadata.length > 0 ? ` (${metadata.join(', ')})` : '';
+                prompt += `  ${idx + 1}. ${exerciseName}${metaStr}\n`;
+              }
+            });
+          }
+          prompt += "\n";
         });
       } else {
         prompt += "Tidak ada program aktif terdeteksi (semua workout spontaneous)\n\n";
