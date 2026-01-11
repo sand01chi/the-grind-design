@@ -60,7 +60,8 @@
 
     saveSet: (id, t, v) => {
       LS_SAFE.set(`${id}_${t}`, v);
-      if (t === "rpe") APP.nav.loadWorkout(APP.state.currentSessionId);
+      // V30.5: Removed re-render on RPE save to prevent UI jump
+      // RPE changes are now saved without full page re-render
     },
 
     toggleSetsVisibility: (exerciseIdx) => {
@@ -377,11 +378,30 @@
         fillCount++;
       }
 
-      APP.nav.loadWorkout(sessionId);
+      // V30.5: Don't trigger full re-render to prevent UI jump
+      // Instead, update only the affected inputs
+      for (let i = 1; i <= ex.sets; i++) {
+        const sid = `${sessionId}_ex${exerciseIdx}_s${i}`;
+        
+        // Find inputs by row container and query selectors
+        const row = document.getElementById(`row_${sid}`);
+        if (row) {
+          const kInput = row.querySelector('input[data-sid]');
+          const inputs = row.querySelectorAll('input[type="number"]');
+          const rInput = inputs[1]; // Second number input is reps
+          const rpeSelect = row.querySelector('select');
+          
+          if (kInput) kInput.value = LS_SAFE.get(`${sid}_k`);
+          if (rInput) rInput.value = LS_SAFE.get(`${sid}_r`);
+          if (rpeSelect) rpeSelect.value = LS_SAFE.get(`${sid}_rpe`);
+        }
+      }
+      
+      // Update volume counter without full re-render
+      APP.data.updateVolumeCounter(sessionId, exerciseIdx);
 
       APP.ui.showToast(
-        `⚡ Auto-filled ${fillCount} sets: ${baseWeight}kg x ${baseReps}<br>
-      <span class="text-xs text-slate-400">Source: ${source}</span>`,
+        `⚡ Auto-filled ${fillCount} sets: ${baseWeight}kg x ${baseReps}\nSource: ${source}`,
         "success"
       );
     },
