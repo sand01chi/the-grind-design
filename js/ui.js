@@ -1261,15 +1261,15 @@
      * @param {HTMLElement} container - Content area container
      */
     renderContextMode: function(container) {
-      // V30.5: Check for autoprompt from analytics consultation
+      // V30.5: Check for autoprompt from analytics or imbalance consultation
       const autoprompt = localStorage.getItem('ai_autoprompt');
       const autopromptSource = localStorage.getItem('ai_autoprompt_source');
       
       let contextText = "";
       let isAutoprompt = false;
       
-      if (autoprompt && autopromptSource === 'analytics_consultation') {
-        // Use autoprompt from analytics
+      if (autoprompt && (autopromptSource === 'analytics_consultation' || autopromptSource === 'imbalance_consultation')) {
+        // Use autoprompt from analytics or imbalance consultation
         contextText = autoprompt;
         isAutoprompt = true;
         
@@ -1278,7 +1278,7 @@
         localStorage.removeItem('ai_autoprompt_source');
         localStorage.removeItem('ai_autoprompt_timestamp');
         
-        console.log("[UI] Loaded autoprompt from analytics consultation");
+        console.log(`[UI] Loaded autoprompt from ${autopromptSource}`);
       } else {
         // Generate normal context using AI Bridge
         if (window.APP.aiBridge && window.APP.aiBridge.getPromptContext) {
@@ -1298,7 +1298,9 @@
                 <span class="text-xs font-semibold text-blue-300">Auto-Consultation Active</span>
               </div>
               <p class="text-[10px] text-slate-400">
-                Prompt generated from Advanced Analytics with clinical insights + active program context
+                ${autopromptSource === 'analytics_consultation' 
+                  ? 'Prompt generated from Advanced Analytics with clinical insights + active program context'
+                  : 'Prompt generated from Body Part Imbalance Detection + exercise volume analysis'}
               </p>
             </div>
           ` : `

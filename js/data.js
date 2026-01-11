@@ -945,8 +945,10 @@
         }, 250);
         return;
       } else if (mode === "date") {
+        // Check both Settings view and Data view date pickers
         const inputDate =
-          document.getElementById("del-date-picker").value;
+          document.getElementById("settings-del-date-picker")?.value ||
+          document.getElementById("del-date-picker")?.value;
         if (!inputDate) return alert("Pilih tanggal dulu.");
         const targetDate = DT.formatDate(new Date(inputDate));
         if (!confirm(`Hapus semua log tanggal ${targetDate}?`)) return;

@@ -4535,12 +4535,23 @@ renderAdvancedRatios: function(daysBack = 30) {
       promptText += `-Kamu bisa crossreference dengan log kamu di google task.\n`;
       promptText += `-Ingat standar output resep JSON: Instructional Cueing (Notes) , Tri-Option System , Full Metadata.`;
 
-      APP.ui.showManualCopy(promptText);
+      // Store prompt for AI view to pickup (V30.5 pattern)
+      localStorage.setItem('ai_autoprompt', promptText);
+      localStorage.setItem('ai_autoprompt_source', 'imbalance_consultation');
+      localStorage.setItem('ai_autoprompt_timestamp', Date.now().toString());
 
-      APP.ui.showToast(
-        "📋 Prompt konsultasi disalin! Paste ke Gemini AI untuk analisis mendalam.",
-        "success"
-      );
+      // Show loading feedback
+      window.APP.ui.showToast("Menyiapkan konsultasi AI...", "info");
+
+      // Navigate to AI view after brief delay (smooth UX)
+      setTimeout(() => {
+        if (window.APP.nav && window.APP.nav.switchView) {
+          window.APP.nav.switchView('ai');
+        } else {
+          console.error("[STATS] Navigation function not available");
+          window.APP.ui.showToast("AI view tidak tersedia", "error");
+        }
+      }, 300);
     },
 
     /**
