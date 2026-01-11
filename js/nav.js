@@ -630,6 +630,10 @@
 
     loadWorkout: (id) => {
       try {
+      // V30.5: Save scroll position before re-render to prevent UI jump
+      const exList = document.getElementById("exercise-list");
+      const scrollBefore = exList ? exList.scrollTop : 0;
+
       APP.state.currentSessionId = id;
       APP.state.focusMode = false;
       APP.ui.updateFocusBtn();
@@ -664,8 +668,7 @@
       if (wGeneral) wGeneral.innerText = "Jalan Cepat 5 Menit.";
       if (wDynamic) wDynamic.innerText = data.dynamic || "Arm Circles";
 
-      const exList = document.getElementById("exercise-list");
-
+      // V30.5: exList already declared at start of function for scroll preservation
       if (!exList) {
         console.error("[DOM ERROR] exercise-list element not found");
         alert("Error: Exercise list tidak ditemukan. Refresh halaman.");
@@ -937,7 +940,7 @@
         } absolute -top-1 -right-1 text-[8px]" onclick="APP.data.openSetNoteModal('${_id}',${_idx},${i})" title="${
             note || "Add note"
           }"></i>
-    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold text-center" onchange="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
+    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold text-center" onblur="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
             done ? "checked" : ""
           } onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
         }
@@ -1020,6 +1023,14 @@
       });
 
       exList.innerHTML = htmlBuffer;
+      
+      // V30.5: Restore scroll position after re-render to prevent UI jump
+      if (scrollBefore > 0) {
+        requestAnimationFrame(() => {
+          if (exList) exList.scrollTop = scrollBefore;
+        });
+      }
+      
       APP.ui.checkActiveCard();
 
       data.exercises.forEach((ex, idx) => {

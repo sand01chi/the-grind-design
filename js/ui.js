@@ -22,6 +22,7 @@
 
     // Toast Notifications
     // V29.5 P2-001: XSS sanitization applied
+    // V30.5: Support line breaks with \n
     showToast: (msg, type = "success") => {
       const con = document.getElementById("toast-container");
       const t = document.createElement("div");
@@ -30,9 +31,12 @@
         type === "success"
           ? '<i class="fa-solid fa-arrow-up"></i>'
           : '<i class="fa-solid fa-triangle-exclamation"></i>';
-      // V29.5 P2-001: Sanitize message to prevent XSS (defense-in-depth)
-      const safeMsg = window.APP.validation.sanitizeHTML(msg);
-      t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight">${safeMsg}</div>`;
+      // V30.5: Convert \n to <br> for line breaks, then sanitize
+      const msgWithBreaks = msg.replace(/\n/g, '<br>');
+      const safeMsg = window.APP.validation.sanitizeHTMLWithTags
+        ? window.APP.validation.sanitizeHTMLWithTags(msgWithBreaks, ['br'])
+        : msgWithBreaks.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;br&gt;/g, '<br>');
+      t.innerHTML = `<div class="toast-icon">${icon}</div><div class="text-xs font-bold text-white leading-tight" style="white-space: pre-line;">${safeMsg}</div>`;
       con.appendChild(t);
       requestAnimationFrame(() => t.classList.add("show"));
       setTimeout(() => {
