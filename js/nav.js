@@ -740,7 +740,6 @@
             "Felt easy",
             "Good pace",
             "Tough",
-            "Perfect recovery",
           ];
           const noteButtons = quickNotes
             .map(
