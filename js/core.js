@@ -302,6 +302,7 @@
               const re = parseFloat(LS_SAFE.get(`${s}_r`) || 0);
               const rpe = LS_SAFE.get(`${s}_rpe`) || "";
               const rir = LS_SAFE.get(`${s}_e`) || ""; // V29.5: Standardized to empty string
+              const setNote = LS_SAFE.get(`note_${sessId}_ex${i}_s${j}`) || ""; // V30.5: Include set notes
               const do_ = LS_SAFE.get(`${s}_d`) === "true";
               if (do_ && k > 0 && re > 0) {
                 v += k * re;
@@ -311,6 +312,7 @@
                   r: re,
                   rpe: rpe,
                   e: rir, // V29.0.1: Add RIR field
+                  note: setNote, // V30.5: Add set note field
                 });
                 LS_SAFE.set(`${s}_d`, "false");
               }

@@ -369,19 +369,23 @@
                       </div>
                       <div class="flex flex-wrap gap-2">
                           ${x.d
-                            .map((s) => {
+                            .map((s, setIdx) => {
                               const isBest =
                                 s.k === bestSet.k && s.r === bestSet.r;
                               let badgeColor = isBest
                                 ? "bg-emerald-600 text-white border-emerald-500"
                                 : "bg-slate-800 text-slate-400 border-slate-700";
-                              return `<span class="text-[10px] px-2 py-1 rounded border ${badgeColor} font-mono">${
+                              // V30.5: Show set number with note
+                              const setNoteDisplay = s.note 
+                                ? `<span class="text-[9px] text-yellow-400 block mt-0.5 italic">📝 Set #${setIdx + 1}: ${window.APP.validation.sanitizeHTML(s.note)}</span>`
+                                : "";
+                              return `<div class="inline-flex flex-col"><span class="text-[10px] px-2 py-1 rounded border ${badgeColor} font-mono">${
                                 s.k
                               }x${s.r} ${
                                 s.rpe
                                   ? `<span class="text-yellow-400 font-bold">@${s.rpe}</span>`
                                   : ""
-                              }</span>`;
+                              }</span>${setNoteDisplay}</div>`;
                             })
                             .join("")}
                       </div>
@@ -1684,7 +1688,10 @@
 
       // Format JSON with 2-space indentation
       const formattedJSON = JSON.stringify(template, null, 2);
-      textarea.value = formattedJSON;
+      
+      // Append output standards if available
+      const outputStandards = templates.outputStandards || "";
+      textarea.value = formattedJSON + outputStandards;
 
       // Auto-scroll to top
       textarea.scrollTop = 0;

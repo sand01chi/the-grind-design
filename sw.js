@@ -51,7 +51,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (event.request.method === 'GET') {
+        if (event.request.method === 'GET' && 
+            (event.request.url.startsWith('http:') || event.request.url.startsWith('https:'))) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
