@@ -1243,7 +1243,12 @@ VALIDATION RULES:
               context += `- 🏃 ${l.machine} LISS: ${l.duration}min @ ${l.avgHR}bpm${cardioSpontTag}\n`;
             } else if (l.d && Array.isArray(l.d)) {
               const exerciseSpontTag = l.src === "spontaneous" ? " [SPONTANEOUS]" : "";
-              const setsStr = l.d.map(s => `${s.k}x${s.r}${s.rpe ? "@"+s.rpe : ""}`).join(", ");
+              // V30.5: Include set notes with set numbers
+              const setsStr = l.d.map((s, setIdx) => {
+                let setStr = `${s.k}x${s.r}${s.rpe ? "@"+s.rpe : ""}`;
+                if (s.note) setStr += ` (Set #${setIdx + 1} note: ${s.note})`;
+                return setStr;
+              }).join(", ");
               context += `- ${l.ex}: ${setsStr}${exerciseSpontTag}\n`;
             }
           });
@@ -1791,6 +1796,7 @@ getPrompt: function(scenario, userInputs = {}) {
         // Validate each exercise
         session.exercises.forEach((ex, exIdx) => {
           const exPrefix = `${prefix} Exercise ${exIdx + 1}:`;
+          const isCardio = ex.type === "cardio";
 
           if (typeof ex.sets !== "number") errors.push(`${exPrefix} Missing or invalid "sets" field`);
           if (typeof ex.rest !== "number") errors.push(`${exPrefix} Missing or invalid "rest" field`);
@@ -1799,7 +1805,8 @@ getPrompt: function(scenario, userInputs = {}) {
             return;
           }
 
-          if (ex.options.length < 3) {
+          // V30.5: Skip variant count warning for cardio
+          if (!isCardio && ex.options.length < 3) {
             warnings.push(`${exPrefix} Only ${ex.options.length} variants (recommended: 3+)`);
           }
 
@@ -1808,8 +1815,11 @@ getPrompt: function(scenario, userInputs = {}) {
             const optPrefix = `${exPrefix} Option ${optIdx + 1}:`;
 
             if (!opt.n) errors.push(`${optPrefix} Missing "n" (name) field`);
-            if (!opt.t_r) warnings.push(`${optPrefix} Missing "t_r" (target reps)`);
-            if (typeof opt.t_k !== "number") warnings.push(`${optPrefix} Missing "t_k" (target weight)`);
+            // V30.5: Skip t_r and t_k warnings for cardio
+            if (!isCardio) {
+              if (!opt.t_r) warnings.push(`${optPrefix} Missing "t_r" (target reps)`);
+              if (typeof opt.t_k !== "number") warnings.push(`${optPrefix} Missing "t_k" (target weight)`);
+            }
             if (!opt.bio) warnings.push(`${optPrefix} Missing "bio" (biomechanics description)`);
           });
         });
@@ -1853,6 +1863,7 @@ getPrompt: function(scenario, userInputs = {}) {
       // Validate each exercise
       session.exercises.forEach((ex, exIdx) => {
         const exPrefix = `${prefix} Exercise ${exIdx + 1}:`;
+        const isCardio = ex.type === "cardio";
 
         if (typeof ex.sets !== "number") errors.push(`${exPrefix} Missing or invalid "sets" field`);
         if (typeof ex.rest !== "number") errors.push(`${exPrefix} Missing or invalid "rest" field`);
@@ -1861,7 +1872,8 @@ getPrompt: function(scenario, userInputs = {}) {
           return;
         }
 
-        if (ex.options.length < 2) {
+        // V30.5: Skip variant count warning for cardio
+        if (!isCardio && ex.options.length < 2) {
           warnings.push(`${exPrefix} Only ${ex.options.length} variant (recommended: 2+)`);
         }
 
@@ -1870,8 +1882,11 @@ getPrompt: function(scenario, userInputs = {}) {
           const optPrefix = `${exPrefix} Option ${optIdx + 1}:`;
 
           if (!opt.n) errors.push(`${optPrefix} Missing "n" (name) field`);
-          if (!opt.t_r) warnings.push(`${optPrefix} Missing "t_r" (target reps)`);
-          if (typeof opt.t_k !== "number") warnings.push(`${optPrefix} Missing "t_k" (target weight)`);
+          // V30.5: Skip t_r and t_k warnings for cardio
+          if (!isCardio) {
+            if (!opt.t_r) warnings.push(`${optPrefix} Missing "t_r" (target reps)`);
+            if (typeof opt.t_k !== "number") warnings.push(`${optPrefix} Missing "t_k" (target weight)`);
+          }
           if (!opt.bio) warnings.push(`${optPrefix} Missing "bio" (biomechanics description)`);
         });
       });
@@ -2005,6 +2020,19 @@ getPrompt: function(scenario, userInputs = {}) {
                     "bio": "Isolasi Rectus Femoris secara maksimal"
                   }
                 ]
+              },
+              {
+                "type": "cardio",
+                "sets": 1,
+                "rest": 60,
+                "options": [
+                  {
+                    "n": "[Cardio] LISS Session",
+                    "bio": "Low-intensity steady state cardio. Jaga heart rate di zona 2(60-70% max HR) untuk pembakaran lemak optimal.",
+                    "note": "Post-workout recommended",
+                    "machines": ["Treadmill", "Static Bike", "Rowing Machine", "Elliptical"]
+                  }
+                ]
               }
             ]
           }
@@ -2055,10 +2083,24 @@ getPrompt: function(scenario, userInputs = {}) {
                     "bio": "Memberikan tegangan konstan di seluruh rentang gerak"
                   }
                 ]
+              },
+              {
+                "type": "cardio",
+                "sets": 1,
+                "rest": 60,
+                "options": [
+                  {
+                    "n": "[Cardio] LISS Session",
+                    "bio": "Low-intensity steady state cardio untuk recovery aktif.",
+                    "note": "Post-workout",
+                    "machines": ["Treadmill", "Static Bike", "Rowing Machine"]
+                  }
+                ]
               }
             ]
           }
-        }
+        },
+        outputStandards: "\n\n═══════════════════════════════════════════════════════════════\nSTANDAR OUTPUT JSON RESISTANCE TRAINING\n═══════════════════════════════════════════════════════════════\n\n1. Instructional Cueing (Notes):\n   • Panduan teknis biomekanik yang mendalam\n   • Bukan sekadar catatan singkat\n   • Berfungsi sebagai Digital Coach\n\n2. Tri-Option System:\n   • Wajib: 1 Gerakan Utama + 2 Alternatif (Total 3 opsi)\n   • Per slot latihan untuk mengatasi antrian alat atau stagnasi\n\n3. Full Metadata:\n   • Link Video\n   • Bio Penjelasan\n   • Target Parameter yang presisi\n\n⚠️ CATATAN PENTING:\nUntuk exercise tipe Cardio tidak perlu mengikuti standar ini,\ncukup ikuti sesuai contoh format yang sudah disediakan.\n\n═══════════════════════════════════════════════════════════════\n"
       };
     }
 

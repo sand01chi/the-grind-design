@@ -1332,16 +1332,7 @@
           l.d.forEach((s, setIdx) => {
             let setLine = `   Set ${setIdx + 1}: ${s.k}kg x ${s.r}`;
             if (s.rpe) setLine += ` @ RPE ${s.rpe}`;
-
-            const setNote = APP.data.getSetNote(
-              l.src,
-              exerciseIdx,
-              setIdx + 1
-            );
-            if (setNote) {
-              setLine += ` [📝 ${setNote}]`;
-            }
-
+            if (s.note) setLine += ` [📝 ${s.note}]`;
             promptText += setLine + "\n";
           });
         }
@@ -1414,13 +1405,16 @@
             return;
           }
 
-          const noteStr = l.note ? ` [📝 ${l.note}]` : "";
           const exerciseSpontTag = l.src === "spontaneous" ? " [SPONTANEOUS]" : "";
           if (l.d && Array.isArray(l.d)) {
             const sStr = l.d
-              .map((s) => `${s.k}x${s.r}${s.rpe ? "@" + s.rpe : ""}`)
+              .map((s, setIdx) => {
+                let str = `${s.k}x${s.r}${s.rpe ? "@" + s.rpe : ""}`;
+                if (s.note) str += ` (Set #${setIdx + 1}: ${s.note})`;
+                return str;
+              })
               .join(", ");
-            rep += `- ${l.ex}${noteStr}: ${sStr}${exerciseSpontTag}\n`;
+            rep += `- ${l.ex}: ${sStr}${exerciseSpontTag}\n`;
           }
         });
       });
