@@ -12,7 +12,87 @@
   // Ensure APP exists
   if (!window.APP) window.APP = {};
 
+  // ============================================================================
+  // V30.6: EXERCISE TYPE DETECTION ENGINE
+  // ============================================================================
+  // Purpose: Classify exercises by type for specialized input/calculation handling
+  // Method: Regex pattern matching on exercise names
+  // Backward Compatible: Returns false for all types if patterns don't match
+  // Dependencies: None (pure function, no external state)
+  // 
+  // Scientific Basis:
+  // - Bodyweight: Load multipliers from stats.js BODYWEIGHT_LOAD_MULTIPLIERS
+  // - Unilateral: Volume = weight × (reps × 2) per NSCA guidelines
+  // - Time-based: Semantic UI for duration input (plank, holds)
+  // - Core: RPE guidelines adjusted per McGill core stability research
+
+  /**
+   * Exercise Type Detection Patterns
+   * Note: All patterns case-insensitive (/pattern/i flag)
+   */
+  const EXERCISE_TYPE_PATTERNS = {
+    // Bodyweight exercises (marked with [Bodyweight] or [BW] prefix)
+    bodyweight: /\[Bodyweight\]|\[BW\]/i,
+    
+    // Core exercises (primarily static/stability work)
+    core: /plank|dead.*bug|bird.*dog|pallof|hollow.*hold|l.*sit|ab.*wheel|rollout/i,
+    
+    // Time-based exercises (measured in duration, not reps)
+    timeBased: /plank|hold|static|wall.*sit|dead.*hang|l.*sit|isometric/i,
+    
+    // Unilateral exercises (single arm/leg work)
+    unilateral: /single.*arm|single.*leg|one.*arm|one.*leg|unilateral|bulgarian.*split|pistol.*squat/i,
+    
+    // Bilateral dumbbell exercises (need to sum both dumbbells)
+    bilateralDB: /\[DB\].*(?!single|one.*arm|one.*leg|unilateral)/i
+  };
+
   APP.session = {
+    /**
+     * V30.6: Detect exercise type for specialized handling
+     * @param {string} exerciseName - Full exercise name (e.g., "[Bodyweight] Pull Up")
+     * @returns {Object} - Exercise type flags
+     * @example
+     * detectExerciseType("[Bodyweight] Pull Up")
+     * // → { isBodyweight: true, isCore: false, isTimeBased: false, ... }
+     */
+    detectExerciseType: function(exerciseName) {
+      if (!exerciseName || typeof exerciseName !== 'string') {
+        return {
+          isBodyweight: false,
+          isCore: false,
+          isTimeBased: false,
+          isUnilateral: false,
+          isBilateralDB: false,
+          needsSideTracking: false
+        };
+      }
+
+      const name = exerciseName.trim();
+      
+      // Primary classifications
+      const isBodyweight = EXERCISE_TYPE_PATTERNS.bodyweight.test(name);
+      const isCore = EXERCISE_TYPE_PATTERNS.core.test(name);
+      const isTimeBased = EXERCISE_TYPE_PATTERNS.timeBased.test(name);
+      const isUnilateral = EXERCISE_TYPE_PATTERNS.unilateral.test(name);
+      const isBilateralDB = EXERCISE_TYPE_PATTERNS.bilateralDB.test(name);
+      
+      // Advanced: Exercises that benefit from per-side tracking (asymmetry detection)
+      // Examples: Single-Arm Row, Bulgarian Split Squat, Single-Leg RDL
+      const needsSideTracking = isUnilateral && (
+        /row|press|curl|extension|rdl|split|pistol/i.test(name)
+      );
+
+      return {
+        isBodyweight,
+        isCore,
+        isTimeBased,
+        isUnilateral,
+        isBilateralDB,
+        needsSideTracking
+      };
+    },
+
     openCreator: function () {
       document.getElementById("new-session-name").value = "";
       document.getElementById("new-session-label").value = "";
