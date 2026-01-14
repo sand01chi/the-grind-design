@@ -117,23 +117,42 @@
       let totalVol = 0,
         completedSets = 0;
 
+      // V30.6 Phase 3: Get exercise name for type detection
+      const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
+      const opt = ex.options[optIdx] || ex.options[0];
+      const exerciseName = opt.n || "Unknown Exercise";
+      
+      // V30.6 Phase 3: Detect exercise type for volume calculation
+      const exerciseType = APP.session.detectExerciseType(exerciseName);
+
       for (let i = 1; i <= ex.sets; i++) {
         const sid = `${sessionId}_ex${exerciseIdx}_s${i}`;
         const k = parseFloat(LS_SAFE.get(`${sid}_k`) || 0);
         const r = parseFloat(LS_SAFE.get(`${sid}_r`) || 0);
         const done = LS_SAFE.get(`${sid}_d`) === "true";
 
-        if (done) {
-          if (k > 0 && r > 0) {
-            totalVol += k * r;
+        if (done && r > 0) {
+          // V30.6 Phase 3: Calculate volume based on exercise type
+          let setVolume = 0;
+          
+          if (exerciseType.isBodyweight) {
+            // Bodyweight: Use research-based load multipliers
+            setVolume = APP.stats._calculateBodyweightVolume(exerciseName, r);
+          } else if (exerciseType.isUnilateral && k > 0) {
+            // Unilateral: Count both sides (reps × 2)
+            setVolume = k * (r * 2);
+          } else if (exerciseType.isBilateralDB && k > 0) {
+            // Bilateral DB: Sum both dumbbells (weight × 2)
+            setVolume = (k * 2) * r;
+          } else if (k > 0) {
+            // Standard: weight × reps
+            setVolume = k * r;
           }
-
+          
+          totalVol += setVolume;
           completedSets++;
         }
       }
-
-      const optIdx = LS_SAFE.get(`pref_${sessionId}_${exerciseIdx}`) || 0;
-      const opt = ex.options[optIdx] || ex.options[0];
       const h = LS_SAFE.getJSON("gym_hist", []);
       const lastLog = h
         .filter((x) => x.ex === opt.n)
