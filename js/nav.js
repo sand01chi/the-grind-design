@@ -878,6 +878,9 @@
         const optTargetK = opt.t_k || "-";
         const optTargetR = opt.t_r || "-";
 
+        // V30.6 Phase 2A: Detect exercise type for specialized UI handling
+        const exerciseType = APP.session.detectExerciseType(optName);
+
         const _id = id;
         const _idx = idx;
         const _savedVar = savedVar;
@@ -929,19 +932,51 @@
             }">${v}</option>`;
           }
 
-          setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center py-1 border-b border-white/5 ${
-            done ? "bg-emerald-900/10" : ""
-          }" id="row_${sid}">
+          // V30.6 Phase 2A: Conditional rendering based on exercise type
+          if (exerciseType.isBodyweight) {
+            // Bodyweight exercise: Hide weight input, auto-calculate
+            setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center py-1 border-b border-white/5 ${
+              done ? "bg-emerald-900/10" : ""
+            }" id="row_${sid}">
     <div class="col-span-1 text-center relative">
         <span class="text-slate-400 text-xs font-bold">${i}</span>
         <i class="fa-solid fa-message set-note-icon ${
           note ? "has-note" : ""
         } absolute -top-1 -right-1 text-[8px]" onclick="APP.data.openSetNoteModal('${_id}',${_idx},${i})" title="${
-            note || "Add note"
-          }"></i>
-    </div>                                <div class="col-span-4"><input type="number" value="${k}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div><div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div><div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold text-center" onblur="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div><div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
-            done ? "checked" : ""
-          } onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div></div>`;
+              note || "Add note"
+            }"></i>
+    </div>
+    <div class="col-span-4 flex items-center justify-center">
+        <span class="text-[10px] text-purple-400 font-bold bg-purple-900/20 px-2 py-1 rounded border border-purple-500/30" title="Load otomatis dihitung dari berat badan">🤸 BW</span>
+        <input type="hidden" data-sid="${sid}" value="0" onchange="APP.data.saveSet('${sid}','k',this.value)">
+    </div>
+    <div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div>
+    <div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold text-center" onblur="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div>
+    <div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
+              done ? "checked" : ""
+            } onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div>
+</div>`;
+          } else {
+            // Standard exercise: Show weight input
+            setsHtml += `<div class="grid grid-cols-12 gap-1 mb-1 items-center py-1 border-b border-white/5 ${
+              done ? "bg-emerald-900/10" : ""
+            }" id="row_${sid}">
+    <div class="col-span-1 text-center relative">
+        <span class="text-slate-400 text-xs font-bold">${i}</span>
+        <i class="fa-solid fa-message set-note-icon ${
+          note ? "has-note" : ""
+        } absolute -top-1 -right-1 text-[8px]" onclick="APP.data.openSetNoteModal('${_id}',${_idx},${i})" title="${
+              note || "Add note"
+            }"></i>
+    </div>
+    <div class="col-span-4"><input type="number" value="${k}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm input-k" data-sid="${sid}" placeholder="kg" onchange="APP.data.saveSet('${sid}','k',this.value)"></div>
+    <div class="col-span-3"><input type="number" value="${r}" class="w-full glass-input border-white/10 text-white text-center rounded p-1.5 text-sm" placeholder="10" onchange="APP.data.saveSet('${sid}','r',this.value)"></div>
+    <div class="col-span-2"><select class="w-full glass-input border-white/10 ${rpeColor} text-[10px] rounded p-1.5 font-bold text-center" onblur="APP.data.saveSet('${sid}','rpe',this.value)">${rpeOpts}</select></div>
+    <div class="col-span-2 flex justify-center"><input type="checkbox" class="w-5 h-5 accent-emerald-500 checkbox-done" ${
+              done ? "checked" : ""
+            } onchange="APP.data.toggleDone('${sid}',this, ${_idx})"></div>
+</div>`;
+          }
         }
 
         htmlBuffer += `
@@ -970,6 +1005,14 @@
             <div class="flex items-center gap-2 mb-2">
                 <select id="variant-select-${_idx}" onchange="APP.data.changeVariant('${_id}',${_idx},this.value)" class="glass-input border border-white/10 text-white text-sm rounded p-2 flex-1 font-bold truncate focus:ring-1 focus:ring-emerald-500 transition">${optHtml}</select>
             </div>
+            ${
+              exerciseType.isBodyweight
+                ? `<div class="text-[10px] text-purple-300 bg-purple-900/20 px-3 py-1.5 rounded-lg border border-purple-500/30 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-person text-purple-400"></i>
+                <span><b>Bodyweight Exercise</b> — Load otomatis dihitung dari berat badan Anda</span>
+            </div>`
+                : ""
+            }
             <div class="grid grid-cols-2 gap-2 px-1 mb-2">
                 <div class="flex gap-1 bg-red-900/20 rounded border border-red-900/30 overflow-hidden">
                     <a href="${vidUrl}" target="_blank" class="flex-1 text-red-400 text-[10px] flex items-center justify-center py-1.5 hover:bg-red-900/40 transition truncate"><i class="fa-brands fa-youtube mr-1"></i> Watch</a>
