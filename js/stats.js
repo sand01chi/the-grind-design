@@ -6259,6 +6259,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         // 3. CALCULATE
         let totalVolumeAdded = 0;
         let migrationErrors = [];
+        let dataStructureFixed = 0;
         
         toMigrate.forEach(({ log, idx }) => {
           try {
@@ -6276,8 +6277,17 @@ renderAdvancedRatios: function(daysBack = 30) {
             // Calculate volume using bodyweight multiplier
             const newVolume = this._calculateBodyweightVolume(log.ex, totalReps);
             
-            // Store original volume for audit
+            // Store original volume and weight for audit
             log._originalVolume = log.vol || 0;
+            log._originalWeight = log.k || 0;
+            
+            // Fix data structure: Bodyweight exercises should have k=0
+            if (log.k && log.k > 0) {
+              log.k = 0;
+              dataStructureFixed++;
+              console.log(`[MIGRATION] Fixed weight field: ${log.ex} - ${log._originalWeight}kg → 0kg`);
+            }
+            
             log.vol = newVolume;
             log._migrated = "v30.8";
             log._migratedTimestamp = Date.now();
@@ -6320,12 +6330,14 @@ renderAdvancedRatios: function(daysBack = 30) {
         console.log("[MIGRATION] ========================================");
         console.log("[MIGRATION] ✅ Migration completed successfully!");
         console.log(`[MIGRATION] Entries migrated: ${toMigrate.length}`);
+        console.log(`[MIGRATION] Data structure fixed: ${dataStructureFixed} (k field set to 0)`);
         console.log(`[MIGRATION] Volume added: ${totalVolumeAdded.toLocaleString()}kg`);
         console.log("[MIGRATION] ========================================");
         
         return {
           success: true,
           entriesMigrated: toMigrate.length,
+          dataStructureFixed: dataStructureFixed,
           volumeAdded: Math.round(totalVolumeAdded),
           errors: migrationErrors
         };
@@ -6510,6 +6522,12 @@ renderAdvancedRatios: function(daysBack = 30) {
                   <span class="text-slate-400">Volume Added:</span>
                   <span class="text-emerald-400 font-semibold">+${result.volumeAdded.toLocaleString()}kg</span>
                 </div>
+                ${result.dataStructureFixed > 0 ? `
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Weight Field Fixed:</span>
+                  <span class="text-blue-400 font-semibold">${result.dataStructureFixed} entries</span>
+                </div>
+                ` : ''}
                 <div class="flex justify-between text-sm">
                   <span class="text-slate-400">Backup Created:</span>
                   <span class="text-white font-semibold">${new Date().toLocaleDateString()}</span>
@@ -6523,6 +6541,7 @@ renderAdvancedRatios: function(daysBack = 30) {
                 <ul class="text-xs text-slate-400 space-y-1">
                   <li>• Pull-ups now show ~700kg per 10-rep set (was 0kg)</li>
                   <li>• Push-ups now show ~448kg per 10-rep set (was 0kg)</li>
+                  ${result.dataStructureFixed > 0 ? '<li>• Weight field removed from bodyweight exercises (k=0)</li>' : ''}
                   <li>• All bodyweight exercises calculated with your weight</li>
                 </ul>
               </div>
