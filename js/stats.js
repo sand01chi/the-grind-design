@@ -6618,19 +6618,57 @@ renderAdvancedRatios: function(daysBack = 30) {
     showMigrationPrompt: function() {
       console.log("[MIGRATION] Showing migration prompt");
       
-      // Get migration stats for preview
+      // Get migration stats for preview - check all 4 cases
       const gymHist = LS_SAFE.getJSON("gym_hist", []);
-      let count = 0;
+      let counts = {
+        bodyweight: 0,
+        unilateral: 0,
+        bilateralDB: 0,
+        total: 0
+      };
       let estimatedVolume = 0;
       
       gymHist.forEach(log => {
         if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
         
         const exType = APP.session.detectExerciseType(log.ex);
-        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
-          count++;
-          const totalReps = (log.sets || 1) * (log.reps || 0);
+        const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+        if (!firstSet) return;
+        
+        const weight = firstSet.k || 0;
+        const reps = firstSet.r || 0;
+        const sets = log.d ? log.d.length : 1;
+        
+        // Count bodyweight
+        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined || weight > 0)) {
+          counts.bodyweight++;
+          counts.total++;
+          
+          let totalReps = 0;
+          log.d.forEach(set => { totalReps += (set.r || 0); });
           estimatedVolume += this._calculateBodyweightVolume(log.ex, totalReps);
+        }
+        
+        // Count unilateral
+        if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = weight * (reps * 2) * sets;
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            counts.unilateral++;
+            counts.total++;
+            estimatedVolume += (expectedNewVolume - log.vol);
+          }
+        }
+        
+        // Count bilateral DB
+        if (exType.isBilateralDB && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = (weight * 2) * reps * sets;
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            counts.bilateralDB++;
+            counts.total++;
+            estimatedVolume += (expectedNewVolume - log.vol);
+          }
         }
       });
       
@@ -6644,16 +6682,17 @@ renderAdvancedRatios: function(daysBack = 30) {
             </h3>
             
             <p class="text-slate-400 text-sm mb-4">
-              We've improved bodyweight exercise volume tracking! Update your historical data for accurate analytics?
+              We've improved exercise volume tracking! Update your historical data for accurate analytics?
             </p>
             
             <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
               <h4 class="text-sm font-semibold text-blue-400 mb-2">📊 Changes:</h4>
               <ul class="text-xs text-slate-400 space-y-1">
-                <li>• <span class="text-white font-bold">${count}</span> bodyweight sets will be recalculated</li>
+                <li>• <span class="text-white font-bold">${counts.total}</span> exercise logs will be updated</li>
+                ${counts.bodyweight > 0 ? `<li>• ${counts.bodyweight} bodyweight exercises (pull-ups, dips, planks)</li>` : ''}
+                ${counts.unilateral > 0 ? `<li>• ${counts.unilateral} unilateral exercises (both sides counted)</li>` : ''}
+                ${counts.bilateralDB > 0 ? `<li>• ${counts.bilateralDB} bilateral DB exercises (both dumbbells summed)</li>` : ''}
                 <li>• +<span class="text-emerald-400 font-bold">${Math.round(estimatedVolume).toLocaleString()}</span>kg total volume will be added</li>
-                <li>• Analytics charts will be more accurate</li>
-                <li>• Pull-ups, push-ups, dips properly tracked</li>
               </ul>
             </div>
             
