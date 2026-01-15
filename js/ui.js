@@ -248,6 +248,7 @@
       document.getElementById(`${n}-modal`).classList.remove("hidden");
       if (n === "weight") APP.ui.renderWeight();
       if (n === "profile") APP.data.loadProfile();
+      if (n === "rpe") APP.ui.renderRPEModal();
       if (n === "nutrition") APP.data.loadNutrition();
       if (n === "stats") {
         APP.stats.loadOptions();
@@ -275,6 +276,173 @@
 
     closeModal: (n) =>
       document.getElementById(`${n}-modal`).classList.add("hidden"),
+
+    // V30.7: Context-aware RPE modal renderer
+    renderRPEModal: () => {
+      const container = document.getElementById('rpe-modal-content');
+      if (!container) return;
+
+      // Detect current exercise type
+      const sessionId = APP.state.currentSessionId;
+      if (!sessionId || !APP.state.workoutData[sessionId]) {
+        // Fallback to compound if no active session
+        container.innerHTML = APP.ui.getRPEContent('compound');
+        return;
+      }
+
+      // Get currently expanded exercise (if any)
+      let currentExercise = null;
+      const data = APP.state.workoutData[sessionId];
+      if (data && data.exercises) {
+        // Find first non-cardio exercise as default
+        const ex = data.exercises.find(e => e.type !== 'cardio');
+        if (ex) currentExercise = ex.n;
+      }
+
+      // Detect exercise type
+      let exerciseType = 'compound'; // default
+      if (currentExercise && typeof APP.session.detectExerciseType === 'function') {
+        const detected = APP.session.detectExerciseType(currentExercise);
+        
+        if (detected.isBodyweight) {
+          exerciseType = 'bodyweight';
+        } else if (detected.isCore || detected.isTimeBased) {
+          exerciseType = 'core';
+        } else if (detected.isUnilateral) {
+          exerciseType = 'unilateral';
+        } else if (APP.ui.isIsolationExercise(currentExercise)) {
+          exerciseType = 'isolation';
+        }
+      }
+
+      container.innerHTML = APP.ui.getRPEContent(exerciseType);
+    },
+
+    // V30.7: Helper to detect isolation exercises
+    isIsolationExercise: (name) => {
+      const isolationPatterns = [
+        /\bcurl\b/i, /\bfly\b/i, /\bflye\b/i, /\bextension\b/i,
+        /\braise\b/i, /\bpulldown\b/i, /\bpushdown\b/i,
+        /\bkickback\b/i, /\bshrug\b/i, /\bcable.*fly/i
+      ];
+      return isolationPatterns.some(pattern => pattern.test(name));
+    },
+
+    // V30.7: Generate RPE content based on exercise type
+    getRPEContent: (type) => {
+      const contents = {
+        compound: {
+          title: '📚 Pedoman Skala RPE & RIR',
+          subtitle: 'Latihan Compound (Squat, Bench, Deadlift)',
+          rows: [
+            { rpe: '10', rir: '0', desc: 'Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).', color: 'red-500' },
+            { rpe: '9.5', rir: '0-1', desc: 'Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.', color: 'red-400' },
+            { rpe: '9', rir: '1', desc: 'Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.', color: 'orange-400' },
+            { rpe: '8', rir: '2', desc: 'Beban kerja ideal. Berat, kecepatan bar terkontrol baik.', color: 'emerald-400' },
+            { rpe: '7', rir: '3+', desc: 'Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.', color: 'blue-400' }
+          ],
+          tip: '💡 <b>Rekomendasi:</b> Hypertrophy ideal di RPE 7-9'
+        },
+        bodyweight: {
+          title: '🤸 Pedoman RPE - Latihan Bodyweight',
+          subtitle: 'Pull-Up, Push-Up, Dip',
+          rows: [
+            { rpe: '10', rir: '0', desc: 'Tidak bisa 1 rep lagi dengan STRICT FORM. Otot failure total.', color: 'red-500' },
+            { rpe: '9.5', rir: '0-1', desc: 'Rep terakhir pakai momentum/kipping. Form mulai breakdown.', color: 'red-400' },
+            { rpe: '9', rir: '1', desc: 'Bisa 1 rep strict lagi. Kontraksi sangat kuat, gerakan lambat.', color: 'orange-400' },
+            { rpe: '8', rir: '2', desc: 'Bisa 2-3 rep strict. Kontrol penuh, form masih sempurna.', color: 'emerald-400' },
+            { rpe: '7', rir: '3+', desc: 'Masih smooth, bisa banyak rep lagi. Muscle connection baik.', color: 'blue-400' }
+          ],
+          tip: '⚠️ <b>PENTING:</b> Prioritaskan FORM QUALITY > jumlah rep maksimal.<br>• Jangan count rep dengan momentum/swing<br>• RPE 8-9 dengan strict form > RPE 10 dengan kipping'
+        },
+        core: {
+          title: '🧘 Pedoman RPE - Latihan Core & Isometric',
+          subtitle: 'Plank, Dead Bug, Pallof Hold',
+          rows: [
+            { rpe: '10', rir: '0s', desc: 'Tidak bisa hold lagi. Spinal position COMPROMISE (hips sag/pike).', color: 'red-500' },
+            { rpe: '9.5', rir: '0-5s', desc: 'Core shaking hebat. Posisi netral mulai hilang.', color: 'red-400' },
+            { rpe: '9', rir: '5-10s', desc: 'Hold 5-10s lagi dengan postur netral. Kontraksi maksimal.', color: 'orange-400' },
+            { rpe: '8', rir: '10-20s', desc: 'Kontraksi kuat. Bisa hold lebih lama dengan form baik.', color: 'emerald-400' },
+            { rpe: '7', rir: '20s+', desc: 'Terasa effort sedang. Form masih sempurna, bisa jauh lebih lama.', color: 'blue-400' }
+          ],
+          tip: '🧘 <b>Stuart McGill Guidelines:</b><br>• STOP saat spinal neutrality mulai hilang<br>• Form breakdown = STOP (bukan "push through")<br>• Quality contraction > durasi maksimal<br>⚠️ Core training bukan tentang "burn" maksimal!'
+        },
+        unilateral: {
+          title: '⚖️ Pedoman RPE - Latihan Unilateral',
+          subtitle: 'Single-Arm Row, Bulgarian Split Squat',
+          rows: [
+            { rpe: '10', rir: '0', desc: 'Balance lost. Tidak bisa 1 rep dengan postur stabil.', color: 'red-500' },
+            { rpe: '9.5', rir: '0-1', desc: 'Balance goyah. Kompensasi dari sisi lain mulai terjadi.', color: 'red-400' },
+            { rpe: '9', rir: '1', desc: 'Bisa 1 rep stabil. Kontrol penuh, minimal kompensasi.', color: 'orange-400' },
+            { rpe: '8', rir: '2', desc: 'Bisa 2-3 rep. Stabilizer muscles bekerja optimal.', color: 'emerald-400' },
+            { rpe: '7', rir: '3+', desc: 'Smooth, fokus ke muscle connection. Minimal fatigue.', color: 'blue-400' }
+          ],
+          tip: '⚖️ <b>Tips Imbalance Detection:</b><br>• Catat RPE untuk KIRI dan KANAN secara terpisah<br>• Jika selisih RPE >1 poin = ada IMBALANCE<br>• Contoh: Kanan RPE 8, Kiri RPE 9.5 → Kiri lebih lemah<br>📌 Selalu mulai dari sisi LEMAH terlebih dahulu'
+        },
+        isolation: {
+          title: '💪 Pedoman RPE - Latihan Isolasi',
+          subtitle: 'Cable Fly, Leg Extension, Bicep Curl',
+          rows: [
+            { rpe: '10', rir: '0', desc: 'MUSCLE BURN maksimal. Tidak bisa 1 rep tanpa cheat/momentum.', color: 'red-500' },
+            { rpe: '9.5', rir: '0-1', desc: 'Intense burn. Bisa 1 rep dengan sedikit cheat (swing/body english).', color: 'red-400' },
+            { rpe: '9', rir: '1', desc: 'Strong burn. Bisa 1 rep strict. Kontraksi sangat kuat.', color: 'orange-400' },
+            { rpe: '8', rir: '2-3', desc: 'Moderate burn. Bisa 2-3 rep. Target muscle fully engaged.', color: 'emerald-400' },
+            { rpe: '7', rir: '3+', desc: 'Light burn. Masih banyak cadangan. Untuk feeder sets.', color: 'blue-400' }
+          ],
+          tip: '💪 <b>Metabolic Stress Training:</b><br>• Isolasi EFEKTIF di RPE 8-10 (high metabolic stress)<br>• "Burn" sensation = lactic acid buildup (GOOD!)<br>• Drop sets ideal: RPE 10 → 9 → 8 tanpa rest<br>⚠️ Bedakan "muscle burn" vs "joint pain" - Joint pain = STOP!'
+        }
+      };
+
+      const content = contents[type] || contents.compound;
+      
+      let html = `
+        <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+          <div>
+            <h3 class="font-bold text-emerald-400 text-sm">
+              ${content.title}
+            </h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">${content.subtitle}</p>
+          </div>
+          <button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="glass-card text-emerald-400 text-[10px] uppercase">
+                <th class="p-2 border border-white/5 text-center w-1/6">RPE</th>
+                <th class="p-2 border border-white/5 text-center w-1/6">Sisa (RIR)</th>
+                <th class="p-2 border border-white/5 text-left">Indikator Fisik/Rasa</th>
+              </tr>
+            </thead>
+            <tbody class="text-slate-300 text-[11px]">`;
+      
+      content.rows.forEach((row, idx) => {
+        html += `
+              <tr class="${idx % 2 === 0 ? 'bg-white/5' : ''}">
+                <td class="p-2 border border-white/5 font-bold text-center text-${row.color} ${row.rpe === '10' ? 'text-sm' : ''}">
+                  ${row.rpe}
+                </td>
+                <td class="p-2 border border-white/5 text-center ${row.rir === '0' || row.rir === '1' || row.rir === '2' ? 'font-bold' : ''}">
+                  ${row.rir}
+                </td>
+                <td class="p-2 border border-white/5">
+                  ${row.desc}
+                </td>
+              </tr>`;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed">
+          ${content.tip}
+        </div>`;
+      
+      return html;
+    },
 
     openBio: (t, b) => {
       document.getElementById("bio-title").innerText = t;

@@ -1999,102 +1999,11 @@
       class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <div
-        class="glass-panel w-full max-w-md rounded-2xl border border-white/10 p-5 fade-in"
+        class="glass-panel w-full max-w-md rounded-2xl border border-white/10 p-5 fade-in max-h-[90vh] overflow-y-auto"
       >
-        <div
-          class="flex justify-between items-center mb-4 border-b border-white/10 pb-2"
-        >
-          <h3 class="font-bold text-emerald-400">
-            <i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR
-          </h3>
-          <button
-            onclick="APP.ui.closeModal('rpe')"
-            class="text-slate-400 hover:text-white"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="glass-card text-emerald-400 text-[10px] uppercase">
-                <th class="p-2 border border-white/5 text-center w-1/6">
-                  RPE
-                </th>
-                <th class="p-2 border border-white/5 text-center w-1/6">
-                  Sisa (RIR)
-                </th>
-                <th class="p-2 border border-white/5 text-left">
-                  Indikator Fisik/Rasa
-                </th>
-              </tr>
-            </thead>
-            <tbody class="text-slate-300 text-[11px]">
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-red-500 text-sm"
-                >
-                  10
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  0
-                </td>
-                <td class="p-2 border border-white/5">
-                  Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).
-                </td>
-              </tr>
-              <tr>
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-red-400"
-                >
-                  9.5
-                </td>
-                <td class="p-2 border border-white/5 text-center">0 - 1</td>
-                <td class="p-2 border border-white/5">
-                  Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat
-                  lambat.
-                </td>
-              </tr>
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-orange-400"
-                >
-                  9
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  1
-                </td>
-                <td class="p-2 border border-white/5">
-                  Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi
-                  selesai.
-                </td>
-              </tr>
-              <tr>
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-emerald-400"
-                >
-                  8
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  2
-                </td>
-                <td class="p-2 border border-white/5">
-                  Beban kerja ideal. Berat, kecepatan bar terkontrol baik.
-                </td>
-              </tr>
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-blue-400"
-                >
-                  7
-                </td>
-                <td class="p-2 border border-white/5 text-center">3+</td>
-                <td class="p-2 border border-white/5">
-                  Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- V30.7: Dynamic RPE content based on exercise type -->
+        <div id="rpe-modal-content">
+          <!-- Content rendered by APP.ui.renderRPEModal() -->
         </div>
       </div>
     </div>
