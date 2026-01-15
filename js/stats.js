@@ -3839,23 +3839,55 @@ renderAdvancedRatios: function(daysBack = 30) {
       const bwContent = document.getElementById('dash-bw-content');
       if (!bwContent) return;
 
-      const bwData = APP.stats.analyzeBodyweightContribution(weekLogs);
-      
-      if (bwData.totalBWVolume === 0) {
+      if (!weekLogs || weekLogs.length === 0) {
+        bwContent.innerHTML = `
+          <p class="text-xs text-slate-400">No workouts logged this week</p>
+        `;
+        return;
+      }
+
+      // Calculate bodyweight contribution from weekLogs
+      let totalBWVolume = 0;
+      let totalWeightedVolume = 0;
+      const exercises = [];
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.ex) return;
+        
+        const vol = log.vol || 0;
+        const isBodyweight = log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]");
+        
+        if (isBodyweight) {
+          totalBWVolume += vol;
+          const existing = exercises.find(e => e.name === log.ex);
+          if (existing) {
+            existing.volume += vol;
+          } else {
+            exercises.push({ name: log.ex, volume: vol });
+          }
+        } else {
+          totalWeightedVolume += vol;
+        }
+      });
+
+      if (totalBWVolume === 0) {
         bwContent.innerHTML = `
           <p class="text-xs text-slate-400">No bodyweight exercises logged this week</p>
         `;
         return;
       }
 
-      const percentage = bwData.percentage.toFixed(1);
+      const totalVolume = totalBWVolume + totalWeightedVolume;
+      const percentage = totalVolume > 0 ? ((totalBWVolume / totalVolume) * 100).toFixed(1) : '0.0';
+      const percentageNum = parseFloat(percentage);
+      
       let badge = '';
       let badgeText = '';
       
-      if (bwData.percentage >= 40) {
+      if (percentageNum >= 40) {
         badge = 'bg-purple-600 text-white';
         badgeText = '🏅 Calisthenics Master';
-      } else if (bwData.percentage >= 20) {
+      } else if (percentageNum >= 20) {
         badge = 'bg-blue-600 text-white';
         badgeText = '🎯 Hybrid Athlete';
       } else {
@@ -3864,8 +3896,10 @@ renderAdvancedRatios: function(daysBack = 30) {
       }
 
       let exerciseBreakdown = '';
-      if (bwData.exercises && bwData.exercises.length > 0) {
-        const topExercises = bwData.exercises.slice(0, 5);
+      if (exercises && exercises.length > 0) {
+        const topExercises = exercises
+          .sort((a, b) => b.volume - a.volume)
+          .slice(0, 5);
         exerciseBreakdown = topExercises.map(ex => 
           `<div class="flex justify-between text-[10px] text-slate-300">
             <span>• ${ex.name}</span>
@@ -3892,7 +3926,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         </div>
 
         <div class="text-xs text-slate-400 text-center">
-          Total BW Volume: <span class="text-purple-300 font-bold">${Math.round(bwData.totalBWVolume).toLocaleString()}kg</span>
+          Total BW Volume: <span class="text-purple-300 font-bold">${Math.round(totalBWVolume).toLocaleString()}kg</span>
         </div>
 
         ${isDefaultWeight ? `
