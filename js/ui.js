@@ -277,55 +277,54 @@
     closeModal: (n) =>
       document.getElementById(`${n}-modal`).classList.add("hidden"),
 
-    // V30.7: Context-aware RPE modal renderer
-    renderRPEModal: () => {
+    // V30.7: Manual RPE modal renderer with type selector
+    renderRPEModal: (type = 'compound') => {
       const container = document.getElementById('rpe-modal-content');
       if (!container) return;
 
-      // Detect current exercise type
-      const sessionId = APP.state.currentSessionId;
-      if (!sessionId || !APP.state.workoutData[sessionId]) {
-        // Fallback to compound if no active session
-        container.innerHTML = APP.ui.getRPEContent('compound');
-        return;
-      }
-
-      // Get currently expanded exercise (if any)
-      let currentExercise = null;
-      const data = APP.state.workoutData[sessionId];
-      if (data && data.exercises) {
-        // Find first non-cardio exercise as default
-        const ex = data.exercises.find(e => e.type !== 'cardio');
-        if (ex) currentExercise = ex.n;
-      }
-
-      // Detect exercise type
-      let exerciseType = 'compound'; // default
-      if (currentExercise && typeof APP.session.detectExerciseType === 'function') {
-        const detected = APP.session.detectExerciseType(currentExercise);
-        
-        if (detected.isBodyweight) {
-          exerciseType = 'bodyweight';
-        } else if (detected.isCore || detected.isTimeBased) {
-          exerciseType = 'core';
-        } else if (detected.isUnilateral) {
-          exerciseType = 'unilateral';
-        } else if (APP.ui.isIsolationExercise(currentExercise)) {
-          exerciseType = 'isolation';
-        }
-      }
-
-      container.innerHTML = APP.ui.getRPEContent(exerciseType);
-    },
-
-    // V30.7: Helper to detect isolation exercises
-    isIsolationExercise: (name) => {
-      const isolationPatterns = [
-        /\bcurl\b/i, /\bfly\b/i, /\bflye\b/i, /\bextension\b/i,
-        /\braise\b/i, /\bpulldown\b/i, /\bpushdown\b/i,
-        /\bkickback\b/i, /\bshrug\b/i, /\bcable.*fly/i
+      // Render selector tabs + content
+      const tabs = [
+        { type: 'compound', icon: 'fa-dumbbell', label: 'Compound', color: 'blue' },
+        { type: 'bodyweight', icon: 'fa-person-running', label: 'Bodyweight', color: 'purple' },
+        { type: 'core', icon: 'fa-heart-pulse', label: 'Core', color: 'emerald' },
+        { type: 'unilateral', icon: 'fa-repeat', label: 'Unilateral', color: 'blue' },
+        { type: 'isolation', icon: 'fa-bullseye', label: 'Isolation', color: 'amber' }
       ];
-      return isolationPatterns.some(pattern => pattern.test(name));
+
+      let html = `
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-white/10">
+          <h3 class="font-bold text-emerald-400 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-layer-group"></i>Pedoman Skala RPE & RIR
+          </h3>
+          <button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <!-- Type Selector -->
+        <div class="grid grid-cols-5 gap-1 mb-4">
+          ${tabs.map(t => `
+            <button 
+              onclick="APP.ui.renderRPEModal('${t.type}')"
+              class="flex flex-col items-center gap-1 p-2 rounded-lg transition ${
+                t.type === type 
+                  ? `bg-${t.color}-600 text-white` 
+                  : 'bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50'
+              }"
+            >
+              <i class="fa-solid ${t.icon} text-lg"></i>
+              <span class="text-[9px] font-medium">${t.label}</span>
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- RPE Content -->
+        <div id="rpe-content-area">
+          ${APP.ui.getRPEContent(type)}
+        </div>
+      `;
+
+      container.innerHTML = html;
     },
 
     // V30.7: Generate RPE content based on exercise type
@@ -396,17 +395,7 @@
       const content = contents[type] || contents.compound;
       
       let html = `
-        <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-          <div>
-            <h3 class="font-bold text-emerald-400 text-sm">
-              ${content.title}
-            </h3>
-            <p class="text-[10px] text-slate-400 mt-0.5">${content.subtitle}</p>
-          </div>
-          <button onclick="APP.ui.closeModal('rpe')" class="text-slate-400 hover:text-white">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
+        <div class="text-[10px] text-slate-400 mb-3">${content.subtitle}</div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
