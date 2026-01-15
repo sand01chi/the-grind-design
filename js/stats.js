@@ -6171,23 +6171,50 @@ renderAdvancedRatios: function(daysBack = 30) {
      */
     checkMigrationNeeded: function() {
       const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
-      if (migrationComplete === "true") return false;
+      console.log("[MIGRATION] Flag status:", migrationComplete);
+      
+      if (migrationComplete === "true") {
+        console.log("[MIGRATION] Already complete - skipping");
+        return false;
+      }
 
       const gymHist = LS_SAFE.getJSON("gym_hist", []);
+      console.log("[MIGRATION] Checking", gymHist.length, "log entries");
+      
       if (gymHist.length === 0) return false;
+
+      // Debug counters
+      let debugCounters = {
+        totalChecked: 0,
+        bodyweightVol: 0,
+        bodyweightStruct: 0,
+        unilateral: 0,
+        bilateralDB: 0,
+        detectionFailed: 0
+      };
 
       // Check if any exercises need migration (all 4 cases)
       const needsMigration = gymHist.some(log => {
-        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return false;
+        debugCounters.totalChecked++;
+        
+        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') {
+          debugCounters.detectionFailed++;
+          return false;
+        }
+        
         const exType = APP.session.detectExerciseType(log.ex);
         
         // Case 1: Bodyweight with 0 volume
         if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+          console.log("[MIGRATION] Case 1 found:", log.ex, "vol=", log.vol);
+          debugCounters.bodyweightVol++;
           return true;
         }
         
         // Case 2: Bodyweight with incorrect weight field
         if (exType.isBodyweight && log.k && log.k > 0) {
+          console.log("[MIGRATION] Case 2 found:", log.ex, "k=", log.k);
+          debugCounters.bodyweightStruct++;
           return true;
         }
         
@@ -6196,6 +6223,8 @@ renderAdvancedRatios: function(daysBack = 30) {
           const expectedOldVolume = log.k * log.reps * (log.sets || 1);
           const expectedNewVolume = log.k * (log.reps * 2) * (log.sets || 1);
           if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            console.log("[MIGRATION] Case 3 found:", log.ex, "vol=", log.vol, "expected new=", expectedNewVolume);
+            debugCounters.unilateral++;
             return true;
           }
         }
@@ -6204,7 +6233,22 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (exType.isBilateralDB && log.k > 0 && log.reps > 0) {
           const expectedOldVolume = log.k * log.reps * (log.sets || 1);
           const expectedNewVolume = (log.k * 2) * log.reps * (log.sets || 1);
-          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+          
+          // Debug this specific case
+          const matches = Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume;
+          if (log.ex.includes("Flat Press") || log.ex.includes("DB")) {
+            console.log("[MIGRATION] Checking bilateral DB:", log.ex);
+            console.log("  - k:", log.k, "r:", log.reps, "sets:", log.sets, "vol:", log.vol);
+            console.log("  - expectedOld:", expectedOldVolume, "expectedNew:", expectedNewVolume);
+            console.log("  - isBilateralDB:", exType.isBilateralDB);
+            console.log("  - matches old formula:", Math.abs(log.vol - expectedOldVolume) < 10);
+            console.log("  - not equal to new:", log.vol !== expectedNewVolume);
+            console.log("  - NEEDS MIGRATION:", matches);
+          }
+          
+          if (matches) {
+            console.log("[MIGRATION] Case 4 found:", log.ex, "vol=", log.vol, "expected new=", expectedNewVolume);
+            debugCounters.bilateralDB++;
             return true;
           }
         }
@@ -6212,6 +6256,7 @@ renderAdvancedRatios: function(daysBack = 30) {
         return false;
       });
 
+      console.log("[MIGRATION] Debug counters:", debugCounters);
       console.log("[MIGRATION] Check result:", needsMigration ? "NEEDED" : "Not needed");
       return needsMigration;
     },
@@ -6897,6 +6942,22 @@ Why it matters:
         badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400";
         badge.textContent = "✓ Up to date";
       }
+    },
+
+    /**
+     * DEBUG: Clear migration flag (for testing)
+     * Usage: APP.stats.clearMigrationFlag()
+     */
+    clearMigrationFlag: function() {
+      console.log("[MIGRATION] Clearing migration flags...");
+      LS_SAFE.remove("migration_v30_8_complete");
+      LS_SAFE.remove("migration_v30_8_skipped");
+      LS_SAFE.remove("migration_v30_8_timestamp");
+      console.log("[MIGRATION] Flags cleared. Refresh page to re-check.");
+      if (window.APP && window.APP.ui) {
+        APP.ui.showToast("Migration flags cleared - refresh to re-check", "success");
+      }
+      this.updateMigrationBadge();
     }
   };
 
