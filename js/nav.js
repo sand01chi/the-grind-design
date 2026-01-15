@@ -1021,14 +1021,6 @@
             </div>`
                 : ""
             }
-            ${
-              exerciseType.isUnilateral
-                ? `<div class="text-[10px] text-blue-300 bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-500/30 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-repeat text-blue-400"></i>
-                <span><b>Unilateral Exercise</b> — Input total reps kedua sisi (10 per side = 20 total)</span>
-            </div>`
-                : ""
-            }
             <div class="grid grid-cols-2 gap-2 px-1 mb-2">
                 <div class="flex gap-1 bg-red-900/20 rounded border border-red-900/30 overflow-hidden">
                     <a href="${vidUrl}" target="_blank" class="flex-1 text-red-400 text-[10px] flex items-center justify-center py-1.5 hover:bg-red-900/40 transition truncate"><i class="fa-brands fa-youtube mr-1"></i> Watch</a>
