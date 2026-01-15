@@ -35,16 +35,17 @@
     bodyweight: /\[Bodyweight\]|\[BW\]/i,
     
     // Core exercises (primarily static/stability work)
-    core: /plank|dead.*bug|bird.*dog|pallof|hollow.*hold|l.*sit|ab.*wheel|rollout/i,
+    core: /\[Core\]|plank|dead.*bug|bird.*dog|pallof|hollow.*hold|l.*sit|ab.*wheel|rollout/i,
     
     // Time-based exercises (measured in duration, not reps)
-    timeBased: /plank|hold|static|wall.*sit|dead.*hang|l.*sit|isometric/i,
+    timeBased: /\[Time-based\]|plank|hold|static|wall.*sit|dead.*hang|l.*sit|isometric/i,
     
     // Unilateral exercises (single arm/leg work)
-    unilateral: /single.*arm|single.*leg|one.*arm|one.*leg|unilateral|bulgarian.*split|pistol.*squat/i,
+    unilateral: /\[Unilateral\]|single.*arm|single.*leg|one.*arm|one.*leg|unilateral|bulgarian.*split|pistol.*squat/i,
     
     // Bilateral dumbbell exercises (need to sum both dumbbells)
-    bilateralDB: /\[DB\].*(?!single|one.*arm|one.*leg|unilateral)/i
+    // Match dumbbell/DB exercises, but exclude if unilateral keywords present
+    bilateralDB: /\[Bilateral.*DB\]|(?:dumbbell|^DB\]|^\[DB\])(?!.*(?:single|one.*arm|one.*leg|unilateral))/i
   };
 
   APP.session = {
@@ -75,7 +76,10 @@
       const isCore = EXERCISE_TYPE_PATTERNS.core.test(name);
       const isTimeBased = EXERCISE_TYPE_PATTERNS.timeBased.test(name);
       const isUnilateral = EXERCISE_TYPE_PATTERNS.unilateral.test(name);
-      const isBilateralDB = EXERCISE_TYPE_PATTERNS.bilateralDB.test(name);
+      
+      // Bilateral DB: Has dumbbell/DB tag BUT not unilateral
+      const hasDumbbellTag = /\[DB\]|dumbbell/i.test(name);
+      const isBilateralDB = hasDumbbellTag && !isUnilateral;
       
       // Advanced: Exercises that benefit from per-side tracking (asymmetry detection)
       // Examples: Single-Arm Row, Bulgarian Split Squat, Single-Leg RDL

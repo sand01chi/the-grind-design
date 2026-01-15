@@ -6167,7 +6167,7 @@ renderAdvancedRatios: function(daysBack = 30) {
     // ========================================
 
     /**
-     * Check if migration is needed (pre-v30.7 bodyweight exercises with 0 volume)
+     * Check if migration is needed (any of 4 migration cases)
      */
     checkMigrationNeeded: function() {
       const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
@@ -6176,11 +6176,40 @@ renderAdvancedRatios: function(daysBack = 30) {
       const gymHist = LS_SAFE.getJSON("gym_hist", []);
       if (gymHist.length === 0) return false;
 
-      // Check if any bodyweight exercises with 0 volume exist
+      // Check if any exercises need migration (all 4 cases)
       const needsMigration = gymHist.some(log => {
         if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return false;
         const exType = APP.session.detectExerciseType(log.ex);
-        return exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined);
+        
+        // Case 1: Bodyweight with 0 volume
+        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+          return true;
+        }
+        
+        // Case 2: Bodyweight with incorrect weight field
+        if (exType.isBodyweight && log.k && log.k > 0) {
+          return true;
+        }
+        
+        // Case 3: Weighted unilateral (not counting both sides)
+        if (exType.isUnilateral && !exType.isBodyweight && log.k > 0 && log.reps > 0) {
+          const expectedOldVolume = log.k * log.reps * (log.sets || 1);
+          const expectedNewVolume = log.k * (log.reps * 2) * (log.sets || 1);
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            return true;
+          }
+        }
+        
+        // Case 4: Bilateral DB (not summing both dumbbells)
+        if (exType.isBilateralDB && log.k > 0 && log.reps > 0) {
+          const expectedOldVolume = log.k * log.reps * (log.sets || 1);
+          const expectedNewVolume = (log.k * 2) * log.reps * (log.sets || 1);
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            return true;
+          }
+        }
+        
+        return false;
       });
 
       console.log("[MIGRATION] Check result:", needsMigration ? "NEEDED" : "Not needed");
