@@ -6204,6 +6204,14 @@ renderAdvancedRatios: function(daysBack = 30) {
         
         const exType = APP.session.detectExerciseType(log.ex);
         
+        // Get first set data (for weight/reps checking)
+        const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+        if (!firstSet) return false;
+        
+        const weight = firstSet.k || 0;
+        const reps = firstSet.r || 0;
+        const sets = log.d ? log.d.length : 1;
+        
         // Case 1: Bodyweight with 0 volume
         if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
           console.log("[MIGRATION] Case 1 found:", log.ex, "vol=", log.vol);
@@ -6212,16 +6220,16 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
         
         // Case 2: Bodyweight with incorrect weight field
-        if (exType.isBodyweight && log.k && log.k > 0) {
-          console.log("[MIGRATION] Case 2 found:", log.ex, "k=", log.k);
+        if (exType.isBodyweight && weight > 0) {
+          console.log("[MIGRATION] Case 2 found:", log.ex, "k=", weight);
           debugCounters.bodyweightStruct++;
           return true;
         }
         
         // Case 3: Weighted unilateral (not counting both sides)
-        if (exType.isUnilateral && !exType.isBodyweight && log.k > 0 && log.reps > 0) {
-          const expectedOldVolume = log.k * log.reps * (log.sets || 1);
-          const expectedNewVolume = log.k * (log.reps * 2) * (log.sets || 1);
+        if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = weight * (reps * 2) * sets;
           if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
             console.log("[MIGRATION] Case 3 found:", log.ex, "vol=", log.vol, "expected new=", expectedNewVolume);
             debugCounters.unilateral++;
@@ -6230,15 +6238,15 @@ renderAdvancedRatios: function(daysBack = 30) {
         }
         
         // Case 4: Bilateral DB (not summing both dumbbells)
-        if (exType.isBilateralDB && log.k > 0 && log.reps > 0) {
-          const expectedOldVolume = log.k * log.reps * (log.sets || 1);
-          const expectedNewVolume = (log.k * 2) * log.reps * (log.sets || 1);
+        if (exType.isBilateralDB && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = (weight * 2) * reps * sets;
           
           // Debug this specific case
           const matches = Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume;
           if (log.ex.includes("Flat Press") || log.ex.includes("DB")) {
             console.log("[MIGRATION] Checking bilateral DB:", log.ex);
-            console.log("  - k:", log.k, "r:", log.reps, "sets:", log.sets, "vol:", log.vol);
+            console.log("  - k:", weight, "r:", reps, "sets:", sets, "vol:", log.vol);
             console.log("  - expectedOld:", expectedOldVolume, "expectedNew:", expectedNewVolume);
             console.log("  - isBilateralDB:", exType.isBilateralDB);
             console.log("  - matches old formula:", Math.abs(log.vol - expectedOldVolume) < 10);
@@ -6322,6 +6330,14 @@ renderAdvancedRatios: function(daysBack = 30) {
           let needsMigration = false;
           let reasons = [];
           
+          // Get first set data (for weight/reps checking)
+          const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+          if (!firstSet) return;
+          
+          const weight = firstSet.k || 0;
+          const reps = firstSet.r || 0;
+          const sets = log.d ? log.d.length : 1;
+          
           // Case 1: Bodyweight exercises with 0 or incorrect volume
           if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
             needsMigration = true;
@@ -6330,7 +6346,7 @@ renderAdvancedRatios: function(daysBack = 30) {
           }
           
           // Case 2: Bodyweight exercises with incorrect weight field (k > 0)
-          if (exType.isBodyweight && log.k && log.k > 0) {
+          if (exType.isBodyweight && weight > 0) {
             needsMigration = true;
             reasons.push('bodyweight_structure');
             migrationReasons.bodyweightStructure++;
@@ -6340,9 +6356,9 @@ renderAdvancedRatios: function(daysBack = 30) {
           // Old formula: k × r (only one side)
           // New formula: k × (r × 2) (both sides)
           // Detect: Has weight, has reps, is unilateral, volume = k × r (not doubled)
-          if (exType.isUnilateral && !exType.isBodyweight && log.k > 0 && log.reps > 0) {
-            const expectedOldVolume = log.k * log.reps * (log.sets || 1);
-            const expectedNewVolume = log.k * (log.reps * 2) * (log.sets || 1);
+          if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+            const expectedOldVolume = weight * reps * sets;
+            const expectedNewVolume = weight * (reps * 2) * sets;
             
             // If current volume matches old formula, needs migration
             if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
@@ -6356,9 +6372,9 @@ renderAdvancedRatios: function(daysBack = 30) {
           // Old formula: k × r (one dumbbell)
           // New formula: (k × 2) × r (both dumbbells)
           // Detect: Has weight, has reps, is bilateral DB, volume = k × r (not doubled)
-          if (exType.isBilateralDB && log.k > 0 && log.reps > 0) {
-            const expectedOldVolume = log.k * log.reps * (log.sets || 1);
-            const expectedNewVolume = (log.k * 2) * log.reps * (log.sets || 1);
+          if (exType.isBilateralDB && weight > 0 && reps > 0) {
+            const expectedOldVolume = weight * reps * sets;
+            const expectedNewVolume = (weight * 2) * reps * sets;
             
             // If current volume matches old formula, needs migration
             if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
@@ -6402,14 +6418,27 @@ renderAdvancedRatios: function(daysBack = 30) {
             const exType = APP.session.detectExerciseType(log.ex);
             let volumeChanged = false;
             
+            // Get set data
+            const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+            if (!firstSet) return;
+            
+            const weight = firstSet.k || 0;
+            const reps = firstSet.r || 0;
+            const sets = log.d ? log.d.length : 1;
+            
             // Store original values for audit
             if (!log._originalVolume) log._originalVolume = log.vol || 0;
-            if (!log._originalWeight) log._originalWeight = log.k || 0;
+            if (!log._originalWeight) log._originalWeight = weight;
             
             // CASE 1 & 2: Bodyweight exercises
             if (reasons.includes('bodyweight_volume') || reasons.includes('bodyweight_structure')) {
               const userWeight = this._getUserWeightAtDate(log.date);
-              const totalReps = (log.sets || 1) * (log.reps || 0);
+              
+              // Calculate total reps from all sets
+              let totalReps = 0;
+              log.d.forEach(set => {
+                totalReps += (set.r || 0);
+              });
               
               if (totalReps === 0) {
                 console.warn(`[MIGRATION] Skipping ${log.ex} - 0 reps`);
@@ -6426,9 +6455,11 @@ renderAdvancedRatios: function(daysBack = 30) {
                 console.log(`[MIGRATION] BW Volume: ${log.ex} - ${log._originalVolume}kg → ${newVolume}kg`);
               }
               
-              // Fix structure (k field)
-              if (reasons.includes('bodyweight_structure') && log.k > 0) {
-                log.k = 0;
+              // Fix structure (k field in all sets)
+              if (reasons.includes('bodyweight_structure')) {
+                log.d.forEach(set => {
+                  if (set.k > 0) set.k = 0;
+                });
                 counters.bodyweightStructureFixed++;
                 console.log(`[MIGRATION] BW Structure: ${log.ex} - weight ${log._originalWeight}kg → 0kg`);
               }
@@ -6437,7 +6468,7 @@ renderAdvancedRatios: function(daysBack = 30) {
             // CASE 3: Weighted Unilateral exercises
             if (reasons.includes('unilateral_volume')) {
               const oldVolume = log.vol;
-              const newVolume = log.k * (log.reps * 2) * (log.sets || 1);
+              const newVolume = weight * (reps * 2) * sets;
               log.vol = newVolume;
               totalVolumeAdded += (newVolume - oldVolume);
               volumeChanged = true;
@@ -6448,7 +6479,7 @@ renderAdvancedRatios: function(daysBack = 30) {
             // CASE 4: Bilateral Dumbbell exercises
             if (reasons.includes('bilateral_db_volume')) {
               const oldVolume = log.vol;
-              const newVolume = (log.k * 2) * log.reps * (log.sets || 1);
+              const newVolume = (weight * 2) * reps * sets;
               log.vol = newVolume;
               totalVolumeAdded += (newVolume - oldVolume);
               volumeChanged = true;
