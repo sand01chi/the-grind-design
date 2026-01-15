@@ -295,8 +295,10 @@
             const currentNote = opt.note || ex.note || "";
             const exerciseName = opt.n || "Unknown Exercise";
             
-            // V30.6 Phase 3: Detect exercise type for volume calculation
-            const exerciseType = APP.session.detectExerciseType(exerciseName);
+            // V30.6 Phase 3: Detect exercise type for volume calculation (with safety check)
+            const exerciseType = (APP.session && typeof APP.session.detectExerciseType === 'function')
+              ? APP.session.detectExerciseType(exerciseName)
+              : { isBodyweight: false, isUnilateral: false, isBilateralDB: false, isTimeBased: false, isCore: false, isCable: false };
             
             let v = 0,
               t = 0,
@@ -316,10 +318,16 @@
                 
                 if (exerciseType.isBodyweight) {
                   // Bodyweight: Use research-based load multipliers
-                  setVolume = APP.stats._calculateBodyweightVolume(exerciseName, re);
-                  // For tracking purposes, use calculated load as "top weight"
-                  const effectiveLoad = setVolume / re;
-                  if (effectiveLoad > t) t = effectiveLoad;
+                  if (APP.stats && typeof APP.stats._calculateBodyweightVolume === 'function') {
+                    setVolume = APP.stats._calculateBodyweightVolume(exerciseName, re);
+                    // For tracking purposes, use calculated load as "top weight"
+                    const effectiveLoad = setVolume / re;
+                    if (effectiveLoad > t) t = effectiveLoad;
+                  } else {
+                    // Fallback: Assume 70kg bodyweight if function not available
+                    setVolume = 70 * re;
+                    if (70 > t) t = 70;
+                  }
                 } else if (exerciseType.isUnilateral && k > 0) {
                   // Unilateral: Count both sides (reps × 2)
                   setVolume = k * (re * 2);
