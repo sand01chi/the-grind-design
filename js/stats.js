@@ -5148,7 +5148,7 @@ renderAdvancedRatios: function(daysBack = 30) {
 
         // V30.7 Hotfix: Get exercise category for TYPE tag
         const getExerciseCategory = (exerciseName) => {
-          if (!window.EXERCISES_LIBRARY) {
+          if (typeof EXERCISES_LIBRARY === 'undefined') {
             console.warn('[STATS] EXERCISES_LIBRARY not found');
             return null;
           }
@@ -5157,17 +5157,14 @@ renderAdvancedRatios: function(daysBack = 30) {
             if (typeof exercises === 'object' && Array.isArray(exercises)) {
               const found = exercises.find(ex => ex.n === exerciseName);
               if (found) {
-                console.log('[STATS] Found category:', category, 'for exercise:', exerciseName);
                 return category;
               }
             }
           }
-          console.warn('[STATS] No category found for:', exerciseName);
           return null;
         };
         
         const exerciseCategory = getExerciseCategory(sel);
-        console.log('[STATS] Exercise category result:', exerciseCategory, 'for:', sel);
 
         let mx = 0,
           tv = 0;
