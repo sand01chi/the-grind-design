@@ -1485,7 +1485,7 @@
                 <i class="fa-solid fa-rotate"></i>
               </button>
             </h4>
-            <div id="settings-storage-stats" class="grid grid-cols-2 gap-2 text-xs">
+            <div id="settings-storage-stats" class="grid grid-cols-2 gap-2 text-xs mb-3">
               <div class="glass-card p-2 rounded">
                 <div class="text-slate-500 text-[10px]">Items</div>
                 <div class="text-white font-bold" id="settings-stat-items">--</div>
@@ -1503,6 +1503,25 @@
                   <span class="text-white font-bold text-[10px]" id="settings-stat-usage">0%</span>
                 </div>
               </div>
+            </div>
+
+            <!-- V30.8: Data Migration Controls -->
+            <div class="border-t border-white/5 pt-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] text-slate-400 uppercase font-bold">
+                  <i class="fa-solid fa-rotate mr-1"></i> Data Migration
+                </span>
+                <span id="migration-status-badge" class="text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">
+                  Checking...
+                </span>
+              </div>
+              <button 
+                id="migration-check-btn"
+                onclick="APP.stats.checkAndShowMigration()" 
+                class="w-full py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-semibold hover:bg-blue-600/30 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Check Migration Status</span>
+              </button>
             </div>
           </div>
 

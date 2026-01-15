@@ -3426,19 +3426,8 @@ renderAdvancedRatios: function(daysBack = 30) {
       const prefix = isKlinikView ? 'klinik' : 'stats';
       const contentSuffix = isKlinikView ? '-content' : '-view';
 
-      // V30.8: Check migration on first analytics dashboard load
-      if (isKlinikView && t === "dashboard") {
-        const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
-        const shouldCheckMigration = !migrationSkipped || migrationSkipped !== "true";
-        
-        if (shouldCheckMigration && APP.stats.checkMigrationNeeded()) {
-          console.log("[MIGRATION] Migration needed - will show prompt after render");
-          setTimeout(() => {
-            APP.stats.showMigrationPrompt();
-          }, 1000); // Show after 1 second to let UI settle
-        }
-      }
-
+      // V30.8: Migration check removed - user can trigger from Profile → Storage Status
+      
       // V30.3: Added 'advanced' to views array
       const views = [
         `${prefix}-dashboard${contentSuffix}`,
@@ -6653,6 +6642,76 @@ Why it matters:
       
       const reportModal = document.getElementById('migration-report-modal');
       if (reportModal) reportModal.remove();
+    },
+
+    /**
+     * Check and show migration from Profile view
+     */
+    checkAndShowMigration: function() {
+      console.log("[MIGRATION] Manual check triggered from Profile");
+      
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
+      
+      if (migrationComplete === "true") {
+        // Already migrated - show info
+        const timestamp = LS_SAFE.get("migration_v30_8_timestamp");
+        const date = timestamp ? new Date(parseInt(timestamp)).toLocaleDateString() : "Unknown";
+        
+        alert(`✅ Migration Already Complete\n\nYour data was successfully migrated on ${date}.\n\nAll historical bodyweight exercises now show accurate volumes.\n\nIf you need to revert, use the button below.`);
+        
+        // Offer revert option
+        if (confirm("Would you like to revert to the backup (restore original data)?")) {
+          this.revertMigration();
+          this.updateMigrationBadge();
+        }
+        
+        return;
+      }
+      
+      if (migrationSkipped === "true") {
+        // User previously skipped - offer to run now
+        if (confirm("You previously skipped the migration.\n\nWould you like to update your historical data now?\n\nThis will:\n• Fix 0kg volumes on bodyweight exercises\n• Improve analytics accuracy\n• Create automatic backup")) {
+          // Clear skip flag and show prompt
+          LS_SAFE.remove("migration_v30_8_skipped");
+          this.showMigrationPrompt();
+        }
+        return;
+      }
+      
+      // Check if migration is needed
+      if (this.checkMigrationNeeded()) {
+        this.showMigrationPrompt();
+      } else {
+        alert("✅ No Migration Needed\n\nYour data is already up to date!\n\nAll bodyweight exercises are properly tracked.");
+      }
+      
+      this.updateMigrationBadge();
+    },
+
+    /**
+     * Update migration status badge in Profile view
+     */
+    updateMigrationBadge: function() {
+      const badge = document.getElementById('migration-status-badge');
+      if (!badge) return;
+      
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
+      
+      if (migrationComplete === "true") {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-emerald-900/30 border border-emerald-500/30 text-emerald-400";
+        badge.textContent = "✓ Complete";
+      } else if (migrationSkipped === "true") {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-yellow-900/30 border border-yellow-500/30 text-yellow-400";
+        badge.textContent = "⊘ Skipped";
+      } else if (this.checkMigrationNeeded()) {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 animate-pulse";
+        badge.textContent = "! Available";
+      } else {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400";
+        badge.textContent = "✓ Up to date";
+      }
     }
   };
 
