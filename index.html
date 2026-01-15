@@ -1144,6 +1144,56 @@
                 <p class="text-xs text-slate-500 italic">Complete more sessions to see gainers.</p>
               </div>
             </div>
+
+            <!-- V30.7 Phase 5: Training Analysis Cards -->
+            <div class="mb-6">
+              <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie"></i> Training Analysis
+              </h3>
+              
+              <!-- Bodyweight Training Contribution -->
+              <div class="glass-card p-3 rounded-lg border border-white/5 mb-3">
+                <div class="text-[10px] text-slate-400 mb-2 flex items-center gap-1">
+                  <i class="fa-solid fa-person-running text-purple-400"></i>
+                  Bodyweight Contribution
+                </div>
+                <div id="dash-bw-content">
+                  <p class="text-xs text-slate-500 italic">Loading bodyweight data...</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-2 flex items-center gap-1">
+                    <i class="fa-solid fa-layer-group text-emerald-400"></i>
+                    Volume by Source
+                  </div>
+                  <div id="dash-volume-sources" class="text-xs space-y-1">
+                    <p class="text-slate-500">Calculating...</p>
+                  </div>
+                </div>
+                
+                <div class="glass-card p-3 rounded-lg border border-white/5">
+                  <div class="text-[10px] text-slate-400 mb-2 flex items-center gap-1">
+                    <i class="fa-solid fa-scale-balanced text-blue-400"></i>
+                    Training Balance
+                  </div>
+                  <div id="dash-training-balance" class="text-xs space-y-1">
+                    <p class="text-slate-500">Calculating...</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-card p-4 rounded-lg border border-white/5">
+                <div class="text-[10px] text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-trophy"></i> Top Volume Contributors
+                </div>
+                <div id="dash-top-contributors" class="space-y-2">
+                  <p class="text-xs text-slate-500 italic">Loading top contributors...</p>
+                </div>
+              </div>
+            </div>
+
             <div id="klinik-dash-fatigue-alert" class="hidden">
               <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-3">
                 <div class="flex items-start gap-2">
@@ -1435,7 +1485,7 @@
                 <i class="fa-solid fa-rotate"></i>
               </button>
             </h4>
-            <div id="settings-storage-stats" class="grid grid-cols-2 gap-2 text-xs">
+            <div id="settings-storage-stats" class="grid grid-cols-2 gap-2 text-xs mb-3">
               <div class="glass-card p-2 rounded">
                 <div class="text-slate-500 text-[10px]">Items</div>
                 <div class="text-white font-bold" id="settings-stat-items">--</div>
@@ -1453,6 +1503,25 @@
                   <span class="text-white font-bold text-[10px]" id="settings-stat-usage">0%</span>
                 </div>
               </div>
+            </div>
+
+            <!-- V30.8: Data Migration Controls -->
+            <div class="border-t border-white/5 pt-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] text-slate-400 uppercase font-bold">
+                  <i class="fa-solid fa-rotate mr-1"></i> Data Migration
+                </span>
+                <span id="migration-status-badge" class="text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">
+                  Checking...
+                </span>
+              </div>
+              <button 
+                id="migration-check-btn"
+                onclick="APP.stats.checkAndShowMigration()" 
+                class="w-full py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-semibold hover:bg-blue-600/30 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Check Migration Status</span>
+              </button>
             </div>
           </div>
 
@@ -1999,102 +2068,11 @@
       class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <div
-        class="glass-panel w-full max-w-md rounded-2xl border border-white/10 p-5 fade-in"
+        class="glass-panel w-full max-w-md rounded-2xl border border-white/10 p-5 fade-in max-h-[90vh] overflow-y-auto"
       >
-        <div
-          class="flex justify-between items-center mb-4 border-b border-white/10 pb-2"
-        >
-          <h3 class="font-bold text-emerald-400">
-            <i class="fa-solid fa-layer-group mr-2"></i>Pedoman Skala RPE & RIR
-          </h3>
-          <button
-            onclick="APP.ui.closeModal('rpe')"
-            class="text-slate-400 hover:text-white"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="glass-card text-emerald-400 text-[10px] uppercase">
-                <th class="p-2 border border-white/5 text-center w-1/6">
-                  RPE
-                </th>
-                <th class="p-2 border border-white/5 text-center w-1/6">
-                  Sisa (RIR)
-                </th>
-                <th class="p-2 border border-white/5 text-left">
-                  Indikator Fisik/Rasa
-                </th>
-              </tr>
-            </thead>
-            <tbody class="text-slate-300 text-[11px]">
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-red-500 text-sm"
-                >
-                  10
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  0
-                </td>
-                <td class="p-2 border border-white/5">
-                  Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).
-                </td>
-              </tr>
-              <tr>
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-red-400"
-                >
-                  9.5
-                </td>
-                <td class="p-2 border border-white/5 text-center">0 - 1</td>
-                <td class="p-2 border border-white/5">
-                  Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat
-                  lambat.
-                </td>
-              </tr>
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-orange-400"
-                >
-                  9
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  1
-                </td>
-                <td class="p-2 border border-white/5">
-                  Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi
-                  selesai.
-                </td>
-              </tr>
-              <tr>
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-emerald-400"
-                >
-                  8
-                </td>
-                <td class="p-2 border border-white/5 text-center font-bold">
-                  2
-                </td>
-                <td class="p-2 border border-white/5">
-                  Beban kerja ideal. Berat, kecepatan bar terkontrol baik.
-                </td>
-              </tr>
-              <tr class="bg-white/5">
-                <td
-                  class="p-2 border border-white/5 font-bold text-center text-blue-400"
-                >
-                  7
-                </td>
-                <td class="p-2 border border-white/5 text-center">3+</td>
-                <td class="p-2 border border-white/5">
-                  Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- V30.7: Dynamic RPE content based on exercise type -->
+        <div id="rpe-modal-content">
+          <!-- Content rendered by APP.ui.renderRPEModal() -->
         </div>
       </div>
     </div>
@@ -2330,7 +2308,7 @@
             <h3
               class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2"
             >
-              <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
+              <i class="fa-solid fa-arrow-trend-up"></i> Top Gainers (Volume %)
             </h3>
             <div id="dash-top-gainers" class="space-y-2">
               <p class="text-xs text-slate-500 italic">

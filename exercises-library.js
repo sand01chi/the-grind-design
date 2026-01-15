@@ -201,6 +201,10 @@ const EXERCISE_TARGETS = {
     { muscle: "back", role: "PRIMARY" },
     { muscle: "arms", role: "SECONDARY" },
   ],
+  "[Bodyweight] Pull Up": [
+    { muscle: "back", role: "PRIMARY" },
+    { muscle: "arms", role: "SECONDARY" },
+  ],
   
   // Cable Back
   "[Cable] Seated Row": [
@@ -900,6 +904,13 @@ const EXERCISES_LIBRARY = {
       bio: "Counterbalance bodyweight untuk progressive overload path menuju unassisted pull-ups. Maintain natural scapular dan glenohumeral movement patterns.",
       note: "Kneel pada platform, grip pull-up bar. Assistance settings support sebagian bodyweight. Pull dengan lat initiation hingga chin clears bar. Control descent.<br><br>⚠️ CLINICAL: Excellent untuk building pull-up strength progressively. Reduce assistance incrementally. Core bracing critical - avoid swinging.",
       vid: ""
+    },
+    {
+      n: "[Bodyweight] Pull Up",
+      t_r: "5-10",
+      bio: "Gold standard bodyweight back exercise dengan complete lat activation dari stretch ke peak contraction. Vertikal pull pattern yang engage entire posterior chain dengan 100% bodyweight load.",
+      note: "Grip bar shoulder-width atau sedikit wider dengan full arm extension. Initiate pull dengan scapular depression, lalu drive elbows down dan back. Pull hingga chin clears bar. Control eccentric descent.<br><br>⚠️ CLINICAL: High shoulder demand - ensure proper shoulder mobility sebelum attempting. Avoid if acute shoulder pain atau impingement. May need assistance band atau negatives untuk progression. Core bracing critical untuk prevent excessive swing.",
+      vid: "https://www.youtube.com/watch?v=eGo4IYlbE5g"
     },
     
     // ========================================

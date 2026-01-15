@@ -293,6 +293,13 @@
             const optIdx = LS_SAFE.get(`pref_${sessId}_${i}`) || 0;
             const opt = ex.options[optIdx] || ex.options[0];
             const currentNote = opt.note || ex.note || "";
+            const exerciseName = opt.n || "Unknown Exercise";
+            
+            // V30.6 Phase 3: Detect exercise type for volume calculation (with safety check)
+            const exerciseType = (APP.session && typeof APP.session.detectExerciseType === 'function')
+              ? APP.session.detectExerciseType(exerciseName)
+              : { isBodyweight: false, isUnilateral: false, isBilateralDB: false, isTimeBased: false, isCore: false, isCable: false };
+            
             let v = 0,
               t = 0,
               r = [];
@@ -304,16 +311,49 @@
               const rir = LS_SAFE.get(`${s}_e`) || ""; // V29.5: Standardized to empty string
               const setNote = LS_SAFE.get(`note_${sessId}_ex${i}_s${j}`) || ""; // V30.5: Include set notes
               const do_ = LS_SAFE.get(`${s}_d`) === "true";
-              if (do_ && k > 0 && re > 0) {
-                v += k * re;
-                if (k > t) t = k;
-                r.push({
-                  k,
-                  r: re,
-                  rpe: rpe,
-                  e: rir, // V29.0.1: Add RIR field
-                  note: setNote, // V30.5: Add set note field
-                });
+              
+              // V30.6 Phase 3: Calculate volume based on exercise type
+              if (do_ && re > 0) {
+                let setVolume = 0;
+                
+                if (exerciseType.isBodyweight) {
+                  // Bodyweight: Use research-based load multipliers
+                  if (APP.stats && typeof APP.stats._calculateBodyweightVolume === 'function') {
+                    setVolume = APP.stats._calculateBodyweightVolume(exerciseName, re);
+                    // For tracking purposes, use calculated load as "top weight"
+                    const effectiveLoad = setVolume / re;
+                    if (effectiveLoad > t) t = effectiveLoad;
+                  } else {
+                    // Fallback: Assume 70kg bodyweight if function not available
+                    setVolume = 70 * re;
+                    if (70 > t) t = 70;
+                  }
+                } else if (exerciseType.isUnilateral && k > 0) {
+                  // Unilateral: Count both sides (reps × 2)
+                  setVolume = k * (re * 2);
+                  if (k > t) t = k;
+                } else if (exerciseType.isBilateralDB && k > 0) {
+                  // Bilateral DB: Sum both dumbbells (weight × 2)
+                  setVolume = (k * 2) * re;
+                  if (k > t) t = k; // Track per-hand weight, not total
+                } else if (k > 0) {
+                  // Standard: weight × reps
+                  setVolume = k * re;
+                  if (k > t) t = k;
+                }
+                
+                v += setVolume;
+                
+                // V30.6 Phase 3: Only log sets with volume
+                if (setVolume > 0) {
+                  r.push({
+                    k,
+                    r: re,
+                    rpe: rpe,
+                    e: rir, // V29.0.1: Add RIR field
+                    note: setNote, // V30.5: Add set note field
+                  });
+                }
                 LS_SAFE.set(`${s}_d`, "false");
               }
             }

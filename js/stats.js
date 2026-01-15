@@ -3426,6 +3426,8 @@ renderAdvancedRatios: function(daysBack = 30) {
       const prefix = isKlinikView ? 'klinik' : 'stats';
       const contentSuffix = isKlinikView ? '-content' : '-view';
 
+      // V30.8: Migration check removed - user can trigger from Profile → Storage Status
+      
       // V30.3: Added 'advanced' to views array
       const views = [
         `${prefix}-dashboard${contentSuffix}`,
@@ -3691,6 +3693,12 @@ renderAdvancedRatios: function(daysBack = 30) {
       if (tonnageDiffEl)
         tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
 
+      // V30.7 Phase 5: Render enhanced dashboard cards
+      APP.stats.renderBodyweightCard(thisWeekLogs);
+      APP.stats.renderVolumeSources(thisWeekLogs);
+      APP.stats.renderTrainingBalance(thisWeekLogs);
+      APP.stats.renderTopContributors(thisWeekLogs);
+      
       APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
       APP.stats.checkFatigue(thisWeekLogs);
     },
@@ -3826,6 +3834,298 @@ renderAdvancedRatios: function(daysBack = 30) {
       } else {
         alert.classList.add("hidden");
       }
+    },
+
+    // V30.7 Phase 5: Enhanced Dashboard Analytics
+    renderBodyweightCard: (weekLogs) => {
+      const bwContent = document.getElementById('dash-bw-content');
+      if (!bwContent) return;
+
+      if (!weekLogs || weekLogs.length === 0) {
+        bwContent.innerHTML = `
+          <p class="text-xs text-slate-400">No workouts logged this week</p>
+        `;
+        return;
+      }
+
+      // Calculate bodyweight contribution from weekLogs
+      let totalBWVolume = 0;
+      let totalWeightedVolume = 0;
+      const exercises = [];
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.ex) return;
+        
+        const vol = log.vol || 0;
+        let isBodyweight = false;
+        
+        // V30.8: Use detectExerciseType for consistency with other analytics
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          isBodyweight = type.isBodyweight;
+        } else {
+          // Fallback to string matching if detection unavailable
+          isBodyweight = log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]");
+        }
+        
+        if (isBodyweight) {
+          totalBWVolume += vol;
+          const existing = exercises.find(e => e.name === log.ex);
+          if (existing) {
+            existing.volume += vol;
+          } else {
+            exercises.push({ name: log.ex, volume: vol });
+          }
+        } else {
+          totalWeightedVolume += vol;
+        }
+      });
+
+      if (totalBWVolume === 0) {
+        bwContent.innerHTML = `
+          <p class="text-xs text-slate-400">No bodyweight exercises logged this week</p>
+        `;
+        return;
+      }
+
+      const totalVolume = totalBWVolume + totalWeightedVolume;
+      const percentage = totalVolume > 0 ? ((totalBWVolume / totalVolume) * 100).toFixed(1) : '0.0';
+      const percentageNum = parseFloat(percentage);
+      
+      let badge = '';
+      let badgeText = '';
+      
+      if (percentageNum >= 40) {
+        badge = 'bg-purple-600 text-white';
+        badgeText = '🏅 Calisthenics Master';
+      } else if (percentageNum >= 20) {
+        badge = 'bg-blue-600 text-white';
+        badgeText = '🎯 Hybrid Athlete';
+      } else {
+        badge = 'bg-slate-600 text-slate-300';
+        badgeText = '🏋️ Weighted Training Focus';
+      }
+
+      let exerciseBreakdown = '';
+      if (exercises && exercises.length > 0) {
+        const topExercises = exercises
+          .sort((a, b) => b.volume - a.volume)
+          .slice(0, 5);
+        exerciseBreakdown = topExercises.map(ex => 
+          `<div class="flex justify-between text-[10px] text-slate-300">
+            <span>• ${ex.name}</span>
+            <span class="font-mono">${Math.round(ex.volume).toLocaleString()}kg</span>
+          </div>`
+        ).join('');
+      }
+
+      const userWeight = APP.stats._getUserWeight();
+      const isDefaultWeight = userWeight === 70;
+
+      bwContent.innerHTML = `
+        <div class="text-center mb-3">
+          <div class="text-5xl font-bold text-purple-300 mb-1">${percentage}%</div>
+          <div class="text-[10px] text-slate-400 uppercase">of total weekly volume</div>
+        </div>
+        
+        <div class="px-2 py-1.5 rounded ${badge} text-xs font-bold text-center mb-3">
+          ${badgeText}
+        </div>
+
+        <div class="space-y-1.5 mb-3">
+          ${exerciseBreakdown}
+        </div>
+
+        <div class="text-xs text-slate-400 text-center">
+          Total BW Volume: <span class="text-purple-300 font-bold">${Math.round(totalBWVolume).toLocaleString()}kg</span>
+        </div>
+
+        ${isDefaultWeight ? `
+          <div class="mt-3 pt-3 border-t border-slate-700 text-center">
+            <div class="text-[10px] text-amber-400 mb-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> Using default weight: ${userWeight}kg
+            </div>
+            <button onclick="APP.ui.openModal('profile')" 
+              class="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded transition">
+              Update Weight for Accuracy
+            </button>
+          </div>
+        ` : ''}
+      `;
+    },
+
+    renderVolumeSources: (weekLogs) => {
+      const container = document.getElementById('dash-volume-sources');
+      if (!container) return;
+
+      const sources = {
+        barbell: 0,
+        dumbbell: 0,
+        bodyweight: 0,
+        machine: 0,
+        cable: 0,
+        other: 0
+      };
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.ex) return;
+        
+        const vol = log.vol || 0;
+        const name = log.ex.toLowerCase();
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          if (type.isBodyweight) {
+            sources.bodyweight += vol;
+            return;
+          }
+        }
+
+        if (name.includes('[barbell]')) sources.barbell += vol;
+        else if (name.includes('[db]') || name.includes('dumbbell')) sources.dumbbell += vol;
+        else if (name.includes('[machine]')) sources.machine += vol;
+        else if (name.includes('[cable]')) sources.cable += vol;
+        else sources.other += vol;
+      });
+
+      const total = Object.values(sources).reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-[10px]">No data</p>';
+        return;
+      }
+
+      const sorted = Object.entries(sources)
+        .filter(([_, vol]) => vol > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4);
+
+      const sourceIcons = {
+        barbell: '🏋️',
+        dumbbell: '💪',
+        bodyweight: '🤸',
+        machine: '⚙️',
+        cable: '🔗',
+        other: '📦'
+      };
+
+      container.innerHTML = sorted.map(([source, vol]) => {
+        const pct = ((vol / total) * 100).toFixed(0);
+        return `
+          <div class="flex justify-between items-center">
+            <span class="text-slate-300">${sourceIcons[source]} ${source.charAt(0).toUpperCase() + source.slice(1)}</span>
+            <span class="font-mono text-white">${pct}%</span>
+          </div>
+        `;
+      }).join('');
+    },
+
+    renderTrainingBalance: (weekLogs) => {
+      const container = document.getElementById('dash-training-balance');
+      if (!container) return;
+
+      let bilateral = 0, unilateral = 0, isometric = 0;
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.d) return;
+
+        const sets = log.d.length;
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          if (type.isUnilateral) {
+            unilateral += sets;
+          } else if (type.isTimeBased || type.isCore) {
+            isometric += sets;
+          } else {
+            bilateral += sets;
+          }
+        } else {
+          bilateral += sets;
+        }
+      });
+
+      const total = bilateral + unilateral + isometric;
+      if (total === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-[10px]">No data</p>';
+        return;
+      }
+
+      const uniPct = ((unilateral / total) * 100).toFixed(0);
+      const status = unilateral / total >= 0.15 
+        ? '<span class="text-emerald-400">✅ Good</span>'
+        : '<span class="text-yellow-400">⚠️ Low</span>';
+
+      container.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">⚖️ Bilateral</span>
+          <span class="font-mono text-white">${Math.round(bilateral / total * 100)}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">🔄 Unilateral</span>
+          <span class="font-mono text-white">${uniPct}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">🧘 Isometric</span>
+          <span class="font-mono text-white">${Math.round(isometric / total * 100)}%</span>
+        </div>
+        <div class="mt-2 pt-2 border-t border-slate-700 text-center text-[10px]">
+          Balance: ${status}
+        </div>
+      `;
+    },
+
+    renderTopContributors: (weekLogs) => {
+      const container = document.getElementById('dash-top-contributors');
+      if (!container) return;
+
+      const exerciseVols = {};
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio') return;
+        if (!exerciseVols[log.ex]) exerciseVols[log.ex] = 0;
+        exerciseVols[log.ex] += log.vol || 0;
+      });
+
+      const sorted = Object.entries(exerciseVols)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      if (sorted.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500 italic">No exercises logged yet</p>';
+        return;
+      }
+
+      const maxVol = sorted[0][1];
+
+      container.innerHTML = sorted.map(([ex, vol], idx) => {
+        const pct = (vol / maxVol) * 100;
+        let badge = '';
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(ex);
+          if (type.isBodyweight) {
+            badge = '<span class="text-[9px] text-purple-400">🤸</span>';
+          }
+        }
+
+        return `
+          <div class="flex items-center gap-2">
+            <div class="text-slate-500 text-xs font-bold w-4">${idx + 1}</div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-slate-300 flex items-center gap-1">
+                  ${badge} ${ex}
+                </span>
+                <span class="text-xs font-mono text-white">${Math.round(vol).toLocaleString()}kg</span>
+              </div>
+              <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full transition-all" 
+                  style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     },
 
     getTargets: (exName) => {
@@ -4841,14 +5141,41 @@ renderAdvancedRatios: function(daysBack = 30) {
           const thead = tableEl.querySelector("thead tr");
           if (thead) {
             thead.innerHTML = `
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">TGL</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">KG</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">REPS</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">RPE</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 25%">VOL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 12%">TGL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 18%">KG</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 18%">REPS</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">RPE</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 22%">VOL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">TYPE</th>
                 `;
           }
         }
+
+        // V30.7 Phase 5.1: Detect exercise type for volume source badges
+        let exerciseType = { isBodyweight: false, isUnilateral: false, isTimeBased: false, isCore: false };
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          exerciseType = APP.session.detectExerciseType(sel);
+        }
+
+        // V30.7 Hotfix: Get exercise category for TYPE tag
+        const getExerciseCategory = (exerciseName) => {
+          if (typeof EXERCISES_LIBRARY === 'undefined') {
+            console.warn('[STATS] EXERCISES_LIBRARY not found');
+            return null;
+          }
+          
+          for (const [category, exercises] of Object.entries(EXERCISES_LIBRARY)) {
+            if (typeof exercises === 'object' && Array.isArray(exercises)) {
+              const found = exercises.find(ex => ex.n === exerciseName);
+              if (found) {
+                return category;
+              }
+            }
+          }
+          return null;
+        };
+        
+        const exerciseCategory = getExerciseCategory(sel);
 
         let mx = 0,
           tv = 0;
@@ -4864,13 +5191,60 @@ renderAdvancedRatios: function(daysBack = 30) {
 
             if (l.d && Array.isArray(l.d)) {
               l.d.forEach((s) => {
+                // V30.7 Phase 5.1: Generate volume source badge
+                let badge = '';
+                let loadDisplay = s.k;
+                let loadClass = 'text-white';
+                
+                if (exerciseType.isBodyweight) {
+                  badge = '<span class="text-[9px] bg-purple-600/30 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30" title="Calculated bodyweight load">🤸 BW</span>';
+                  loadClass = 'text-purple-300';
+                  loadDisplay += '*';
+                } else if (exerciseType.isUnilateral) {
+                  badge = '<span class="text-[9px] bg-blue-600/30 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30" title="Unilateral exercise (×2 counted)">⚖️ UNI</span>';
+                } else if (exerciseType.isTimeBased || exerciseType.isCore) {
+                  badge = '<span class="text-[9px] bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30" title="Time-based exercise">🕐 TIME</span>';
+                }
+
+                // V30.7 Hotfix: Add exercise category tag
+                let categoryTag = '';
+                if (exerciseCategory) {
+                  const categoryColors = {
+                    chest: 'bg-red-600/30 text-red-300 border-red-500/30',
+                    back: 'bg-blue-600/30 text-blue-300 border-blue-500/30',
+                    legs: 'bg-green-600/30 text-green-300 border-green-500/30',
+                    shoulders: 'bg-yellow-600/30 text-yellow-300 border-yellow-500/30',
+                    arms: 'bg-pink-600/30 text-pink-300 border-pink-500/30',
+                    core: 'bg-orange-600/30 text-orange-300 border-orange-500/30',
+                    cardio: 'bg-cyan-600/30 text-cyan-300 border-cyan-500/30'
+                  };
+                  const colorClass = categoryColors[exerciseCategory] || 'bg-slate-600/30 text-slate-300 border-slate-500/30';
+                  categoryTag = `<span class="text-[9px] ${colorClass} px-1.5 py-0.5 rounded border uppercase font-bold">${exerciseCategory}</span>`;
+                }
+
+                // Combine badges
+                const typeTags = [categoryTag, badge].filter(t => t).join(' ');
+
+                // V30.8: Calculate volume using correct formula per exercise type
+                let setVolume;
+                if (exerciseType.isUnilateral && !exerciseType.isBodyweight) {
+                  // Unilateral: k × (r × 2) - counts both sides
+                  setVolume = s.k * (s.r * 2);
+                } else if (exerciseType.isBilateralDB) {
+                  // Bilateral DB: (k × 2) × r - sums both dumbbells
+                  setVolume = (s.k * 2) * s.r;
+                } else {
+                  // Standard or bodyweight: k × r
+                  setVolume = s.k * s.r;
+                }
+
                 tHtml += `
                       <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
                         <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
                           l.date
                         }</td>
-                        <td class="py-3 px-0 text-center text-sm font-bold text-white">${
-                          s.k
+                        <td class="py-3 px-0 text-center text-sm font-bold ${loadClass}">${
+                          loadDisplay
                         }<span class="text-slate-600 text-[10px] ml-0.5">kg</span></td>
                         <td class="py-3 px-0 text-center text-emerald-400 font-mono text-sm">x${
                           s.r
@@ -4879,8 +5253,9 @@ renderAdvancedRatios: function(daysBack = 30) {
                           s.rpe || "-"
                         }</td>
                         <td class="py-3 px-0 text-center text-blue-400 text-xs font-mono">${Math.round(
-                          s.k * s.r
+                          setVolume
                         ).toLocaleString()}</td>
+                        <td class="py-3 px-0 text-center">${typeTags || '-'}</td>
                       </tr>`;
               });
             }
@@ -5807,6 +6182,874 @@ renderAdvancedRatios: function(daysBack = 30) {
       APP.stats.checkFatigue(thisWeekLogs);
 
       console.log("[STATS] Klinik dashboard rendered with", h.length, "total logs");
+    },
+
+    // ========================================
+    // V30.8 PHASE 6: HISTORICAL DATA MIGRATION
+    // ========================================
+
+    /**
+     * Check if migration is needed (any of 4 migration cases)
+     */
+    checkMigrationNeeded: function() {
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      console.log("[MIGRATION] Flag status:", migrationComplete);
+      
+      if (migrationComplete === "true") {
+        console.log("[MIGRATION] Already complete - skipping");
+        return false;
+      }
+
+      const gymHist = LS_SAFE.getJSON("gym_hist", []);
+      console.log("[MIGRATION] Checking", gymHist.length, "log entries");
+      
+      if (gymHist.length === 0) return false;
+
+      // Debug counters
+      let debugCounters = {
+        totalChecked: 0,
+        bodyweightVol: 0,
+        bodyweightStruct: 0,
+        unilateral: 0,
+        bilateralDB: 0,
+        detectionFailed: 0
+      };
+
+      // Check if any exercises need migration (all 4 cases)
+      const needsMigration = gymHist.some(log => {
+        debugCounters.totalChecked++;
+        
+        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') {
+          debugCounters.detectionFailed++;
+          return false;
+        }
+        
+        const exType = APP.session.detectExerciseType(log.ex);
+        
+        // Get first set data (for weight/reps checking)
+        const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+        if (!firstSet) return false;
+        
+        const weight = firstSet.k || 0;
+        const reps = firstSet.r || 0;
+        const sets = log.d ? log.d.length : 1;
+        
+        // Case 1: Bodyweight with 0 volume
+        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+          console.log("[MIGRATION] Case 1 found:", log.ex, "vol=", log.vol);
+          debugCounters.bodyweightVol++;
+          return true;
+        }
+        
+        // Case 2: Bodyweight with incorrect weight field
+        if (exType.isBodyweight && weight > 0) {
+          console.log("[MIGRATION] Case 2 found:", log.ex, "k=", weight);
+          debugCounters.bodyweightStruct++;
+          return true;
+        }
+        
+        // Case 3: Weighted unilateral (not counting both sides)
+        if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = weight * (reps * 2) * sets;
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            console.log("[MIGRATION] Case 3 found:", log.ex, "vol=", log.vol, "expected new=", expectedNewVolume);
+            debugCounters.unilateral++;
+            return true;
+          }
+        }
+        
+        // Case 4: Bilateral DB (not summing both dumbbells)
+        if (exType.isBilateralDB && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = (weight * 2) * reps * sets;
+          
+          // Debug this specific case
+          const matches = Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume;
+          if (log.ex.includes("Flat Press") || log.ex.includes("DB")) {
+            console.log("[MIGRATION] Checking bilateral DB:", log.ex);
+            console.log("  - k:", weight, "r:", reps, "sets:", sets, "vol:", log.vol);
+            console.log("  - expectedOld:", expectedOldVolume, "expectedNew:", expectedNewVolume);
+            console.log("  - isBilateralDB:", exType.isBilateralDB);
+            console.log("  - matches old formula:", Math.abs(log.vol - expectedOldVolume) < 10);
+            console.log("  - not equal to new:", log.vol !== expectedNewVolume);
+            console.log("  - NEEDS MIGRATION:", matches);
+          }
+          
+          if (matches) {
+            console.log("[MIGRATION] Case 4 found:", log.ex, "vol=", log.vol, "expected new=", expectedNewVolume);
+            debugCounters.bilateralDB++;
+            return true;
+          }
+        }
+        
+        return false;
+      });
+
+      console.log("[MIGRATION] Debug counters:", debugCounters);
+      console.log("[MIGRATION] Check result:", needsMigration ? "NEEDED" : "Not needed");
+      return needsMigration;
+    },
+
+    /**
+     * Get user's weight at specific date (for historical accuracy)
+     */
+    _getUserWeightAtDate: function(dateStr) {
+      const profile = LS_SAFE.getJSON("user_profile", {});
+      
+      // Strategy 1: Check weight history (if exists)
+      if (profile.weight_history && Array.isArray(profile.weight_history)) {
+        const closestWeight = profile.weight_history
+          .filter(entry => entry.date <= dateStr)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        
+        if (closestWeight) {
+          console.log(`[MIGRATION] Using historical weight ${closestWeight.weight}kg for ${dateStr}`);
+          return closestWeight.weight;
+        }
+      }
+      
+      // Strategy 2: Use current weight
+      if (profile.weight && profile.weight > 0) {
+        console.log(`[MIGRATION] Using current weight ${profile.weight}kg for ${dateStr}`);
+        return profile.weight;
+      }
+      
+      // Strategy 3: Default 70kg
+      console.log(`[MIGRATION] Using default weight 70kg for ${dateStr}`);
+      return 70;
+    },
+
+    /**
+     * Run the migration process
+     */
+    migrateHistoricalBodyweightVolume: function() {
+      console.log("[MIGRATION] ========================================");
+      console.log("[MIGRATION] Starting v30.8 bodyweight volume migration");
+      console.log("[MIGRATION] ========================================");
+      
+      try {
+        // 1. BACKUP
+        const gymHist = LS_SAFE.getJSON("gym_hist", []);
+        const backup = JSON.stringify(gymHist);
+        LS_SAFE.set("gym_hist_backup_v30_8", backup);
+        LS_SAFE.set("migration_backup_timestamp", Date.now());
+        console.log("[MIGRATION] ✅ Backup created successfully");
+        
+        // 2. SCAN - Find all exercises needing migration
+        const toMigrate = [];
+        const migrationReasons = {
+          bodyweightVolume: 0,
+          bodyweightStructure: 0,
+          unilateralVolume: 0,
+          bilateralDBVolume: 0
+        };
+        
+        gymHist.forEach((log, idx) => {
+          if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
+          
+          const exType = APP.session.detectExerciseType(log.ex);
+          let needsMigration = false;
+          let reasons = [];
+          
+          // Get first set data (for weight/reps checking)
+          const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+          if (!firstSet) return;
+          
+          const weight = firstSet.k || 0;
+          const reps = firstSet.r || 0;
+          const sets = log.d ? log.d.length : 1;
+          
+          // Case 1: Bodyweight exercises with 0 or incorrect volume
+          if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+            needsMigration = true;
+            reasons.push('bodyweight_volume');
+            migrationReasons.bodyweightVolume++;
+          }
+          
+          // Case 2: Bodyweight exercises with incorrect weight field (k > 0)
+          if (exType.isBodyweight && weight > 0) {
+            needsMigration = true;
+            reasons.push('bodyweight_structure');
+            migrationReasons.bodyweightStructure++;
+          }
+          
+          // Case 3: Weighted unilateral exercises (pre-v30.6 didn't count both sides)
+          // Old formula: k × r (only one side)
+          // New formula: k × (r × 2) (both sides)
+          // Detect: Has weight, has reps, is unilateral, volume = k × r (not doubled)
+          if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+            const expectedOldVolume = weight * reps * sets;
+            const expectedNewVolume = weight * (reps * 2) * sets;
+            
+            // If current volume matches old formula, needs migration
+            if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+              needsMigration = true;
+              reasons.push('unilateral_volume');
+              migrationReasons.unilateralVolume++;
+            }
+          }
+          
+          // Case 4: Bilateral dumbbell exercises (pre-v30.6 didn't sum both DBs)
+          // Old formula: k × r (one dumbbell)
+          // New formula: (k × 2) × r (both dumbbells)
+          // Detect: Has weight, has reps, is bilateral DB, volume = k × r (not doubled)
+          if (exType.isBilateralDB && weight > 0 && reps > 0) {
+            const expectedOldVolume = weight * reps * sets;
+            const expectedNewVolume = (weight * 2) * reps * sets;
+            
+            // If current volume matches old formula, needs migration
+            if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+              needsMigration = true;
+              reasons.push('bilateral_db_volume');
+              migrationReasons.bilateralDBVolume++;
+            }
+          }
+          
+          if (needsMigration) {
+            toMigrate.push({ log, idx, reasons });
+          }
+        });
+        
+        console.log(`[MIGRATION] Scan results:`, migrationReasons);
+        console.log(`[MIGRATION] Total entries to migrate: ${toMigrate.length}`);
+        
+        if (toMigrate.length === 0) {
+          console.log("[MIGRATION] No entries need migration");
+          LS_SAFE.set("migration_v30_8_complete", "true");
+          return {
+            success: true,
+            entriesMigrated: 0,
+            volumeAdded: 0,
+            message: "No migration needed"
+          };
+        }
+        
+        // 3. CALCULATE - Fix all migration cases
+        let totalVolumeAdded = 0;
+        let migrationErrors = [];
+        let counters = {
+          bodyweightVolumeFixed: 0,
+          bodyweightStructureFixed: 0,
+          unilateralVolumeFixed: 0,
+          bilateralDBVolumeFixed: 0
+        };
+        
+        toMigrate.forEach(({ log, idx, reasons }) => {
+          try {
+            const exType = APP.session.detectExerciseType(log.ex);
+            let volumeChanged = false;
+            
+            // Get set data
+            const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+            if (!firstSet) return;
+            
+            const weight = firstSet.k || 0;
+            const reps = firstSet.r || 0;
+            const sets = log.d ? log.d.length : 1;
+            
+            // Store original values for audit
+            if (!log._originalVolume) log._originalVolume = log.vol || 0;
+            if (!log._originalWeight) log._originalWeight = weight;
+            
+            // CASE 1 & 2: Bodyweight exercises
+            if (reasons.includes('bodyweight_volume') || reasons.includes('bodyweight_structure')) {
+              const userWeight = this._getUserWeightAtDate(log.date);
+              
+              // Calculate total reps from all sets
+              let totalReps = 0;
+              log.d.forEach(set => {
+                totalReps += (set.r || 0);
+              });
+              
+              if (totalReps === 0) {
+                console.warn(`[MIGRATION] Skipping ${log.ex} - 0 reps`);
+                return;
+              }
+              
+              // Fix volume
+              if (reasons.includes('bodyweight_volume')) {
+                const newVolume = this._calculateBodyweightVolume(log.ex, totalReps);
+                totalVolumeAdded += (newVolume - log.vol);
+                log.vol = newVolume;
+                volumeChanged = true;
+                counters.bodyweightVolumeFixed++;
+                console.log(`[MIGRATION] BW Volume: ${log.ex} - ${log._originalVolume}kg → ${newVolume}kg`);
+              }
+              
+              // Fix structure (k field in all sets)
+              if (reasons.includes('bodyweight_structure')) {
+                log.d.forEach(set => {
+                  if (set.k > 0) set.k = 0;
+                });
+                counters.bodyweightStructureFixed++;
+                console.log(`[MIGRATION] BW Structure: ${log.ex} - weight ${log._originalWeight}kg → 0kg`);
+              }
+            }
+            
+            // CASE 3: Weighted Unilateral exercises
+            if (reasons.includes('unilateral_volume')) {
+              const oldVolume = log.vol;
+              const newVolume = weight * (reps * 2) * sets;
+              log.vol = newVolume;
+              totalVolumeAdded += (newVolume - oldVolume);
+              volumeChanged = true;
+              counters.unilateralVolumeFixed++;
+              console.log(`[MIGRATION] Unilateral: ${log.ex} - ${oldVolume}kg → ${newVolume}kg (counted both sides)`);
+            }
+            
+            // CASE 4: Bilateral Dumbbell exercises
+            if (reasons.includes('bilateral_db_volume')) {
+              const oldVolume = log.vol;
+              const newVolume = (weight * 2) * reps * sets;
+              log.vol = newVolume;
+              totalVolumeAdded += (newVolume - oldVolume);
+              volumeChanged = true;
+              counters.bilateralDBVolumeFixed++;
+              console.log(`[MIGRATION] Bilateral DB: ${log.ex} - ${oldVolume}kg → ${newVolume}kg (summed both DBs)`);
+            }
+            
+            // Mark as migrated
+            if (volumeChanged || counters.bodyweightStructureFixed > 0) {
+              log._migrated = "v30.8";
+              log._migratedTimestamp = Date.now();
+            }
+            
+          } catch (err) {
+            console.error(`[MIGRATION] Error migrating entry ${idx}:`, err);
+            migrationErrors.push({ idx, log, error: err.message });
+          }
+        });
+        
+        if (migrationErrors.length > 0) {
+          console.error(`[MIGRATION] ❌ Encountered ${migrationErrors.length} errors. Aborting.`);
+          LS_SAFE.setJSON("gym_hist", JSON.parse(backup));
+          return { 
+            success: false, 
+            errors: migrationErrors,
+            message: "Migration errors - backup restored"
+          };
+        }
+        
+        console.log(`[MIGRATION] Step 3: Calculated new volumes`);
+        console.log(`  - Bodyweight volumes fixed: ${counters.bodyweightVolumeFixed}`);
+        console.log(`  - Bodyweight structures fixed: ${counters.bodyweightStructureFixed}`);
+        console.log(`  - Unilateral volumes fixed: ${counters.unilateralVolumeFixed}`);
+        console.log(`  - Bilateral DB volumes fixed: ${counters.bilateralDBVolumeFixed}`);
+        console.log(`  - Total volume added: ${totalVolumeAdded.toFixed(1)}kg`);
+        
+        // 4. VERIFY
+        const validationErrors = gymHist.filter(log => 
+          isNaN(log.vol) || log.vol < 0 || log.vol === null || log.vol === undefined
+        );
+        
+        if (validationErrors.length > 0) {
+          console.error("[MIGRATION] ❌ Validation errors found:", validationErrors);
+          // Restore backup
+          LS_SAFE.setJSON("gym_hist", JSON.parse(backup));
+          return { 
+            success: false, 
+            errors: validationErrors,
+            message: "Validation failed - backup restored"
+          };
+        }
+        
+        // 5. COMMIT
+        LS_SAFE.setJSON("gym_hist", gymHist);
+        LS_SAFE.set("migration_v30_8_complete", "true");
+        LS_SAFE.set("migration_v30_8_timestamp", Date.now());
+        
+        // Clear cache to force recalculation
+        if (window.APP._volumeCache) {
+          window.APP._volumeCache = null;
+        }
+        
+        console.log("[MIGRATION] ========================================");
+        console.log("[MIGRATION] ✅ Migration completed successfully!");
+        console.log(`[MIGRATION] Total entries migrated: ${toMigrate.length}`);
+        console.log(`[MIGRATION]   - Bodyweight volumes: ${counters.bodyweightVolumeFixed}`);
+        console.log(`[MIGRATION]   - Bodyweight structures: ${counters.bodyweightStructureFixed}`);
+        console.log(`[MIGRATION]   - Unilateral volumes: ${counters.unilateralVolumeFixed}`);
+        console.log(`[MIGRATION]   - Bilateral DB volumes: ${counters.bilateralDBVolumeFixed}`);
+        console.log(`[MIGRATION] Volume added: ${totalVolumeAdded.toLocaleString()}kg`);
+        console.log("[MIGRATION] ========================================");
+        
+        return {
+          success: true,
+          entriesMigrated: toMigrate.length,
+          counters: counters,
+          volumeAdded: Math.round(totalVolumeAdded),
+          errors: migrationErrors
+        };
+        
+      } catch (err) {
+        console.error("[MIGRATION] ❌ Fatal error:", err);
+        return {
+          success: false,
+          message: err.message,
+          error: err
+        };
+      }
+    },
+
+    /**
+     * Revert migration to backup
+     */
+    revertMigration: function() {
+      console.log("[MIGRATION] Reverting to backup...");
+      
+      const backup = LS_SAFE.get("gym_hist_backup_v30_8");
+      if (!backup) {
+        console.error("[MIGRATION] No backup found");
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("No backup found", "error");
+        }
+        return false;
+      }
+      
+      try {
+        // Restore backup
+        LS_SAFE.set("gym_hist", backup);
+        LS_SAFE.remove("migration_v30_8_complete");
+        LS_SAFE.remove("migration_v30_8_timestamp");
+        
+        // Clear cache
+        if (window.APP._volumeCache) {
+          window.APP._volumeCache = null;
+        }
+        
+        console.log("[MIGRATION] ✅ Reverted to backup successfully");
+        
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("Reverted to backup", "success");
+        }
+        
+        return true;
+      } catch (err) {
+        console.error("[MIGRATION] Error reverting:", err);
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("Revert failed: " + err.message, "error");
+        }
+        return false;
+      }
+    },
+
+    /**
+     * Show migration prompt modal
+     */
+    showMigrationPrompt: function() {
+      console.log("[MIGRATION] Showing migration prompt");
+      
+      // Get migration stats for preview - check all 4 cases
+      const gymHist = LS_SAFE.getJSON("gym_hist", []);
+      let counts = {
+        bodyweight: 0,
+        unilateral: 0,
+        bilateralDB: 0,
+        total: 0
+      };
+      let estimatedVolume = 0;
+      
+      gymHist.forEach(log => {
+        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
+        
+        const exType = APP.session.detectExerciseType(log.ex);
+        const firstSet = log.d && log.d.length > 0 ? log.d[0] : null;
+        if (!firstSet) return;
+        
+        const weight = firstSet.k || 0;
+        const reps = firstSet.r || 0;
+        const sets = log.d ? log.d.length : 1;
+        
+        // Count bodyweight
+        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined || weight > 0)) {
+          counts.bodyweight++;
+          counts.total++;
+          
+          let totalReps = 0;
+          log.d.forEach(set => { totalReps += (set.r || 0); });
+          estimatedVolume += this._calculateBodyweightVolume(log.ex, totalReps);
+        }
+        
+        // Count unilateral
+        if (exType.isUnilateral && !exType.isBodyweight && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = weight * (reps * 2) * sets;
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            counts.unilateral++;
+            counts.total++;
+            estimatedVolume += (expectedNewVolume - log.vol);
+          }
+        }
+        
+        // Count bilateral DB
+        if (exType.isBilateralDB && weight > 0 && reps > 0) {
+          const expectedOldVolume = weight * reps * sets;
+          const expectedNewVolume = (weight * 2) * reps * sets;
+          if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+            counts.bilateralDB++;
+            counts.total++;
+            estimatedVolume += (expectedNewVolume - log.vol);
+          }
+        }
+      });
+      
+      const html = `
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" 
+             id="migration-modal" onclick="if(event.target.id==='migration-modal') APP.stats.closeMigrationModal()">
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-rotate text-emerald-400"></i>
+              Data Update Available
+            </h3>
+            
+            <p class="text-slate-400 text-sm mb-4">
+              We've improved exercise volume tracking! Update your historical data for accurate analytics?
+            </p>
+            
+            <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <h4 class="text-sm font-semibold text-blue-400 mb-2">📊 Changes:</h4>
+              <ul class="text-xs text-slate-400 space-y-1">
+                <li>• <span class="text-white font-bold">${counts.total}</span> exercise logs will be updated</li>
+                ${counts.bodyweight > 0 ? `<li>• ${counts.bodyweight} bodyweight exercises (pull-ups, dips, planks)</li>` : ''}
+                ${counts.unilateral > 0 ? `<li>• ${counts.unilateral} unilateral exercises (both sides counted)</li>` : ''}
+                ${counts.bilateralDB > 0 ? `<li>• ${counts.bilateralDB} bilateral DB exercises (both dumbbells summed)</li>` : ''}
+                <li>• +<span class="text-emerald-400 font-bold">${Math.round(estimatedVolume).toLocaleString()}</span>kg total volume will be added</li>
+              </ul>
+            </div>
+            
+            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+              <p class="text-xs text-yellow-400 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info mt-0.5"></i>
+                <span>Backup created automatically. You can revert if needed.</span>
+              </p>
+            </div>
+            
+            <div class="flex gap-3">
+              <button onclick="APP.stats.runMigration()" 
+                      class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-semibold hover:opacity-90 transition">
+                Update Now
+              </button>
+              <button onclick="APP.stats.skipMigration()" 
+                      class="flex-1 py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition">
+                Skip
+              </button>
+            </div>
+            
+            <button onclick="APP.stats.showMigrationDetails()" 
+                    class="w-full mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition">
+              View Technical Details →
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Append to body
+      const existingModal = document.getElementById('migration-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    /**
+     * Run migration from UI
+     */
+    runMigration: function() {
+      console.log("[MIGRATION] Running migration from UI...");
+      
+      // Show loading state
+      const modal = document.getElementById('migration-modal');
+      if (modal) {
+        modal.innerHTML = `
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
+            <div class="animate-spin text-4xl mb-4">⚙️</div>
+            <h3 class="text-xl font-bold text-white mb-2">Migrating Data...</h3>
+            <p class="text-slate-400 text-sm">This may take a few seconds</p>
+          </div>
+        `;
+      }
+      
+      // Run migration after brief delay (for UI update)
+      setTimeout(() => {
+        const result = this.migrateHistoricalBodyweightVolume();
+        this.showMigrationReport(result);
+      }, 500);
+    },
+
+    /**
+     * Show migration report
+     */
+    showMigrationReport: function(result) {
+      const html = `
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" 
+             id="migration-report-modal">
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            ${result.success ? `
+              <h3 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check"></i>
+                Migration Complete!
+              </h3>
+              
+              <div class="space-y-3 mb-6">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Entries Updated:</span>
+                  <span class="text-white font-semibold">${result.entriesMigrated} sets</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Volume Added:</span>
+                  <span class="text-emerald-400 font-semibold">+${result.volumeAdded.toLocaleString()}kg</span>
+                </div>
+                ${result.counters ? `
+                <div class="bg-white/5 rounded-lg p-3 space-y-2 text-xs">
+                  <div class="text-slate-300 font-semibold mb-1">Migration Details:</div>
+                  ${result.counters.bodyweightVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Bodyweight volumes:</span>
+                    <span class="text-emerald-400">${result.counters.bodyweightVolumeFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.bodyweightStructureFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Weight field fixes:</span>
+                    <span class="text-blue-400">${result.counters.bodyweightStructureFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.unilateralVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Unilateral volumes:</span>
+                    <span class="text-purple-400">${result.counters.unilateralVolumeFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.bilateralDBVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Bilateral DB volumes:</span>
+                    <span class="text-orange-400">${result.counters.bilateralDBVolumeFixed}</span>
+                  </div>
+                  ` : ''}
+                </div>
+                ` : ''}
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Backup Created:</span>
+                  <span class="text-white font-semibold">${new Date().toLocaleDateString()}</span>
+                </div>
+              </div>
+              
+              <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-blue-400 mb-2">
+                  📈 What Changed:
+                </h4>
+                <ul class="text-xs text-slate-400 space-y-1">
+                  ${result.counters?.bodyweightVolumeFixed > 0 ? '<li>• Bodyweight exercises now calculated with your weight (Pull-ups: ~700kg/10 reps)</li>' : ''}
+                  ${result.counters?.bodyweightStructureFixed > 0 ? '<li>• Weight field removed from bodyweight exercises (k=0)</li>' : ''}
+                  ${result.counters?.unilateralVolumeFixed > 0 ? '<li>• Unilateral exercises now count both sides (Bulgarian Split Squat: doubled volume)</li>' : ''}
+                  ${result.counters?.bilateralDBVolumeFixed > 0 ? '<li>• Bilateral dumbbell exercises now sum both dumbbells (DB Bench: doubled volume)</li>' : ''}
+                  <li>• All volumes recalculated using v30.6+ formulas</li>
+                </ul>
+              </div>
+              
+              <button onclick="APP.stats.viewUpdatedAnalytics()" 
+                      class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-semibold hover:opacity-90 transition mb-3">
+                View Updated Analytics
+              </button>
+              
+              <button onclick="APP.stats.revertMigration(); APP.stats.closeMigrationModal();" 
+                      class="w-full text-xs text-slate-400 hover:text-white transition">
+                ↶ Revert to Backup
+              </button>
+            ` : `
+              <h3 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-xmark"></i>
+                Migration Failed
+              </h3>
+              
+              <p class="text-slate-400 text-sm mb-4">
+                ${result.message || "An error occurred during migration"}
+              </p>
+              
+              <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+                <p class="text-xs text-red-400">
+                  Your data has not been modified. The backup is intact.
+                </p>
+              </div>
+              
+              <button onclick="APP.stats.closeMigrationModal()" 
+                      class="w-full py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition">
+                Close
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+      
+      // Replace modal
+      const existingModal = document.getElementById('migration-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    /**
+     * View updated analytics after migration
+     */
+    viewUpdatedAnalytics: function() {
+      this.closeMigrationModal();
+      
+      // Reload analytics view
+      if (window.APP && window.APP.nav) {
+        APP.nav.switchView('klinik');
+        
+        // Show toast
+        setTimeout(() => {
+          if (window.APP && window.APP.ui) {
+            APP.ui.showToast("Analytics updated with accurate volumes!", "success");
+          }
+        }, 500);
+      }
+    },
+
+    /**
+     * Skip migration
+     */
+    skipMigration: function() {
+      console.log("[MIGRATION] User skipped migration");
+      LS_SAFE.set("migration_v30_8_skipped", "true");
+      LS_SAFE.set("migration_v30_8_skip_timestamp", Date.now());
+      this.closeMigrationModal();
+    },
+
+    /**
+     * Show migration technical details
+     */
+    showMigrationDetails: function() {
+      const details = `
+V30.8 Historical Data Migration
+
+What it does:
+• Recalculates volume for pre-v30.7 bodyweight exercises
+• Uses scientific load multipliers (pull-ups 100%, push-ups 64%, etc.)
+• Applies your body weight (or default 70kg)
+• Creates backup automatically before making changes
+
+Scientific basis:
+• Pull-ups/Chin-ups: 100% bodyweight (NSCA 2016)
+• Push-ups: 64% bodyweight (Ebben et al. 2011)
+• Dips: 76% bodyweight (Schoenfeld 2014)
+
+Safety:
+• Full backup created before migration
+• One-click revert if needed
+• No data loss risk
+• Validation checks built-in
+
+Why it matters:
+• Accurate progress tracking
+• Meaningful analytics
+• Proper volume accounting
+• Fair comparison with weighted exercises
+      `;
+      
+      alert(details);
+    },
+
+    /**
+     * Close migration modal
+     */
+    closeMigrationModal: function() {
+      const modal = document.getElementById('migration-modal');
+      if (modal) modal.remove();
+      
+      const reportModal = document.getElementById('migration-report-modal');
+      if (reportModal) reportModal.remove();
+    },
+
+    /**
+     * Check and show migration from Profile view
+     */
+    checkAndShowMigration: function() {
+      console.log("[MIGRATION] Manual check triggered from Profile");
+      
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
+      
+      if (migrationComplete === "true") {
+        // Already migrated - show info
+        const timestamp = LS_SAFE.get("migration_v30_8_timestamp");
+        const date = timestamp ? new Date(parseInt(timestamp)).toLocaleDateString() : "Unknown";
+        
+        alert(`✅ Migration Already Complete\n\nYour data was successfully migrated on ${date}.\n\nAll historical bodyweight exercises now show accurate volumes.\n\nIf you need to revert, use the button below.`);
+        
+        // Offer revert option
+        if (confirm("Would you like to revert to the backup (restore original data)?")) {
+          this.revertMigration();
+          this.updateMigrationBadge();
+        }
+        
+        return;
+      }
+      
+      if (migrationSkipped === "true") {
+        // User previously skipped - offer to run now
+        if (confirm("You previously skipped the migration.\n\nWould you like to update your historical data now?\n\nThis will:\n• Fix 0kg volumes on bodyweight exercises\n• Improve analytics accuracy\n• Create automatic backup")) {
+          // Clear skip flag and show prompt
+          LS_SAFE.remove("migration_v30_8_skipped");
+          this.showMigrationPrompt();
+        }
+        return;
+      }
+      
+      // Check if migration is needed
+      if (this.checkMigrationNeeded()) {
+        this.showMigrationPrompt();
+      } else {
+        alert("✅ No Migration Needed\n\nYour data is already up to date!\n\nAll bodyweight exercises are properly tracked.");
+      }
+      
+      this.updateMigrationBadge();
+    },
+
+    /**
+     * Update migration status badge in Profile view
+     */
+    updateMigrationBadge: function() {
+      const badge = document.getElementById('migration-status-badge');
+      if (!badge) return;
+      
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
+      
+      if (migrationComplete === "true") {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-emerald-900/30 border border-emerald-500/30 text-emerald-400";
+        badge.textContent = "✓ Complete";
+      } else if (migrationSkipped === "true") {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-yellow-900/30 border border-yellow-500/30 text-yellow-400";
+        badge.textContent = "⊘ Skipped";
+      } else if (this.checkMigrationNeeded()) {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 animate-pulse";
+        badge.textContent = "! Available";
+      } else {
+        badge.className = "text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400";
+        badge.textContent = "✓ Up to date";
+      }
+    },
+
+    /**
+     * DEBUG: Clear migration flag (for testing)
+     * Usage: APP.stats.clearMigrationFlag()
+     */
+    clearMigrationFlag: function() {
+      console.log("[MIGRATION] Clearing migration flags...");
+      LS_SAFE.remove("migration_v30_8_complete");
+      LS_SAFE.remove("migration_v30_8_skipped");
+      LS_SAFE.remove("migration_v30_8_timestamp");
+      console.log("[MIGRATION] Flags cleared. Refresh page to re-check.");
+      if (window.APP && window.APP.ui) {
+        APP.ui.showToast("Migration flags cleared - refresh to re-check", "success");
+      }
+      this.updateMigrationBadge();
     }
   };
 

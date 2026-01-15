@@ -270,6 +270,11 @@
       }
     }
 
+    // V30.8: Update migration badge when showing storage stats
+    if (window.APP && window.APP.stats && typeof APP.stats.updateMigrationBadge === 'function') {
+      APP.stats.updateMigrationBadge();
+    }
+
     console.log("Storage Stats:", stats);
   };
 
