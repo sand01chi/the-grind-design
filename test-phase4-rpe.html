@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 4 RPE Modal Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-emerald-400 mb-8">
+            <i class="fa-solid fa-flask mr-2"></i>Phase 4 RPE Modal Test
+        </h1>
+        
+        <div class="mb-8 p-4 bg-slate-800 rounded-lg border border-slate-700">
+            <h2 class="text-lg font-bold mb-4">🧪 Test RPE Content Generation</h2>
+            <p class="text-sm text-slate-400 mb-4">Click buttons to preview different RPE modal variations:</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="testRPE('compound')" 
+                    class="bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg transition">
+                    <i class="fa-solid fa-dumbbell mr-2"></i>Compound
+                </button>
+                <button onclick="testRPE('bodyweight')" 
+                    class="bg-purple-600 hover:bg-purple-700 px-4 py-3 rounded-lg transition">
+                    <i class="fa-solid fa-person-running mr-2"></i>Bodyweight
+                </button>
+                <button onclick="testRPE('core')" 
+                    class="bg-emerald-600 hover:bg-emerald-700 px-4 py-3 rounded-lg transition">
+                    <i class="fa-solid fa-heart-pulse mr-2"></i>Core
+                </button>
+                <button onclick="testRPE('unilateral')" 
+                    class="bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg transition">
+                    <i class="fa-solid fa-repeat mr-2"></i>Unilateral
+                </button>
+                <button onclick="testRPE('isolation')" 
+                    class="bg-amber-600 hover:bg-amber-700 px-4 py-3 rounded-lg transition">
+                    <i class="fa-solid fa-bullseye mr-2"></i>Isolation
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview Container -->
+        <div id="preview" class="glass-panel rounded-2xl border border-white/10 p-5">
+            <div class="text-center text-slate-500 py-8">
+                <i class="fa-solid fa-arrow-up text-4xl mb-4"></i>
+                <p>Select an exercise type above to preview RPE modal</p>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="mt-8 p-4 bg-slate-800 rounded-lg border border-slate-700">
+            <h3 class="text-lg font-bold mb-4">✅ Test Checklist</h3>
+            <div id="test-results" class="space-y-2 text-sm">
+                <div class="text-slate-400">Run tests by clicking buttons above...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Minimal APP mock for testing
+        const APP = {
+            ui: {
+                getRPEContent: (type) => {
+                    const contents = {
+                        compound: {
+                            title: '📚 Pedoman Skala RPE & RIR',
+                            subtitle: 'Latihan Compound (Squat, Bench, Deadlift)',
+                            rows: [
+                                { rpe: '10', rir: '0', desc: 'Usaha MAKSIMAL. Tidak bisa angkat lagi (Failure teknis/otot).', color: 'red-500' },
+                                { rpe: '9.5', rir: '0-1', desc: 'Mungkin bisa 1 lagi jika nyawa terancam. Gerakan sangat lambat.', color: 'red-400' },
+                                { rpe: '9', rir: '1', desc: 'Pasti bisa 1 repetisi lagi dengan teknik benar. Berat tapi selesai.', color: 'orange-400' },
+                                { rpe: '8', rir: '2', desc: 'Beban kerja ideal. Berat, kecepatan bar terkontrol baik.', color: 'emerald-400' },
+                                { rpe: '7', rir: '3+', desc: 'Terasa ringan, gerakan eksplosif. Untuk pemanasan/power.', color: 'blue-400' }
+                            ],
+                            tip: '💡 <b>Rekomendasi:</b> Hypertrophy ideal di RPE 7-9'
+                        },
+                        bodyweight: {
+                            title: '🤸 Pedoman RPE - Latihan Bodyweight',
+                            subtitle: 'Pull-Up, Push-Up, Dip',
+                            rows: [
+                                { rpe: '10', rir: '0', desc: 'Tidak bisa 1 rep lagi dengan STRICT FORM. Otot failure total.', color: 'red-500' },
+                                { rpe: '9.5', rir: '0-1', desc: 'Rep terakhir pakai momentum/kipping. Form mulai breakdown.', color: 'red-400' },
+                                { rpe: '9', rir: '1', desc: 'Bisa 1 rep strict lagi. Kontraksi sangat kuat, gerakan lambat.', color: 'orange-400' },
+                                { rpe: '8', rir: '2', desc: 'Bisa 2-3 rep strict. Kontrol penuh, form masih sempurna.', color: 'emerald-400' },
+                                { rpe: '7', rir: '3+', desc: 'Masih smooth, bisa banyak rep lagi. Muscle connection baik.', color: 'blue-400' }
+                            ],
+                            tip: '⚠️ <b>PENTING:</b> Prioritaskan FORM QUALITY > jumlah rep maksimal.<br>• Jangan count rep dengan momentum/swing<br>• RPE 8-9 dengan strict form > RPE 10 dengan kipping'
+                        },
+                        core: {
+                            title: '🧘 Pedoman RPE - Latihan Core & Isometric',
+                            subtitle: 'Plank, Dead Bug, Pallof Hold',
+                            rows: [
+                                { rpe: '10', rir: '0s', desc: 'Tidak bisa hold lagi. Spinal position COMPROMISE (hips sag/pike).', color: 'red-500' },
+                                { rpe: '9.5', rir: '0-5s', desc: 'Core shaking hebat. Posisi netral mulai hilang.', color: 'red-400' },
+                                { rpe: '9', rir: '5-10s', desc: 'Hold 5-10s lagi dengan postur netral. Kontraksi maksimal.', color: 'orange-400' },
+                                { rpe: '8', rir: '10-20s', desc: 'Kontraksi kuat. Bisa hold lebih lama dengan form baik.', color: 'emerald-400' },
+                                { rpe: '7', rir: '20s+', desc: 'Terasa effort sedang. Form masih sempurna, bisa jauh lebih lama.', color: 'blue-400' }
+                            ],
+                            tip: '🧘 <b>Stuart McGill Guidelines:</b><br>• STOP saat spinal neutrality mulai hilang<br>• Form breakdown = STOP (bukan "push through")<br>• Quality contraction > durasi maksimal<br>⚠️ Core training bukan tentang "burn" maksimal!'
+                        },
+                        unilateral: {
+                            title: '⚖️ Pedoman RPE - Latihan Unilateral',
+                            subtitle: 'Single-Arm Row, Bulgarian Split Squat',
+                            rows: [
+                                { rpe: '10', rir: '0', desc: 'Balance lost. Tidak bisa 1 rep dengan postur stabil.', color: 'red-500' },
+                                { rpe: '9.5', rir: '0-1', desc: 'Balance goyah. Kompensasi dari sisi lain mulai terjadi.', color: 'red-400' },
+                                { rpe: '9', rir: '1', desc: 'Bisa 1 rep stabil. Kontrol penuh, minimal kompensasi.', color: 'orange-400' },
+                                { rpe: '8', rir: '2', desc: 'Bisa 2-3 rep. Stabilizer muscles bekerja optimal.', color: 'emerald-400' },
+                                { rpe: '7', rir: '3+', desc: 'Smooth, fokus ke muscle connection. Minimal fatigue.', color: 'blue-400' }
+                            ],
+                            tip: '⚖️ <b>Tips Imbalance Detection:</b><br>• Catat RPE untuk KIRI dan KANAN secara terpisah<br>• Jika selisih RPE >1 poin = ada IMBALANCE<br>• Contoh: Kanan RPE 8, Kiri RPE 9.5 → Kiri lebih lemah<br>📌 Selalu mulai dari sisi LEMAH terlebih dahulu'
+                        },
+                        isolation: {
+                            title: '💪 Pedoman RPE - Latihan Isolasi',
+                            subtitle: 'Cable Fly, Leg Extension, Bicep Curl',
+                            rows: [
+                                { rpe: '10', rir: '0', desc: 'MUSCLE BURN maksimal. Tidak bisa 1 rep tanpa cheat/momentum.', color: 'red-500' },
+                                { rpe: '9.5', rir: '0-1', desc: 'Intense burn. Bisa 1 rep dengan sedikit cheat (swing/body english).', color: 'red-400' },
+                                { rpe: '9', rir: '1', desc: 'Strong burn. Bisa 1 rep strict. Kontraksi sangat kuat.', color: 'orange-400' },
+                                { rpe: '8', rir: '2-3', desc: 'Moderate burn. Bisa 2-3 rep. Target muscle fully engaged.', color: 'emerald-400' },
+                                { rpe: '7', rir: '3+', desc: 'Light burn. Masih banyak cadangan. Untuk feeder sets.', color: 'blue-400' }
+                            ],
+                            tip: '💪 <b>Metabolic Stress Training:</b><br>• Isolasi EFEKTIF di RPE 8-10 (high metabolic stress)<br>• "Burn" sensation = lactic acid buildup (GOOD!)<br>• Drop sets ideal: RPE 10 → 9 → 8 tanpa rest<br>⚠️ Bedakan "muscle burn" vs "joint pain" - Joint pain = STOP!'
+                        }
+                    };
+
+                    const content = contents[type] || contents.compound;
+                    
+                    let html = `
+                        <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                        <div>
+                            <h3 class="font-bold text-emerald-400 text-sm">
+                            ${content.title}
+                            </h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${content.subtitle}</p>
+                        </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                            <tr class="glass-card text-emerald-400 text-[10px] uppercase">
+                                <th class="p-2 border border-white/5 text-center w-1/6">RPE</th>
+                                <th class="p-2 border border-white/5 text-center w-1/6">Sisa (RIR)</th>
+                                <th class="p-2 border border-white/5 text-left">Indikator Fisik/Rasa</th>
+                            </tr>
+                            </thead>
+                            <tbody class="text-slate-300 text-[11px]">`;
+                    
+                    content.rows.forEach((row, idx) => {
+                        html += `
+                            <tr class="${idx % 2 === 0 ? 'bg-white/5' : ''}">
+                                <td class="p-2 border border-white/5 font-bold text-center text-${row.color} ${row.rpe === '10' ? 'text-sm' : ''}">
+                                ${row.rpe}
+                                </td>
+                                <td class="p-2 border border-white/5 text-center ${row.rir === '0' || row.rir === '1' || row.rir === '2' ? 'font-bold' : ''}">
+                                ${row.rir}
+                                </td>
+                                <td class="p-2 border border-white/5">
+                                ${row.desc}
+                                </td>
+                            </tr>`;
+                    });
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed">
+                        ${content.tip}
+                        </div>`;
+                    
+                    return html;
+                }
+            }
+        };
+
+        const testResults = {
+            compound: false,
+            bodyweight: false,
+            core: false,
+            unilateral: false,
+            isolation: false
+        };
+
+        function testRPE(type) {
+            const preview = document.getElementById('preview');
+            const html = APP.ui.getRPEContent(type);
+            preview.innerHTML = html;
+            
+            // Mark as tested
+            testResults[type] = true;
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('test-results');
+            const types = ['compound', 'bodyweight', 'core', 'unilateral', 'isolation'];
+            const icons = {
+                compound: 'fa-dumbbell',
+                bodyweight: 'fa-person-running',
+                core: 'fa-heart-pulse',
+                unilateral: 'fa-repeat',
+                isolation: 'fa-bullseye'
+            };
+            
+            const html = types.map(type => {
+                const status = testResults[type] ? 
+                    '<i class="fa-solid fa-check-circle text-emerald-400"></i>' : 
+                    '<i class="fa-regular fa-circle text-slate-600"></i>';
+                return `
+                    <div class="flex items-center gap-3">
+                        ${status}
+                        <span class="${testResults[type] ? 'text-slate-300' : 'text-slate-500'}">
+                            <i class="fa-solid ${icons[type]} mr-2"></i>${type.charAt(0).toUpperCase() + type.slice(1)} RPE Table
+                        </span>
+                    </div>
+                `;
+            }).join('');
+            
+            const allTested = Object.values(testResults).every(v => v);
+            resultsDiv.innerHTML = html + (allTested ? 
+                '<div class="mt-4 p-3 bg-emerald-900/30 border border-emerald-500/30 rounded text-emerald-400 text-center font-bold"><i class="fa-solid fa-trophy mr-2"></i>All Tests Passed!</div>' : 
+                '');
+        }
+    </script>
+</body>
+</html>
