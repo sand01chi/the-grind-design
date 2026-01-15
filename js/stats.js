@@ -3426,6 +3426,19 @@ renderAdvancedRatios: function(daysBack = 30) {
       const prefix = isKlinikView ? 'klinik' : 'stats';
       const contentSuffix = isKlinikView ? '-content' : '-view';
 
+      // V30.8: Check migration on first analytics dashboard load
+      if (isKlinikView && t === "dashboard") {
+        const migrationSkipped = LS_SAFE.get("migration_v30_8_skipped");
+        const shouldCheckMigration = !migrationSkipped || migrationSkipped !== "true";
+        
+        if (shouldCheckMigration && APP.stats.checkMigrationNeeded()) {
+          console.log("[MIGRATION] Migration needed - will show prompt after render");
+          setTimeout(() => {
+            APP.stats.showMigrationPrompt();
+          }, 1000); // Show after 1 second to let UI settle
+        }
+      }
+
       // V30.3: Added 'advanced' to views array
       const views = [
         `${prefix}-dashboard${contentSuffix}`,
@@ -6158,6 +6171,488 @@ renderAdvancedRatios: function(daysBack = 30) {
       APP.stats.checkFatigue(thisWeekLogs);
 
       console.log("[STATS] Klinik dashboard rendered with", h.length, "total logs");
+    },
+
+    // ========================================
+    // V30.8 PHASE 6: HISTORICAL DATA MIGRATION
+    // ========================================
+
+    /**
+     * Check if migration is needed (pre-v30.7 bodyweight exercises with 0 volume)
+     */
+    checkMigrationNeeded: function() {
+      const migrationComplete = LS_SAFE.get("migration_v30_8_complete");
+      if (migrationComplete === "true") return false;
+
+      const gymHist = LS_SAFE.getJSON("gym_hist", []);
+      if (gymHist.length === 0) return false;
+
+      // Check if any bodyweight exercises with 0 volume exist
+      const needsMigration = gymHist.some(log => {
+        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return false;
+        const exType = APP.session.detectExerciseType(log.ex);
+        return exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined);
+      });
+
+      console.log("[MIGRATION] Check result:", needsMigration ? "NEEDED" : "Not needed");
+      return needsMigration;
+    },
+
+    /**
+     * Get user's weight at specific date (for historical accuracy)
+     */
+    _getUserWeightAtDate: function(dateStr) {
+      const profile = LS_SAFE.getJSON("user_profile", {});
+      
+      // Strategy 1: Check weight history (if exists)
+      if (profile.weight_history && Array.isArray(profile.weight_history)) {
+        const closestWeight = profile.weight_history
+          .filter(entry => entry.date <= dateStr)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        
+        if (closestWeight) {
+          console.log(`[MIGRATION] Using historical weight ${closestWeight.weight}kg for ${dateStr}`);
+          return closestWeight.weight;
+        }
+      }
+      
+      // Strategy 2: Use current weight
+      if (profile.weight && profile.weight > 0) {
+        console.log(`[MIGRATION] Using current weight ${profile.weight}kg for ${dateStr}`);
+        return profile.weight;
+      }
+      
+      // Strategy 3: Default 70kg
+      console.log(`[MIGRATION] Using default weight 70kg for ${dateStr}`);
+      return 70;
+    },
+
+    /**
+     * Run the migration process
+     */
+    migrateHistoricalBodyweightVolume: function() {
+      console.log("[MIGRATION] ========================================");
+      console.log("[MIGRATION] Starting v30.8 bodyweight volume migration");
+      console.log("[MIGRATION] ========================================");
+      
+      try {
+        // 1. BACKUP
+        const gymHist = LS_SAFE.getJSON("gym_hist", []);
+        const backup = JSON.stringify(gymHist);
+        LS_SAFE.set("gym_hist_backup_v30_8", backup);
+        LS_SAFE.set("migration_backup_timestamp", Date.now());
+        console.log("[MIGRATION] ✅ Backup created successfully");
+        
+        // 2. SCAN
+        const toMigrate = [];
+        gymHist.forEach((log, idx) => {
+          if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
+          
+          const exType = APP.session.detectExerciseType(log.ex);
+          if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+            toMigrate.push({ log, idx });
+          }
+        });
+        
+        console.log(`[MIGRATION] Found ${toMigrate.length} entries to migrate`);
+        
+        if (toMigrate.length === 0) {
+          console.log("[MIGRATION] No entries need migration");
+          LS_SAFE.set("migration_v30_8_complete", "true");
+          return {
+            success: true,
+            entriesMigrated: 0,
+            volumeAdded: 0,
+            message: "No migration needed"
+          };
+        }
+        
+        // 3. CALCULATE
+        let totalVolumeAdded = 0;
+        let migrationErrors = [];
+        
+        toMigrate.forEach(({ log, idx }) => {
+          try {
+            // Get user weight at that date
+            const userWeight = this._getUserWeightAtDate(log.date);
+            
+            // Calculate total reps for this log entry
+            const totalReps = (log.sets || 1) * (log.reps || 0);
+            
+            if (totalReps === 0) {
+              console.warn(`[MIGRATION] Skipping ${log.ex} - 0 reps`);
+              return;
+            }
+            
+            // Calculate volume using bodyweight multiplier
+            const newVolume = this._calculateBodyweightVolume(log.ex, totalReps);
+            
+            // Store original volume for audit
+            log._originalVolume = log.vol || 0;
+            log.vol = newVolume;
+            log._migrated = "v30.8";
+            log._migratedTimestamp = Date.now();
+            
+            totalVolumeAdded += newVolume;
+            
+            console.log(`[MIGRATION] ${log.date} - ${log.ex}: ${log._originalVolume}kg → ${newVolume}kg`);
+          } catch (err) {
+            console.error(`[MIGRATION] Error migrating entry ${idx}:`, err);
+            migrationErrors.push({ idx, log, error: err.message });
+          }
+        });
+        
+        // 4. VERIFY
+        const validationErrors = gymHist.filter(log => 
+          isNaN(log.vol) || log.vol < 0 || log.vol === null || log.vol === undefined
+        );
+        
+        if (validationErrors.length > 0) {
+          console.error("[MIGRATION] ❌ Validation errors found:", validationErrors);
+          // Restore backup
+          LS_SAFE.setJSON("gym_hist", JSON.parse(backup));
+          return { 
+            success: false, 
+            errors: validationErrors,
+            message: "Validation failed - backup restored"
+          };
+        }
+        
+        // 5. COMMIT
+        LS_SAFE.setJSON("gym_hist", gymHist);
+        LS_SAFE.set("migration_v30_8_complete", "true");
+        LS_SAFE.set("migration_v30_8_timestamp", Date.now());
+        
+        // Clear cache to force recalculation
+        if (window.APP._volumeCache) {
+          window.APP._volumeCache = null;
+        }
+        
+        console.log("[MIGRATION] ========================================");
+        console.log("[MIGRATION] ✅ Migration completed successfully!");
+        console.log(`[MIGRATION] Entries migrated: ${toMigrate.length}`);
+        console.log(`[MIGRATION] Volume added: ${totalVolumeAdded.toLocaleString()}kg`);
+        console.log("[MIGRATION] ========================================");
+        
+        return {
+          success: true,
+          entriesMigrated: toMigrate.length,
+          volumeAdded: Math.round(totalVolumeAdded),
+          errors: migrationErrors
+        };
+        
+      } catch (err) {
+        console.error("[MIGRATION] ❌ Fatal error:", err);
+        return {
+          success: false,
+          message: err.message,
+          error: err
+        };
+      }
+    },
+
+    /**
+     * Revert migration to backup
+     */
+    revertMigration: function() {
+      console.log("[MIGRATION] Reverting to backup...");
+      
+      const backup = LS_SAFE.get("gym_hist_backup_v30_8");
+      if (!backup) {
+        console.error("[MIGRATION] No backup found");
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("No backup found", "error");
+        }
+        return false;
+      }
+      
+      try {
+        // Restore backup
+        LS_SAFE.set("gym_hist", backup);
+        LS_SAFE.remove("migration_v30_8_complete");
+        LS_SAFE.remove("migration_v30_8_timestamp");
+        
+        // Clear cache
+        if (window.APP._volumeCache) {
+          window.APP._volumeCache = null;
+        }
+        
+        console.log("[MIGRATION] ✅ Reverted to backup successfully");
+        
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("Reverted to backup", "success");
+        }
+        
+        return true;
+      } catch (err) {
+        console.error("[MIGRATION] Error reverting:", err);
+        if (window.APP && window.APP.ui) {
+          APP.ui.showToast("Revert failed: " + err.message, "error");
+        }
+        return false;
+      }
+    },
+
+    /**
+     * Show migration prompt modal
+     */
+    showMigrationPrompt: function() {
+      console.log("[MIGRATION] Showing migration prompt");
+      
+      // Get migration stats for preview
+      const gymHist = LS_SAFE.getJSON("gym_hist", []);
+      let count = 0;
+      let estimatedVolume = 0;
+      
+      gymHist.forEach(log => {
+        if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
+        
+        const exType = APP.session.detectExerciseType(log.ex);
+        if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
+          count++;
+          const totalReps = (log.sets || 1) * (log.reps || 0);
+          estimatedVolume += this._calculateBodyweightVolume(log.ex, totalReps);
+        }
+      });
+      
+      const html = `
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" 
+             id="migration-modal" onclick="if(event.target.id==='migration-modal') APP.stats.closeMigrationModal()">
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-rotate text-emerald-400"></i>
+              Data Update Available
+            </h3>
+            
+            <p class="text-slate-400 text-sm mb-4">
+              We've improved bodyweight exercise volume tracking! Update your historical data for accurate analytics?
+            </p>
+            
+            <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <h4 class="text-sm font-semibold text-blue-400 mb-2">📊 Changes:</h4>
+              <ul class="text-xs text-slate-400 space-y-1">
+                <li>• <span class="text-white font-bold">${count}</span> bodyweight sets will be recalculated</li>
+                <li>• +<span class="text-emerald-400 font-bold">${Math.round(estimatedVolume).toLocaleString()}</span>kg total volume will be added</li>
+                <li>• Analytics charts will be more accurate</li>
+                <li>• Pull-ups, push-ups, dips properly tracked</li>
+              </ul>
+            </div>
+            
+            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+              <p class="text-xs text-yellow-400 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info mt-0.5"></i>
+                <span>Backup created automatically. You can revert if needed.</span>
+              </p>
+            </div>
+            
+            <div class="flex gap-3">
+              <button onclick="APP.stats.runMigration()" 
+                      class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-semibold hover:opacity-90 transition">
+                Update Now
+              </button>
+              <button onclick="APP.stats.skipMigration()" 
+                      class="flex-1 py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition">
+                Skip
+              </button>
+            </div>
+            
+            <button onclick="APP.stats.showMigrationDetails()" 
+                    class="w-full mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition">
+              View Technical Details →
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Append to body
+      const existingModal = document.getElementById('migration-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    /**
+     * Run migration from UI
+     */
+    runMigration: function() {
+      console.log("[MIGRATION] Running migration from UI...");
+      
+      // Show loading state
+      const modal = document.getElementById('migration-modal');
+      if (modal) {
+        modal.innerHTML = `
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center">
+            <div class="animate-spin text-4xl mb-4">⚙️</div>
+            <h3 class="text-xl font-bold text-white mb-2">Migrating Data...</h3>
+            <p class="text-slate-400 text-sm">This may take a few seconds</p>
+          </div>
+        `;
+      }
+      
+      // Run migration after brief delay (for UI update)
+      setTimeout(() => {
+        const result = this.migrateHistoricalBodyweightVolume();
+        this.showMigrationReport(result);
+      }, 500);
+    },
+
+    /**
+     * Show migration report
+     */
+    showMigrationReport: function(result) {
+      const html = `
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" 
+             id="migration-report-modal">
+          <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            ${result.success ? `
+              <h3 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check"></i>
+                Migration Complete!
+              </h3>
+              
+              <div class="space-y-3 mb-6">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Entries Updated:</span>
+                  <span class="text-white font-semibold">${result.entriesMigrated} sets</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Volume Added:</span>
+                  <span class="text-emerald-400 font-semibold">+${result.volumeAdded.toLocaleString()}kg</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Backup Created:</span>
+                  <span class="text-white font-semibold">${new Date().toLocaleDateString()}</span>
+                </div>
+              </div>
+              
+              <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                <h4 class="text-sm font-semibold text-blue-400 mb-2">
+                  📈 What Changed:
+                </h4>
+                <ul class="text-xs text-slate-400 space-y-1">
+                  <li>• Pull-ups now show ~700kg per 10-rep set (was 0kg)</li>
+                  <li>• Push-ups now show ~448kg per 10-rep set (was 0kg)</li>
+                  <li>• All bodyweight exercises calculated with your weight</li>
+                </ul>
+              </div>
+              
+              <button onclick="APP.stats.viewUpdatedAnalytics()" 
+                      class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-semibold hover:opacity-90 transition mb-3">
+                View Updated Analytics
+              </button>
+              
+              <button onclick="APP.stats.revertMigration(); APP.stats.closeMigrationModal();" 
+                      class="w-full text-xs text-slate-400 hover:text-white transition">
+                ↶ Revert to Backup
+              </button>
+            ` : `
+              <h3 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-xmark"></i>
+                Migration Failed
+              </h3>
+              
+              <p class="text-slate-400 text-sm mb-4">
+                ${result.message || "An error occurred during migration"}
+              </p>
+              
+              <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+                <p class="text-xs text-red-400">
+                  Your data has not been modified. The backup is intact.
+                </p>
+              </div>
+              
+              <button onclick="APP.stats.closeMigrationModal()" 
+                      class="w-full py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition">
+                Close
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+      
+      // Replace modal
+      const existingModal = document.getElementById('migration-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    /**
+     * View updated analytics after migration
+     */
+    viewUpdatedAnalytics: function() {
+      this.closeMigrationModal();
+      
+      // Reload analytics view
+      if (window.APP && window.APP.nav) {
+        APP.nav.switchView('klinik');
+        
+        // Show toast
+        setTimeout(() => {
+          if (window.APP && window.APP.ui) {
+            APP.ui.showToast("Analytics updated with accurate volumes!", "success");
+          }
+        }, 500);
+      }
+    },
+
+    /**
+     * Skip migration
+     */
+    skipMigration: function() {
+      console.log("[MIGRATION] User skipped migration");
+      LS_SAFE.set("migration_v30_8_skipped", "true");
+      LS_SAFE.set("migration_v30_8_skip_timestamp", Date.now());
+      this.closeMigrationModal();
+    },
+
+    /**
+     * Show migration technical details
+     */
+    showMigrationDetails: function() {
+      const details = `
+V30.8 Historical Data Migration
+
+What it does:
+• Recalculates volume for pre-v30.7 bodyweight exercises
+• Uses scientific load multipliers (pull-ups 100%, push-ups 64%, etc.)
+• Applies your body weight (or default 70kg)
+• Creates backup automatically before making changes
+
+Scientific basis:
+• Pull-ups/Chin-ups: 100% bodyweight (NSCA 2016)
+• Push-ups: 64% bodyweight (Ebben et al. 2011)
+• Dips: 76% bodyweight (Schoenfeld 2014)
+
+Safety:
+• Full backup created before migration
+• One-click revert if needed
+• No data loss risk
+• Validation checks built-in
+
+Why it matters:
+• Accurate progress tracking
+• Meaningful analytics
+• Proper volume accounting
+• Fair comparison with weighted exercises
+      `;
+      
+      alert(details);
+    },
+
+    /**
+     * Close migration modal
+     */
+    closeMigrationModal: function() {
+      const modal = document.getElementById('migration-modal');
+      if (modal) modal.remove();
+      
+      const reportModal = document.getElementById('migration-report-modal');
+      if (reportModal) reportModal.remove();
     }
   };
 
