@@ -5216,6 +5216,19 @@ renderAdvancedRatios: function(daysBack = 30) {
                 // Combine badges
                 const typeTags = [categoryTag, badge].filter(t => t).join(' ');
 
+                // V30.8: Calculate volume using correct formula per exercise type
+                let setVolume;
+                if (exerciseType.isUnilateral && !exerciseType.isBodyweight) {
+                  // Unilateral: k × (r × 2) - counts both sides
+                  setVolume = s.k * (s.r * 2);
+                } else if (exerciseType.isBilateralDB) {
+                  // Bilateral DB: (k × 2) × r - sums both dumbbells
+                  setVolume = (s.k * 2) * s.r;
+                } else {
+                  // Standard or bodyweight: k × r
+                  setVolume = s.k * s.r;
+                }
+
                 tHtml += `
                       <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
                         <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
@@ -5231,7 +5244,7 @@ renderAdvancedRatios: function(daysBack = 30) {
                           s.rpe || "-"
                         }</td>
                         <td class="py-3 px-0 text-center text-blue-400 text-xs font-mono">${Math.round(
-                          s.k * s.r
+                          setVolume
                         ).toLocaleString()}</td>
                         <td class="py-3 px-0 text-center">${typeTags || '-'}</td>
                       </tr>`;
