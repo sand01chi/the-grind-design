@@ -5146,6 +5146,21 @@ renderAdvancedRatios: function(daysBack = 30) {
           exerciseType = APP.session.detectExerciseType(sel);
         }
 
+        // V30.7 Hotfix: Get exercise category for TYPE tag
+        const getExerciseCategory = (exerciseName) => {
+          if (!window.EXERCISES_LIBRARY) return null;
+          
+          for (const [category, exercises] of Object.entries(EXERCISES_LIBRARY)) {
+            if (typeof exercises === 'object' && Array.isArray(exercises)) {
+              const found = exercises.find(ex => ex.n === exerciseName);
+              if (found) return category;
+            }
+          }
+          return null;
+        };
+        
+        const exerciseCategory = getExerciseCategory(sel);
+
         let mx = 0,
           tv = 0;
         let tHtml = "";
@@ -5175,6 +5190,25 @@ renderAdvancedRatios: function(daysBack = 30) {
                   badge = '<span class="text-[9px] bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30" title="Time-based exercise">🕐 TIME</span>';
                 }
 
+                // V30.7 Hotfix: Add exercise category tag
+                let categoryTag = '';
+                if (exerciseCategory) {
+                  const categoryColors = {
+                    chest: 'bg-red-600/30 text-red-300 border-red-500/30',
+                    back: 'bg-blue-600/30 text-blue-300 border-blue-500/30',
+                    legs: 'bg-green-600/30 text-green-300 border-green-500/30',
+                    shoulders: 'bg-yellow-600/30 text-yellow-300 border-yellow-500/30',
+                    arms: 'bg-pink-600/30 text-pink-300 border-pink-500/30',
+                    core: 'bg-orange-600/30 text-orange-300 border-orange-500/30',
+                    cardio: 'bg-cyan-600/30 text-cyan-300 border-cyan-500/30'
+                  };
+                  const colorClass = categoryColors[exerciseCategory] || 'bg-slate-600/30 text-slate-300 border-slate-500/30';
+                  categoryTag = `<span class="text-[9px] ${colorClass} px-1.5 py-0.5 rounded border uppercase font-bold">${exerciseCategory}</span>`;
+                }
+
+                // Combine badges
+                const typeTags = [categoryTag, badge].filter(t => t).join(' ');
+
                 tHtml += `
                       <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
                         <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
@@ -5192,7 +5226,7 @@ renderAdvancedRatios: function(daysBack = 30) {
                         <td class="py-3 px-0 text-center text-blue-400 text-xs font-mono">${Math.round(
                           s.k * s.r
                         ).toLocaleString()}</td>
-                        <td class="py-3 px-0 text-center">${badge}</td>
+                        <td class="py-3 px-0 text-center">${typeTags || '-'}</td>
                       </tr>`;
               });
             }
