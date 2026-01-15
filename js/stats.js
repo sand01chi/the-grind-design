@@ -3691,6 +3691,12 @@ renderAdvancedRatios: function(daysBack = 30) {
       if (tonnageDiffEl)
         tonnageDiffEl.innerHTML = APP.stats.formatDiff(volDiff, "volume");
 
+      // V30.7 Phase 5: Render enhanced dashboard cards
+      APP.stats.renderBodyweightCard(thisWeekLogs);
+      APP.stats.renderVolumeSources(thisWeekLogs);
+      APP.stats.renderTrainingBalance(thisWeekLogs);
+      APP.stats.renderTopContributors(thisWeekLogs);
+      
       APP.stats.calculateTopGainers(thisWeekLogs, lastWeekLogs);
       APP.stats.checkFatigue(thisWeekLogs);
     },
@@ -3826,6 +3832,255 @@ renderAdvancedRatios: function(daysBack = 30) {
       } else {
         alert.classList.add("hidden");
       }
+    },
+
+    // V30.7 Phase 5: Enhanced Dashboard Analytics
+    renderBodyweightCard: (weekLogs) => {
+      const bwContent = document.getElementById('dash-bw-content');
+      if (!bwContent) return;
+
+      const bwData = APP.stats.analyzeBodyweightContribution(weekLogs);
+      
+      if (bwData.totalBWVolume === 0) {
+        bwContent.innerHTML = `
+          <p class="text-xs text-slate-400">No bodyweight exercises logged this week</p>
+        `;
+        return;
+      }
+
+      const percentage = bwData.percentage.toFixed(1);
+      let badge = '';
+      let badgeText = '';
+      
+      if (bwData.percentage >= 40) {
+        badge = 'bg-purple-600 text-white';
+        badgeText = '🏅 Calisthenics Master';
+      } else if (bwData.percentage >= 20) {
+        badge = 'bg-blue-600 text-white';
+        badgeText = '🎯 Hybrid Athlete';
+      } else {
+        badge = 'bg-slate-600 text-slate-300';
+        badgeText = '🏋️ Weighted Training Focus';
+      }
+
+      let exerciseBreakdown = '';
+      if (bwData.exercises && bwData.exercises.length > 0) {
+        const topExercises = bwData.exercises.slice(0, 5);
+        exerciseBreakdown = topExercises.map(ex => 
+          `<div class="flex justify-between text-[10px] text-slate-300">
+            <span>• ${ex.name}</span>
+            <span class="font-mono">${Math.round(ex.volume).toLocaleString()}kg</span>
+          </div>`
+        ).join('');
+      }
+
+      const userWeight = APP.stats._getUserWeight();
+      const isDefaultWeight = userWeight === 70;
+
+      bwContent.innerHTML = `
+        <div class="text-center mb-3">
+          <div class="text-5xl font-bold text-purple-300 mb-1">${percentage}%</div>
+          <div class="text-[10px] text-slate-400 uppercase">of total weekly volume</div>
+        </div>
+        
+        <div class="px-2 py-1.5 rounded ${badge} text-xs font-bold text-center mb-3">
+          ${badgeText}
+        </div>
+
+        <div class="space-y-1.5 mb-3">
+          ${exerciseBreakdown}
+        </div>
+
+        <div class="text-xs text-slate-400 text-center">
+          Total BW Volume: <span class="text-purple-300 font-bold">${Math.round(bwData.totalBWVolume).toLocaleString()}kg</span>
+        </div>
+
+        ${isDefaultWeight ? `
+          <div class="mt-3 pt-3 border-t border-slate-700 text-center">
+            <div class="text-[10px] text-amber-400 mb-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> Using default weight: ${userWeight}kg
+            </div>
+            <button onclick="APP.ui.openModal('profile')" 
+              class="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded transition">
+              Update Weight for Accuracy
+            </button>
+          </div>
+        ` : ''}
+      `;
+    },
+
+    renderVolumeSources: (weekLogs) => {
+      const container = document.getElementById('dash-volume-sources');
+      if (!container) return;
+
+      const sources = {
+        barbell: 0,
+        dumbbell: 0,
+        bodyweight: 0,
+        machine: 0,
+        cable: 0,
+        other: 0
+      };
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.ex) return;
+        
+        const vol = log.vol || 0;
+        const name = log.ex.toLowerCase();
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          if (type.isBodyweight) {
+            sources.bodyweight += vol;
+            return;
+          }
+        }
+
+        if (name.includes('[barbell]')) sources.barbell += vol;
+        else if (name.includes('[db]') || name.includes('dumbbell')) sources.dumbbell += vol;
+        else if (name.includes('[machine]')) sources.machine += vol;
+        else if (name.includes('[cable]')) sources.cable += vol;
+        else sources.other += vol;
+      });
+
+      const total = Object.values(sources).reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-[10px]">No data</p>';
+        return;
+      }
+
+      const sorted = Object.entries(sources)
+        .filter(([_, vol]) => vol > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4);
+
+      const sourceIcons = {
+        barbell: '🏋️',
+        dumbbell: '💪',
+        bodyweight: '🤸',
+        machine: '⚙️',
+        cable: '🔗',
+        other: '📦'
+      };
+
+      container.innerHTML = sorted.map(([source, vol]) => {
+        const pct = ((vol / total) * 100).toFixed(0);
+        return `
+          <div class="flex justify-between items-center">
+            <span class="text-slate-300">${sourceIcons[source]} ${source.charAt(0).toUpperCase() + source.slice(1)}</span>
+            <span class="font-mono text-white">${pct}%</span>
+          </div>
+        `;
+      }).join('');
+    },
+
+    renderTrainingBalance: (weekLogs) => {
+      const container = document.getElementById('dash-training-balance');
+      if (!container) return;
+
+      let bilateral = 0, unilateral = 0, isometric = 0;
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio' || !log.d) return;
+
+        const sets = log.d.length;
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          if (type.isUnilateral) {
+            unilateral += sets;
+          } else if (type.isTimeBased || type.isCore) {
+            isometric += sets;
+          } else {
+            bilateral += sets;
+          }
+        } else {
+          bilateral += sets;
+        }
+      });
+
+      const total = bilateral + unilateral + isometric;
+      if (total === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-[10px]">No data</p>';
+        return;
+      }
+
+      const uniPct = ((unilateral / total) * 100).toFixed(0);
+      const status = unilateral / total >= 0.15 
+        ? '<span class="text-emerald-400">✅ Good</span>'
+        : '<span class="text-yellow-400">⚠️ Low</span>';
+
+      container.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">⚖️ Bilateral</span>
+          <span class="font-mono text-white">${Math.round(bilateral / total * 100)}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">🔄 Unilateral</span>
+          <span class="font-mono text-white">${uniPct}%</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-300">🧘 Isometric</span>
+          <span class="font-mono text-white">${Math.round(isometric / total * 100)}%</span>
+        </div>
+        <div class="mt-2 pt-2 border-t border-slate-700 text-center text-[10px]">
+          Balance: ${status}
+        </div>
+      `;
+    },
+
+    renderTopContributors: (weekLogs) => {
+      const container = document.getElementById('dash-top-contributors');
+      if (!container) return;
+
+      const exerciseVols = {};
+
+      weekLogs.forEach(log => {
+        if (log.type === 'cardio') return;
+        if (!exerciseVols[log.ex]) exerciseVols[log.ex] = 0;
+        exerciseVols[log.ex] += log.vol || 0;
+      });
+
+      const sorted = Object.entries(exerciseVols)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      if (sorted.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500 italic">No exercises logged yet</p>';
+        return;
+      }
+
+      const maxVol = sorted[0][1];
+
+      container.innerHTML = sorted.map(([ex, vol], idx) => {
+        const pct = (vol / maxVol) * 100;
+        let badge = '';
+        
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(ex);
+          if (type.isBodyweight) {
+            badge = '<span class="text-[9px] text-purple-400">🤸</span>';
+          }
+        }
+
+        return `
+          <div class="flex items-center gap-2">
+            <div class="text-slate-500 text-xs font-bold w-4">${idx + 1}</div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-slate-300 flex items-center gap-1">
+                  ${badge} ${ex}
+                </span>
+                <span class="text-xs font-mono text-white">${Math.round(vol).toLocaleString()}kg</span>
+              </div>
+              <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full transition-all" 
+                  style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     },
 
     getTargets: (exName) => {
@@ -4841,13 +5096,20 @@ renderAdvancedRatios: function(daysBack = 30) {
           const thead = tableEl.querySelector("thead tr");
           if (thead) {
             thead.innerHTML = `
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">TGL</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">KG</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">REPS</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 20%">RPE</th>
-                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 25%">VOL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 12%">TGL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 18%">KG</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 18%">REPS</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">RPE</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 22%">VOL</th>
+                  <th class="py-3 px-0 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-700" style="width: 15%">TYPE</th>
                 `;
           }
+        }
+
+        // V30.7 Phase 5.1: Detect exercise type for volume source badges
+        let exerciseType = { isBodyweight: false, isUnilateral: false, isTimeBased: false, isCore: false };
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          exerciseType = APP.session.detectExerciseType(sel);
         }
 
         let mx = 0,
@@ -4864,13 +5126,28 @@ renderAdvancedRatios: function(daysBack = 30) {
 
             if (l.d && Array.isArray(l.d)) {
               l.d.forEach((s) => {
+                // V30.7 Phase 5.1: Generate volume source badge
+                let badge = '';
+                let loadDisplay = s.k;
+                let loadClass = 'text-white';
+                
+                if (exerciseType.isBodyweight) {
+                  badge = '<span class="text-[9px] bg-purple-600/30 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30" title="Calculated bodyweight load">🤸 BW</span>';
+                  loadClass = 'text-purple-300';
+                  loadDisplay += '*';
+                } else if (exerciseType.isUnilateral) {
+                  badge = '<span class="text-[9px] bg-blue-600/30 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30" title="Unilateral exercise (×2 counted)">⚖️ UNI</span>';
+                } else if (exerciseType.isTimeBased || exerciseType.isCore) {
+                  badge = '<span class="text-[9px] bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30" title="Time-based exercise">🕐 TIME</span>';
+                }
+
                 tHtml += `
                       <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
                         <td class="py-3 px-0 text-center text-slate-400 text-xs font-mono">${
                           l.date
                         }</td>
-                        <td class="py-3 px-0 text-center text-sm font-bold text-white">${
-                          s.k
+                        <td class="py-3 px-0 text-center text-sm font-bold ${loadClass}">${
+                          loadDisplay
                         }<span class="text-slate-600 text-[10px] ml-0.5">kg</span></td>
                         <td class="py-3 px-0 text-center text-emerald-400 font-mono text-sm">x${
                           s.r
@@ -4881,6 +5158,7 @@ renderAdvancedRatios: function(daysBack = 30) {
                         <td class="py-3 px-0 text-center text-blue-400 text-xs font-mono">${Math.round(
                           s.k * s.r
                         ).toLocaleString()}</td>
+                        <td class="py-3 px-0 text-center">${badge}</td>
                       </tr>`;
               });
             }

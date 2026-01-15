@@ -2235,11 +2235,64 @@
             </div>
           </div>
 
+          <!-- V30.7 Phase 5.2: Bodyweight Training Contribution Card -->
+          <div id="dash-bodyweight-card" class="mb-6">
+            <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-person-running"></i> Bodyweight Training Contribution
+            </h3>
+            <div class="glass-card p-4 rounded-lg border border-purple-500/30 bg-purple-900/10">
+              <div id="dash-bw-content" class="text-center">
+                <p class="text-xs text-slate-500 italic">Loading bodyweight data...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- V30.7 Phase 5.4: Weekly Summary Enhancement Cards -->
+          <div id="dash-weekly-enhanced" class="mb-6">
+            <h3 class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie"></i> Training Analysis
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="glass-card p-3 rounded-lg border border-white/5">
+                <div class="text-[10px] text-slate-400 mb-2 flex items-center gap-1">
+                  <i class="fa-solid fa-layer-group text-emerald-400"></i>
+                  Volume by Source
+                </div>
+                <div id="dash-volume-sources" class="text-xs space-y-1">
+                  <p class="text-slate-500">Calculating...</p>
+                </div>
+              </div>
+              
+              <div class="glass-card p-3 rounded-lg border border-white/5">
+                <div class="text-[10px] text-slate-400 mb-2 flex items-center gap-1">
+                  <i class="fa-solid fa-scale-balanced text-blue-400"></i>
+                  Training Balance
+                </div>
+                <div id="dash-training-balance" class="text-xs space-y-1">
+                  <p class="text-slate-500">Calculating...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="mb-6">
             <h3
               class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2"
             >
-              <i class="fa-solid fa-trophy"></i> Top Gainers (Volume %)
+              <i class="fa-solid fa-trophy"></i> Top Volume Contributors
+            </h3>
+            <div id="dash-top-contributors" class="space-y-2">
+              <p class="text-xs text-slate-500 italic">
+                Loading top contributors...
+              </p>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <h3
+              class="text-xs text-slate-400 uppercase font-bold mb-3 flex items-center gap-2"
+            >
+              <i class="fa-solid fa-arrow-trend-up"></i> Top Gainers (Volume %)
             </h3>
             <div id="dash-top-gainers" class="space-y-2">
               <p class="text-xs text-slate-500 italic">
