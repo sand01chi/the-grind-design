@@ -1,4 +1,4 @@
-# THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION
+# THE GRIND DESIGN - V30.0 HANDOVER DOCUMENTATION 
 
 **Project:** THE GRIND DESIGN - Clinical Gym Training PWA  
 **Version:** V30.8 Historical Data Migration (COMPLETE)  
