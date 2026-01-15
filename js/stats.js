@@ -3857,7 +3857,16 @@ renderAdvancedRatios: function(daysBack = 30) {
         if (log.type === 'cardio' || !log.ex) return;
         
         const vol = log.vol || 0;
-        const isBodyweight = log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]");
+        let isBodyweight = false;
+        
+        // V30.8: Use detectExerciseType for consistency with other analytics
+        if (typeof APP.session?.detectExerciseType === 'function') {
+          const type = APP.session.detectExerciseType(log.ex);
+          isBodyweight = type.isBodyweight;
+        } else {
+          // Fallback to string matching if detection unavailable
+          isBodyweight = log.ex.includes("[Bodyweight]") || log.ex.includes("[BW]");
+        }
         
         if (isBodyweight) {
           totalBWVolume += vol;
