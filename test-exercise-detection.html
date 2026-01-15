@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise Detection Pattern Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #e0e0e0;
+    }
+    .section {
+      margin: 20px 0;
+      border: 1px solid #333;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #4ade80;
+    }
+    .exercise {
+      padding: 5px 10px;
+      margin: 3px 0;
+      background: #1a1a1a;
+      border-left: 3px solid;
+    }
+    .unilateral { border-left-color: #a78bfa; }
+    .bilateral-db { border-left-color: #fb923c; }
+    .bodyweight { border-left-color: #4ade80; }
+    .none { border-left-color: #64748b; }
+    .error { background: #7f1d1d; border-left-color: #dc2626; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: bold;
+    }
+    .badge-uni { background: #a78bfa; color: #000; }
+    .badge-bi { background: #fb923c; color: #000; }
+    .badge-bw { background: #4ade80; color: #000; }
+    .badge-core { background: #60a5fa; color: #000; }
+    .badge-time { background: #facc15; color: #000; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+    .stat-label {
+      color: #9ca3af;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Exercise Detection Pattern Test</h1>
+  <p>Testing all exercises from exercises-library.js against detection patterns</p>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="section">
+    <h2>🟣 Unilateral Exercises (volume = k × (r × 2))</h2>
+    <div id="unilateral-exercises"></div>
+  </div>
+
+  <div class="section">
+    <h2>🟠 Bilateral Dumbbell Exercises (volume = (k × 2) × r)</h2>
+    <div id="bilateral-db-exercises"></div>
+  </div>
+
+  <div class="section">
+    <h2>🟢 Bodyweight Exercises (volume = userWeight × multiplier × r)</h2>
+    <div id="bodyweight-exercises"></div>
+  </div>
+
+  <div class="section">
+    <h2>⚪ Standard Exercises (volume = k × r)</h2>
+    <div id="standard-exercises"></div>
+  </div>
+
+  <div class="section">
+    <h2>⚠️ Potential Issues</h2>
+    <div id="issues"></div>
+  </div>
+
+  <script src="exercises-library.js"></script>
+  <script src="js/session.js"></script>
+  <script>
+    // Initialize APP if needed
+    if (!window.APP) window.APP = {};
+
+    // Get all exercise names from library
+    const allExercises = Object.keys(EXERCISE_TARGETS);
+
+    const results = {
+      unilateral: [],
+      bilateralDB: [],
+      bodyweight: [],
+      standard: [],
+      issues: []
+    };
+
+    // Test each exercise
+    allExercises.forEach(exerciseName => {
+      const detected = APP.session.detectExerciseType(exerciseName);
+      
+      const badges = [];
+      if (detected.isBodyweight) badges.push('BW');
+      if (detected.isCore) badges.push('CORE');
+      if (detected.isTimeBased) badges.push('TIME');
+      if (detected.isUnilateral) badges.push('UNI');
+      if (detected.isBilateralDB) badges.push('BI-DB');
+
+      const badgeHtml = badges.map(b => {
+        const cls = b === 'UNI' ? 'badge-uni' : 
+                    b === 'BI-DB' ? 'badge-bi' :
+                    b === 'BW' ? 'badge-bw' :
+                    b === 'CORE' ? 'badge-core' : 'badge-time';
+        return `<span class="badge ${cls}">${b}</span>`;
+      }).join('');
+
+      const html = `<div class="exercise">${exerciseName} ${badgeHtml}</div>`;
+
+      // Categorize
+      if (detected.isBodyweight) {
+        results.bodyweight.push(html);
+      } else if (detected.isUnilateral) {
+        results.unilateral.push(html);
+        
+        // Check if it also has [DB] tag
+        if (/\[DB\]/i.test(exerciseName)) {
+          // This should NOT also be bilateral DB
+          if (detected.isBilateralDB) {
+            results.issues.push(`<div class="exercise error">❌ ${exerciseName} - Detected as BOTH unilateral AND bilateral DB!</div>`);
+          }
+        }
+      } else if (detected.isBilateralDB) {
+        results.bilateralDB.push(html);
+      } else {
+        results.standard.push(html);
+      }
+
+      // Check for potential issues
+      // Issue 1: [DB] exercises that are neither unilateral nor bilateral DB
+      if (/\[DB\]/i.test(exerciseName) && !detected.isUnilateral && !detected.isBilateralDB && !detected.isBodyweight) {
+        results.issues.push(`<div class="exercise error">⚠️ ${exerciseName} - Has [DB] tag but not detected as unilateral or bilateral DB</div>`);
+      }
+
+      // Issue 2: Lunges/Split Squats detected as bilateral DB
+      if ((/lunge|split.*squat/i.test(exerciseName)) && detected.isBilateralDB) {
+        results.issues.push(`<div class="exercise error">❌ ${exerciseName} - Lunge/Split Squat wrongly detected as bilateral DB (should be unilateral)</div>`);
+      }
+    });
+
+    // Render results
+    document.getElementById('unilateral-exercises').innerHTML = results.unilateral.join('') || '<p style="color:#64748b;">None detected</p>';
+    document.getElementById('bilateral-db-exercises').innerHTML = results.bilateralDB.join('') || '<p style="color:#64748b;">None detected</p>';
+    document.getElementById('bodyweight-exercises').innerHTML = results.bodyweight.join('') || '<p style="color:#64748b;">None detected</p>';
+    document.getElementById('standard-exercises').innerHTML = results.standard.join('') || '<p style="color:#64748b;">None detected</p>';
+    document.getElementById('issues').innerHTML = results.issues.length > 0 
+      ? results.issues.join('') 
+      : '<p style="color:#4ade80;">✅ No issues detected! All patterns working correctly.</p>';
+
+    // Summary stats
+    const summaryHtml = `
+      <div class="stat-card">
+        <div class="stat-number">${results.unilateral.length}</div>
+        <div class="stat-label">Unilateral</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${results.bilateralDB.length}</div>
+        <div class="stat-label">Bilateral DB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${results.bodyweight.length}</div>
+        <div class="stat-label">Bodyweight</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${results.standard.length}</div>
+        <div class="stat-label">Standard</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color: ${results.issues.length > 0 ? '#ef4444' : '#4ade80'}">${results.issues.length}</div>
+        <div class="stat-label">Issues</div>
+      </div>
+    `;
+    document.getElementById('summary').innerHTML = summaryHtml;
+
+    // Console report
+    console.log('=== EXERCISE DETECTION TEST RESULTS ===');
+    console.log('Unilateral:', results.unilateral.length);
+    console.log('Bilateral DB:', results.bilateralDB.length);
+    console.log('Bodyweight:', results.bodyweight.length);
+    console.log('Standard:', results.standard.length);
+    console.log('Issues:', results.issues.length);
+    if (results.issues.length > 0) {
+      console.error('ISSUES FOUND:', results.issues);
+    }
+  </script>
+</body>
+</html>

@@ -41,7 +41,8 @@
     timeBased: /\[Time-based\]|plank|hold|static|wall.*sit|dead.*hang|l.*sit|isometric/i,
     
     // Unilateral exercises (single arm/leg work)
-    unilateral: /\[Unilateral\]|single.*arm|single.*leg|one.*arm|one.*leg|unilateral|bulgarian.*split|pistol.*squat/i,
+    // Lunges and split squats are inherently unilateral (per-leg work)
+    unilateral: /\[Unilateral\]|single.*arm|single.*leg|one.*arm|one.*leg|unilateral|split.*squat|lunge|pistol.*squat/i,
     
     // Bilateral dumbbell exercises (need to sum both dumbbells)
     // Match dumbbell/DB exercises, but exclude if unilateral keywords present
@@ -78,8 +79,10 @@
       const isUnilateral = EXERCISE_TYPE_PATTERNS.unilateral.test(name);
       
       // Bilateral DB: Has dumbbell/DB tag BUT not unilateral
+      // Excludes: single/one arm/leg, split squats, lunges
       const hasDumbbellTag = /\[DB\]|dumbbell/i.test(name);
-      const isBilateralDB = hasDumbbellTag && !isUnilateral;
+      const hasUnilateralKeywords = /single|one.*(?:arm|leg)|split|lunge|unilateral/i.test(name);
+      const isBilateralDB = hasDumbbellTag && !hasUnilateralKeywords;
       
       // Advanced: Exercises that benefit from per-side tracking (asymmetry detection)
       // Examples: Single-Arm Row, Bulgarian Split Squat, Single-Leg RDL
