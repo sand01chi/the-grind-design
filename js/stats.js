@@ -6232,18 +6232,75 @@ renderAdvancedRatios: function(daysBack = 30) {
         LS_SAFE.set("migration_backup_timestamp", Date.now());
         console.log("[MIGRATION] ✅ Backup created successfully");
         
-        // 2. SCAN
+        // 2. SCAN - Find all exercises needing migration
         const toMigrate = [];
+        const migrationReasons = {
+          bodyweightVolume: 0,
+          bodyweightStructure: 0,
+          unilateralVolume: 0,
+          bilateralDBVolume: 0
+        };
+        
         gymHist.forEach((log, idx) => {
           if (!APP.session || typeof APP.session.detectExerciseType !== 'function') return;
           
           const exType = APP.session.detectExerciseType(log.ex);
+          let needsMigration = false;
+          let reasons = [];
+          
+          // Case 1: Bodyweight exercises with 0 or incorrect volume
           if (exType.isBodyweight && (log.vol === 0 || log.vol === null || log.vol === undefined)) {
-            toMigrate.push({ log, idx });
+            needsMigration = true;
+            reasons.push('bodyweight_volume');
+            migrationReasons.bodyweightVolume++;
+          }
+          
+          // Case 2: Bodyweight exercises with incorrect weight field (k > 0)
+          if (exType.isBodyweight && log.k && log.k > 0) {
+            needsMigration = true;
+            reasons.push('bodyweight_structure');
+            migrationReasons.bodyweightStructure++;
+          }
+          
+          // Case 3: Weighted unilateral exercises (pre-v30.6 didn't count both sides)
+          // Old formula: k × r (only one side)
+          // New formula: k × (r × 2) (both sides)
+          // Detect: Has weight, has reps, is unilateral, volume = k × r (not doubled)
+          if (exType.isUnilateral && !exType.isBodyweight && log.k > 0 && log.reps > 0) {
+            const expectedOldVolume = log.k * log.reps * (log.sets || 1);
+            const expectedNewVolume = log.k * (log.reps * 2) * (log.sets || 1);
+            
+            // If current volume matches old formula, needs migration
+            if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+              needsMigration = true;
+              reasons.push('unilateral_volume');
+              migrationReasons.unilateralVolume++;
+            }
+          }
+          
+          // Case 4: Bilateral dumbbell exercises (pre-v30.6 didn't sum both DBs)
+          // Old formula: k × r (one dumbbell)
+          // New formula: (k × 2) × r (both dumbbells)
+          // Detect: Has weight, has reps, is bilateral DB, volume = k × r (not doubled)
+          if (exType.isBilateralDB && log.k > 0 && log.reps > 0) {
+            const expectedOldVolume = log.k * log.reps * (log.sets || 1);
+            const expectedNewVolume = (log.k * 2) * log.reps * (log.sets || 1);
+            
+            // If current volume matches old formula, needs migration
+            if (Math.abs(log.vol - expectedOldVolume) < 10 && log.vol !== expectedNewVolume) {
+              needsMigration = true;
+              reasons.push('bilateral_db_volume');
+              migrationReasons.bilateralDBVolume++;
+            }
+          }
+          
+          if (needsMigration) {
+            toMigrate.push({ log, idx, reasons });
           }
         });
         
-        console.log(`[MIGRATION] Found ${toMigrate.length} entries to migrate`);
+        console.log(`[MIGRATION] Scan results:`, migrationReasons);
+        console.log(`[MIGRATION] Total entries to migrate: ${toMigrate.length}`);
         
         if (toMigrate.length === 0) {
           console.log("[MIGRATION] No entries need migration");
@@ -6256,50 +6313,103 @@ renderAdvancedRatios: function(daysBack = 30) {
           };
         }
         
-        // 3. CALCULATE
+        // 3. CALCULATE - Fix all migration cases
         let totalVolumeAdded = 0;
         let migrationErrors = [];
-        let dataStructureFixed = 0;
+        let counters = {
+          bodyweightVolumeFixed: 0,
+          bodyweightStructureFixed: 0,
+          unilateralVolumeFixed: 0,
+          bilateralDBVolumeFixed: 0
+        };
         
-        toMigrate.forEach(({ log, idx }) => {
+        toMigrate.forEach(({ log, idx, reasons }) => {
           try {
-            // Get user weight at that date
-            const userWeight = this._getUserWeightAtDate(log.date);
+            const exType = APP.session.detectExerciseType(log.ex);
+            let volumeChanged = false;
             
-            // Calculate total reps for this log entry
-            const totalReps = (log.sets || 1) * (log.reps || 0);
+            // Store original values for audit
+            if (!log._originalVolume) log._originalVolume = log.vol || 0;
+            if (!log._originalWeight) log._originalWeight = log.k || 0;
             
-            if (totalReps === 0) {
-              console.warn(`[MIGRATION] Skipping ${log.ex} - 0 reps`);
-              return;
+            // CASE 1 & 2: Bodyweight exercises
+            if (reasons.includes('bodyweight_volume') || reasons.includes('bodyweight_structure')) {
+              const userWeight = this._getUserWeightAtDate(log.date);
+              const totalReps = (log.sets || 1) * (log.reps || 0);
+              
+              if (totalReps === 0) {
+                console.warn(`[MIGRATION] Skipping ${log.ex} - 0 reps`);
+                return;
+              }
+              
+              // Fix volume
+              if (reasons.includes('bodyweight_volume')) {
+                const newVolume = this._calculateBodyweightVolume(log.ex, totalReps);
+                totalVolumeAdded += (newVolume - log.vol);
+                log.vol = newVolume;
+                volumeChanged = true;
+                counters.bodyweightVolumeFixed++;
+                console.log(`[MIGRATION] BW Volume: ${log.ex} - ${log._originalVolume}kg → ${newVolume}kg`);
+              }
+              
+              // Fix structure (k field)
+              if (reasons.includes('bodyweight_structure') && log.k > 0) {
+                log.k = 0;
+                counters.bodyweightStructureFixed++;
+                console.log(`[MIGRATION] BW Structure: ${log.ex} - weight ${log._originalWeight}kg → 0kg`);
+              }
             }
             
-            // Calculate volume using bodyweight multiplier
-            const newVolume = this._calculateBodyweightVolume(log.ex, totalReps);
-            
-            // Store original volume and weight for audit
-            log._originalVolume = log.vol || 0;
-            log._originalWeight = log.k || 0;
-            
-            // Fix data structure: Bodyweight exercises should have k=0
-            if (log.k && log.k > 0) {
-              log.k = 0;
-              dataStructureFixed++;
-              console.log(`[MIGRATION] Fixed weight field: ${log.ex} - ${log._originalWeight}kg → 0kg`);
+            // CASE 3: Weighted Unilateral exercises
+            if (reasons.includes('unilateral_volume')) {
+              const oldVolume = log.vol;
+              const newVolume = log.k * (log.reps * 2) * (log.sets || 1);
+              log.vol = newVolume;
+              totalVolumeAdded += (newVolume - oldVolume);
+              volumeChanged = true;
+              counters.unilateralVolumeFixed++;
+              console.log(`[MIGRATION] Unilateral: ${log.ex} - ${oldVolume}kg → ${newVolume}kg (counted both sides)`);
             }
             
-            log.vol = newVolume;
-            log._migrated = "v30.8";
-            log._migratedTimestamp = Date.now();
+            // CASE 4: Bilateral Dumbbell exercises
+            if (reasons.includes('bilateral_db_volume')) {
+              const oldVolume = log.vol;
+              const newVolume = (log.k * 2) * log.reps * (log.sets || 1);
+              log.vol = newVolume;
+              totalVolumeAdded += (newVolume - oldVolume);
+              volumeChanged = true;
+              counters.bilateralDBVolumeFixed++;
+              console.log(`[MIGRATION] Bilateral DB: ${log.ex} - ${oldVolume}kg → ${newVolume}kg (summed both DBs)`);
+            }
             
-            totalVolumeAdded += newVolume;
+            // Mark as migrated
+            if (volumeChanged || counters.bodyweightStructureFixed > 0) {
+              log._migrated = "v30.8";
+              log._migratedTimestamp = Date.now();
+            }
             
-            console.log(`[MIGRATION] ${log.date} - ${log.ex}: ${log._originalVolume}kg → ${newVolume}kg`);
           } catch (err) {
             console.error(`[MIGRATION] Error migrating entry ${idx}:`, err);
             migrationErrors.push({ idx, log, error: err.message });
           }
         });
+        
+        if (migrationErrors.length > 0) {
+          console.error(`[MIGRATION] ❌ Encountered ${migrationErrors.length} errors. Aborting.`);
+          LS_SAFE.setJSON("gym_hist", JSON.parse(backup));
+          return { 
+            success: false, 
+            errors: migrationErrors,
+            message: "Migration errors - backup restored"
+          };
+        }
+        
+        console.log(`[MIGRATION] Step 3: Calculated new volumes`);
+        console.log(`  - Bodyweight volumes fixed: ${counters.bodyweightVolumeFixed}`);
+        console.log(`  - Bodyweight structures fixed: ${counters.bodyweightStructureFixed}`);
+        console.log(`  - Unilateral volumes fixed: ${counters.unilateralVolumeFixed}`);
+        console.log(`  - Bilateral DB volumes fixed: ${counters.bilateralDBVolumeFixed}`);
+        console.log(`  - Total volume added: ${totalVolumeAdded.toFixed(1)}kg`);
         
         // 4. VERIFY
         const validationErrors = gymHist.filter(log => 
@@ -6329,15 +6439,18 @@ renderAdvancedRatios: function(daysBack = 30) {
         
         console.log("[MIGRATION] ========================================");
         console.log("[MIGRATION] ✅ Migration completed successfully!");
-        console.log(`[MIGRATION] Entries migrated: ${toMigrate.length}`);
-        console.log(`[MIGRATION] Data structure fixed: ${dataStructureFixed} (k field set to 0)`);
+        console.log(`[MIGRATION] Total entries migrated: ${toMigrate.length}`);
+        console.log(`[MIGRATION]   - Bodyweight volumes: ${counters.bodyweightVolumeFixed}`);
+        console.log(`[MIGRATION]   - Bodyweight structures: ${counters.bodyweightStructureFixed}`);
+        console.log(`[MIGRATION]   - Unilateral volumes: ${counters.unilateralVolumeFixed}`);
+        console.log(`[MIGRATION]   - Bilateral DB volumes: ${counters.bilateralDBVolumeFixed}`);
         console.log(`[MIGRATION] Volume added: ${totalVolumeAdded.toLocaleString()}kg`);
         console.log("[MIGRATION] ========================================");
         
         return {
           success: true,
           entriesMigrated: toMigrate.length,
-          dataStructureFixed: dataStructureFixed,
+          counters: counters,
           volumeAdded: Math.round(totalVolumeAdded),
           errors: migrationErrors
         };
@@ -6522,10 +6635,33 @@ renderAdvancedRatios: function(daysBack = 30) {
                   <span class="text-slate-400">Volume Added:</span>
                   <span class="text-emerald-400 font-semibold">+${result.volumeAdded.toLocaleString()}kg</span>
                 </div>
-                ${result.dataStructureFixed > 0 ? `
-                <div class="flex justify-between text-sm">
-                  <span class="text-slate-400">Weight Field Fixed:</span>
-                  <span class="text-blue-400 font-semibold">${result.dataStructureFixed} entries</span>
+                ${result.counters ? `
+                <div class="bg-white/5 rounded-lg p-3 space-y-2 text-xs">
+                  <div class="text-slate-300 font-semibold mb-1">Migration Details:</div>
+                  ${result.counters.bodyweightVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Bodyweight volumes:</span>
+                    <span class="text-emerald-400">${result.counters.bodyweightVolumeFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.bodyweightStructureFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Weight field fixes:</span>
+                    <span class="text-blue-400">${result.counters.bodyweightStructureFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.unilateralVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Unilateral volumes:</span>
+                    <span class="text-purple-400">${result.counters.unilateralVolumeFixed}</span>
+                  </div>
+                  ` : ''}
+                  ${result.counters.bilateralDBVolumeFixed > 0 ? `
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Bilateral DB volumes:</span>
+                    <span class="text-orange-400">${result.counters.bilateralDBVolumeFixed}</span>
+                  </div>
+                  ` : ''}
                 </div>
                 ` : ''}
                 <div class="flex justify-between text-sm">
@@ -6539,10 +6675,11 @@ renderAdvancedRatios: function(daysBack = 30) {
                   📈 What Changed:
                 </h4>
                 <ul class="text-xs text-slate-400 space-y-1">
-                  <li>• Pull-ups now show ~700kg per 10-rep set (was 0kg)</li>
-                  <li>• Push-ups now show ~448kg per 10-rep set (was 0kg)</li>
-                  ${result.dataStructureFixed > 0 ? '<li>• Weight field removed from bodyweight exercises (k=0)</li>' : ''}
-                  <li>• All bodyweight exercises calculated with your weight</li>
+                  ${result.counters?.bodyweightVolumeFixed > 0 ? '<li>• Bodyweight exercises now calculated with your weight (Pull-ups: ~700kg/10 reps)</li>' : ''}
+                  ${result.counters?.bodyweightStructureFixed > 0 ? '<li>• Weight field removed from bodyweight exercises (k=0)</li>' : ''}
+                  ${result.counters?.unilateralVolumeFixed > 0 ? '<li>• Unilateral exercises now count both sides (Bulgarian Split Squat: doubled volume)</li>' : ''}
+                  ${result.counters?.bilateralDBVolumeFixed > 0 ? '<li>• Bilateral dumbbell exercises now sum both dumbbells (DB Bench: doubled volume)</li>' : ''}
+                  <li>• All volumes recalculated using v30.6+ formulas</li>
                 </ul>
               </div>
               
