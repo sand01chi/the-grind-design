@@ -1014,11 +1014,13 @@
         return "Cardio";
       }
       
-      // Check exercise data properties
-      if (exerciseData.compound === true) return "Compound";
-      if (exerciseData.isolation === true) return "Isolation";
-      if (exerciseData.type === "compound") return "Compound";
-      if (exerciseData.type === "isolation") return "Isolation";
+      // Check exercise data properties (only if exerciseData exists)
+      if (exerciseData) {
+        if (exerciseData.compound === true) return "Compound";
+        if (exerciseData.isolation === true) return "Isolation";
+        if (exerciseData.type === "compound") return "Compound";
+        if (exerciseData.type === "isolation") return "Isolation";
+      }
       
       // Heuristics based on name
       const compoundKeywords = ['squat', 'deadlift', 'bench', 'press', 'row', 'pull-up', 'chin-up'];
@@ -1042,11 +1044,13 @@
      * @returns {string} Movement pattern
      */
     detectMovementPattern: function(exerciseData, name) {
-      // Check exercise data properties
-      if (exerciseData.unilateral === true) return "Unilateral";
-      if (exerciseData.bilateral === true) return "Bilateral";
-      if (exerciseData.pattern === "unilateral") return "Unilateral";
-      if (exerciseData.pattern === "bilateral") return "Bilateral";
+      // Check exercise data properties (only if exerciseData exists)
+      if (exerciseData) {
+        if (exerciseData.unilateral === true) return "Unilateral";
+        if (exerciseData.bilateral === true) return "Bilateral";
+        if (exerciseData.pattern === "unilateral") return "Unilateral";
+        if (exerciseData.pattern === "bilateral") return "Bilateral";
+      }
       
       // Heuristics based on name
       const nameLower = name.toLowerCase();
@@ -1384,6 +1388,12 @@
           console.error("[SHEETS] Token not available");
           return false;
         }
+
+        const accessToken = gapi.client.getToken().access_token;
+        
+        // Append rows to sheet (A:M for 13 columns)
+        const response = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:M:append?valueInputOption=USER_ENTERED`,
           {
             method: 'POST',
             headers: {
