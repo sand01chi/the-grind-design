@@ -38,6 +38,31 @@
   console.log(`[VERSION] The Grind Design v${window.APP.version.number} - ${window.APP.version.name}`);
 
   // ============================================
+  // GOOGLE SHEETS CONFIGURATION (V31 Phase 2 - REVISED 13-Column Schema)
+  // ============================================
+
+  const SHEET_NAME = "THE GRIND - Workout Data Warehouse";
+  const SHEET_HEADERS = [
+    "Date",             // A: YYYY-MM-DD
+    "Day",              // B: Monday, Tuesday, etc.
+    "Session Name",     // C: Push Day A, Pull Day B, etc.
+    "Exercise",         // D: Barbell Bench Press, etc.
+    "Exercise Type",    // E: Compound/Isolation (NEW)
+    "Movement Pattern", // F: Unilateral/Bilateral/N/A (NEW)
+    "Equipment",        // G: Barbell/Dumbbell/Bodyweight/Cable/Machine (NEW)
+    "Sets",             // H: 4
+    "Reps",             // I: "10,10,8,8" (CSV)
+    "Weight",           // J: "100,100,105,105" (CSV in kg)
+    "Duration (s)",     // K: 0 or seconds for time-based exercises (NEW)
+    "Total Volume",     // L: 4020.0 (kg)
+    "Notes"             // M: RPE, comments, etc.
+  ];
+
+  // Make globally accessible
+  window.SHEET_NAME = SHEET_NAME;
+  window.SHEET_HEADERS = SHEET_HEADERS;
+
+  // ============================================
   // PRESETS - Quick Workout Templates
   // ============================================
 

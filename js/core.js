@@ -385,6 +385,26 @@
             return; // Don't navigate away - let user retry
           }
 
+          // V31 Phase 2: Add workout to sync queue for Google Sheets
+          try {
+            if (window.APP.cloud && window.APP.cloud.queue) {
+              // Create unique workout ID: date_sessionId_timestamp
+              const workoutId = `${ds}_${sessId}_${now.getTime()}`;
+              
+              // Add to queue for Sheets sync
+              window.APP.cloud.queue.add(
+                workoutId,
+                'sheets_append',
+                ds  // Original workout date (YYYY-MM-DD)
+              );
+              
+              console.log(`[CORE] ✅ Added to sync queue: ${workoutId}`);
+            }
+          } catch (queueError) {
+            console.warn("[CORE] Failed to add to sync queue:", queueError);
+            // Non-critical - continue with save
+          }
+
           if (sessId !== "spontaneous") {
             LS_SAFE.set(`last_${sessId}`, now.getTime());
           }
