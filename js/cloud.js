@@ -1239,12 +1239,27 @@
           // BODYWEIGHT EXERCISE (use multiplier for volume)
           console.log(`[SHEETS] Bodyweight exercise: ${exerciseName}, multiplier: ${metadata.multiplier}`);
           
-          // Get user bodyweight with fallback
-          const profile = window.LS_SAFE.getJSON('profile', {});
-          const userBodyweight = parseFloat(profile.bodyweight) || 70; // Default to 70kg
+          // Get user bodyweight with fallback (using same logic as stats.js)
+          let userBodyweight = 70; // Default
           
-          if (!profile.bodyweight) {
-            console.warn(`[SHEETS] Bodyweight not set in profile, using default 70kg for ${exerciseName}`);
+          // Try profile.weight first
+          const profile = window.LS_SAFE.getJSON('profile', {});
+          if (profile && profile.weight && !isNaN(profile.weight) && profile.weight > 0) {
+            userBodyweight = parseFloat(profile.weight);
+          } else {
+            // Try latest weight log entry (format: {v: 80, d: "2024-01-15"})
+            const weights = window.LS_SAFE.getJSON('weights', []);
+            if (weights && weights.length > 0) {
+              const sorted = weights.sort((a, b) => new Date(b.d) - new Date(a.d));
+              const latestWeight = sorted[0]?.v;
+              if (latestWeight && !isNaN(latestWeight) && latestWeight > 0) {
+                userBodyweight = parseFloat(latestWeight);
+              } else {
+                console.warn(`[SHEETS] No weight data found, using default 70kg for ${exerciseName}`);
+              }
+            } else {
+              console.warn(`[SHEETS] No weight data found, using default 70kg for ${exerciseName}`);
+            }
           }
           
           // Extract reps from sets (gym_hist format: {k, r, rpe, e, note})
