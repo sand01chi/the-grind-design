@@ -685,15 +685,18 @@
         }
         
         // Get access token from GIS
-        const accessToken = gapi.client.getToken().access_token;
-        
-        // Create spreadsheet metadata
-        const metadata = {
-          properties: {
-            title: window.SHEET_NAME
-          },
-          sheets: [{
-            properties: {
+      if (!gapi || !gapi.client || !gapi.client.getToken) {
+        console.error("[SHEETS] GAPI client not initialized");
+        return null;
+      }
+      
+      const token = gapi.client.getToken();
+      if (!token || !token.access_token) {
+        console.error("[SHEETS] No access token available");
+        return null;
+      }
+      
+      const accessToken = token.access_token;
               title: "Resistance Log",
               gridProperties: {
                 frozenRowCount: 1  // Freeze header row
@@ -729,7 +732,7 @@
         console.log("[SHEETS] URL:", spreadsheetUrl);
         
         // Store spreadsheet ID in localStorage
-        window.APP.core.LS_SAFE.set(
+        window.LS_SAFE.set(
           window.APP.cloud.SHEET_ID_KEY,
           spreadsheetId
         );
@@ -793,7 +796,7 @@
      */
     validateSheet: async function() {
       try {
-        const spreadsheetId = window.APP.core.LS_SAFE.get(
+        const spreadsheetId = window.LS_SAFE.get(
           window.APP.cloud.SHEET_ID_KEY,
           null
         );
@@ -828,7 +831,7 @@
         if (response.status === 404) {
           console.warn("[SHEETS] Sheet not found (404) - was deleted");
           // Clear stored ID
-          window.APP.core.LS_SAFE.set(window.APP.cloud.SHEET_ID_KEY, null);
+          window.LS_SAFE.set(window.APP.cloud.SHEET_ID_KEY, null);
           return false;
         }
         
@@ -855,7 +858,7 @@
     getOrCreateSheet: async function() {
       try {
         // Check if sheet ID exists
-        const existingId = window.APP.core.LS_SAFE.get(
+        const existingId = window.LS_SAFE.get(
           window.APP.cloud.SHEET_ID_KEY,
           null
         );
@@ -882,7 +885,7 @@
     },
     
     /**
-     * Get exercise metadata from EXERCISE_LIBRARY
+     * Get exercise metadata from EXERCISE_TARGETS
      * @param {string} exerciseName - Exercise name
      * @returns {Object} Metadata {type, pattern, equipment, isBodyweight, multiplier, isDuration}
      */
@@ -898,44 +901,31 @@
           isDuration: false
         };
         
-        // Check if EXERCISE_LIBRARY is loaded
-        if (!window.EXERCISE_LIBRARY) {
-          console.warn("[SHEETS] EXERCISE_LIBRARY not loaded");
-          return defaultMeta;
-        }
-        
-        // Search all categories in EXERCISE_LIBRARY
-        let exerciseData = null;
-        
-        for (const category in window.EXERCISE_LIBRARY) {
-          if (!window.EXERCISE_LIBRARY.hasOwnProperty(category)) continue;
-          
-          const exercises = window.EXERCISE_LIBRARY[category];
-          if (!Array.isArray(exercises)) continue;
-          
-          // Find exercise by name (exact match)
-          exerciseData = exercises.find(ex => ex.n === exerciseName);
-          if (exerciseData) break;
-        }
-        
-        if (!exerciseData) {
-          console.warn(`[SHEETS] Exercise not found in library: ${exerciseName}`);
-          // Still try to detect equipment from name
+        // Check if EXERCISE_TARGETS is loaded (from exercises-library.js)
+        if (typeof window.EXERCISE_TARGETS === 'undefined') {
+          console.warn("[SHEETS] EXERCISE_TARGETS not loaded");
+          // Still try to detect from name
           return {
-            ...defaultMeta,
-            equipment: this.detectEquipment(exerciseName)
+            type: this.detectExerciseType(null, exerciseName),
+            pattern: this.detectMovementPattern(null, exerciseName),
+            equipment: this.detectEquipment(exerciseName),
+            isBodyweight: this.detectEquipment(exerciseName) === "Bodyweight",
+            multiplier: this.getBodyweightMultiplier(exerciseName),
+            isDuration: this.isDurationExercise(exerciseName)
           };
         }
         
-        // Extract metadata from exercise object
-        // Adapt to your EXERCISE_LIBRARY structure - these are common fields
+        // Check if exercise exists in EXERCISE_TARGETS
+        const exerciseExists = exerciseName in window.EXERCISE_TARGETS;
+        
+        // Extract metadata (primarily from name-based detection)
         const metadata = {
-          type: this.detectExerciseType(exerciseData, exerciseName),
-          pattern: this.detectMovementPattern(exerciseData, exerciseName),
+          type: this.detectExerciseType(null, exerciseName),
+          pattern: this.detectMovementPattern(null, exerciseName),
           equipment: this.detectEquipment(exerciseName),
-          isBodyweight: exerciseData.bodyweight || false,
-          multiplier: exerciseData.bwMultiplier || exerciseData.multiplier || 0,
-          isDuration: exerciseData.duration || this.isDurationExercise(exerciseName)
+          isBodyweight: this.detectEquipment(exerciseName) === "Bodyweight",
+          multiplier: this.getBodyweightMultiplier(exerciseName),
+          isDuration: this.isDurationExercise(exerciseName)
         };
         
         return metadata;
@@ -951,6 +941,25 @@
           isDuration: false
         };
       }
+    },
+    
+    /**
+     * Get bodyweight multiplier for exercise
+     * @param {string} name - Exercise name
+     * @returns {number} Multiplier (0-1.0)
+     */
+    getBodyweightMultiplier: function(name) {
+      const nameLower = name.toLowerCase();
+      
+      // Standard bodyweight multipliers (from stats.js BODYWEIGHT_LOAD_MULTIPLIERS)
+      if (nameLower.includes('pull-up') || nameLower.includes('chin-up')) return 1.0;
+      if (nameLower.includes('dip')) return 1.0;
+      if (nameLower.includes('push-up')) return 0.64;
+      if (nameLower.includes('inverted row')) return 0.7;
+      if (nameLower.includes('pistol')) return 1.0;
+      
+      // Default for other bodyweight exercises
+      return 1.0;
     },
     
     /**
@@ -1075,7 +1084,7 @@
         const targetTimestamp = parseInt(parts[2]) || 0;
         
         // Get all workout logs from gym_hist
-        const workoutLogs = window.APP.core.LS_SAFE.getJSON('gym_hist', []);
+        const workoutLogs = window.LS_SAFE.getJSON('gym_hist', []);
         
         // Filter exercises from this specific workout session
         // Match by date and timestamp (or close timestamp within 1 minute)
@@ -1189,7 +1198,7 @@
           console.log(`[SHEETS] Bodyweight exercise: ${exerciseName}, multiplier: ${metadata.multiplier}`);
           
           // Get user bodyweight with fallback
-          const profile = window.APP.core.LS_SAFE.getJSON('profile', {});
+          const profile = window.LS_SAFE.getJSON('profile', {});
           const userBodyweight = parseFloat(profile.bodyweight) || 70; // Default to 70kg
           
           if (!profile.bodyweight) {
@@ -1362,7 +1371,7 @@
           // Handle specific error codes
           if (response.status === 404) {
             console.warn("[SHEETS] Sheet not found (404), clearing ID");
-            window.APP.core.LS_SAFE.set(window.APP.cloud.SHEET_ID_KEY, null);
+            window.LS_SAFE.set(window.APP.cloud.SHEET_ID_KEY, null);
             
             if (window.APP.ui && window.APP.ui.showToast) {
               window.APP.ui.showToast("Spreadsheet deleted, will create new one", "warning");
@@ -1414,7 +1423,7 @@
      */
     isSynced: function(workoutId) {
       try {
-        const syncedWorkouts = window.APP.core.LS_SAFE.getJSON(
+        const syncedWorkouts = window.LS_SAFE.getJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           {}
         );
@@ -1434,7 +1443,7 @@
      */
     markAsSynced: function(workoutId, sheetRow = null) {
       try {
-        const syncedWorkouts = window.APP.core.LS_SAFE.getJSON(
+        const syncedWorkouts = window.LS_SAFE.getJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           {}
         );
@@ -1445,7 +1454,7 @@
           operation: 'sheets_append'
         };
         
-        window.APP.core.LS_SAFE.setJSON(
+        window.LS_SAFE.setJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           syncedWorkouts
         );
@@ -1463,14 +1472,14 @@
      */
     clearSync: function(workoutId) {
       try {
-        const syncedWorkouts = window.APP.core.LS_SAFE.getJSON(
+        const syncedWorkouts = window.LS_SAFE.getJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           {}
         );
         
         delete syncedWorkouts[workoutId];
         
-        window.APP.core.LS_SAFE.setJSON(
+        window.LS_SAFE.setJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           syncedWorkouts
         );
@@ -1487,7 +1496,7 @@
      * @returns {Object} Synced workouts map
      */
     getSyncedWorkouts: function() {
-      return window.APP.core.LS_SAFE.getJSON(
+      return window.LS_SAFE.getJSON(
         window.APP.cloud.SYNCED_WORKOUTS_KEY,
         {}
       );
@@ -1498,7 +1507,7 @@
      */
     clearAll: function() {
       try {
-        window.APP.core.LS_SAFE.setJSON(
+        window.LS_SAFE.setJSON(
           window.APP.cloud.SYNCED_WORKOUTS_KEY,
           {}
         );
@@ -1700,7 +1709,7 @@
           console.log(`[SYNC] ✅ Sheets sync successful: ${item.id}`);
           
           // Update last sync timestamp
-          window.APP.core.LS_SAFE.set(
+          window.LS_SAFE.set(
             this.LAST_SYNC_KEY,
             new Date().toISOString()
           );
