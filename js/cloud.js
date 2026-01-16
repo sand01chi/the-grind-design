@@ -684,19 +684,21 @@
           return null;
         }
         
-        // Get access token from GIS
-      if (!gapi || !gapi.client || !gapi.client.getToken) {
-        console.error("[SHEETS] GAPI client not initialized");
-        return null;
-      }
-      
-      const token = gapi.client.getToken();
-      if (!token || !token.access_token) {
-        console.error("[SHEETS] No access token available");
-        return null;
-      }
-      
-      const accessToken = token.access_token;
+        // Get access token from GIS with defensive checks
+        if (!gapi || !gapi.client || !gapi.client.getToken || !gapi.client.getToken()) {
+          console.error("[SHEETS] Token not available");
+          return null;
+        }
+        
+        const accessToken = gapi.client.getToken().access_token;
+        
+        // Create spreadsheet metadata
+        const metadata = {
+          properties: {
+            title: window.SHEET_NAME
+          },
+          sheets: [{
+            properties: {
               title: "Resistance Log",
               gridProperties: {
                 frozenRowCount: 1  // Freeze header row
@@ -757,6 +759,12 @@
       try {
         console.log("[SHEETS] Adding header row (13 columns)...");
         
+        // Check if gapi.client is initialized and has token
+        if (!gapi || !gapi.client || !gapi.client.getToken || !gapi.client.getToken()) {
+          console.error("[SHEETS] Token not available");
+          return false;
+        }
+        
         const accessToken = gapi.client.getToken().access_token;
         
         // Prepare header row (13 columns from constants.js)
@@ -812,6 +820,12 @@
         const tokenReady = await window.APP.cloud.token.ensureValid();
         if (!tokenReady) {
           console.error("[SHEETS] Token not ready for validation");
+          return false;
+        }
+        
+        // Check if gapi.client is initialized and has token
+        if (!gapi || !gapi.client || !gapi.client.getToken || !gapi.client.getToken()) {
+          console.error("[SHEETS] Token not available");
           return false;
         }
         
@@ -885,7 +899,7 @@
     },
     
     /**
-     * Get exercise metadata from EXERCISE_TARGETS
+     * Get exercise metadata from EXERCISE_TARGETS and name-based detection
      * @param {string} exerciseName - Exercise name
      * @returns {Object} Metadata {type, pattern, equipment, isBodyweight, multiplier, isDuration}
      */
@@ -901,32 +915,20 @@
           isDuration: false
         };
         
-        // Check if EXERCISE_TARGETS is loaded (from exercises-library.js)
-        if (typeof window.EXERCISE_TARGETS === 'undefined') {
-          console.warn("[SHEETS] EXERCISE_TARGETS not loaded");
-          // Still try to detect from name
-          return {
-            type: this.detectExerciseType(null, exerciseName),
-            pattern: this.detectMovementPattern(null, exerciseName),
-            equipment: this.detectEquipment(exerciseName),
-            isBodyweight: this.detectEquipment(exerciseName) === "Bodyweight",
-            multiplier: this.getBodyweightMultiplier(exerciseName),
-            isDuration: this.isDurationExercise(exerciseName)
-          };
-        }
-        
-        // Check if exercise exists in EXERCISE_TARGETS
-        const exerciseExists = exerciseName in window.EXERCISE_TARGETS;
-        
-        // Extract metadata (primarily from name-based detection)
+        // Always use name-based detection (works without external data)
         const metadata = {
           type: this.detectExerciseType(null, exerciseName),
           pattern: this.detectMovementPattern(null, exerciseName),
           equipment: this.detectEquipment(exerciseName),
-          isBodyweight: this.detectEquipment(exerciseName) === "Bodyweight",
+          isBodyweight: this.isBodyweightExercise(exerciseName),
           multiplier: this.getBodyweightMultiplier(exerciseName),
           isDuration: this.isDurationExercise(exerciseName)
         };
+        
+        // Check if exercise exists in EXERCISE_TARGETS (validates it's a known exercise)
+        if (window.EXERCISE_TARGETS && window.EXERCISE_TARGETS[exerciseName]) {
+          console.log(`[SHEETS] Exercise found in EXERCISE_TARGETS: ${exerciseName}`);
+        }
         
         return metadata;
         
@@ -944,22 +946,58 @@
     },
     
     /**
-     * Get bodyweight multiplier for exercise
+     * Check if exercise is bodyweight-based
      * @param {string} name - Exercise name
-     * @returns {number} Multiplier (0-1.0)
+     * @returns {boolean} True if bodyweight
+     */
+    isBodyweightExercise: function(name) {
+      const nameLower = name.toLowerCase();
+      const bodyweightKeywords = ['[bodyweight]', '[bw]', 'pull-up', 'chin-up', 'push-up', 'dip', 'plank', 'handstand', 'pistol'];
+      
+      for (const keyword of bodyweightKeywords) {
+        if (nameLower.includes(keyword)) return true;
+      }
+      
+      return false;
+    },
+    
+    /**
+     * Get bodyweight multiplier for volume calculation
+     * Uses pattern matching similar to stats.js BODYWEIGHT_LOAD_MULTIPLIERS
+     * @param {string} name - Exercise name
+     * @returns {number} Multiplier (0 if not bodyweight exercise)
      */
     getBodyweightMultiplier: function(name) {
+      if (!this.isBodyweightExercise(name)) return 0;
+      
       const nameLower = name.toLowerCase();
       
-      // Standard bodyweight multipliers (from stats.js BODYWEIGHT_LOAD_MULTIPLIERS)
-      if (nameLower.includes('pull-up') || nameLower.includes('chin-up')) return 1.0;
-      if (nameLower.includes('dip')) return 1.0;
-      if (nameLower.includes('push-up')) return 0.64;
-      if (nameLower.includes('inverted row')) return 0.7;
-      if (nameLower.includes('pistol')) return 1.0;
+      // Pattern matching (simplified version of BODYWEIGHT_LOAD_MULTIPLIERS)
+      const patterns = {
+        'pull.*up|chin.*up': 1.00,
+        'muscle.*up': 1.10,
+        'dip': 0.78,
+        'ring.*dip': 0.82,
+        'push.*up': 0.64,
+        'pike.*push|decline.*push': 0.70,
+        'diamond.*push': 0.68,
+        'archer.*push': 0.80,
+        'planche': 0.85,
+        'inverted.*row': 0.60,
+        'pistol.*squat': 1.00,
+        'single.*leg.*squat': 0.90
+      };
       
-      // Default for other bodyweight exercises
-      return 1.0;
+      // Try pattern matching
+      for (const [pattern, multiplier] of Object.entries(patterns)) {
+        const regex = new RegExp(pattern, 'i');
+        if (regex.test(nameLower)) {
+          return multiplier;
+        }
+      }
+      
+      // Default multiplier for unrecognized bodyweight exercises
+      return 0.70;
     },
     
     /**
@@ -1341,11 +1379,11 @@
           return false;
         }
         
-        const accessToken = gapi.client.getToken().access_token;
-        
-        // Append rows to sheet (A:M for 13 columns)
-        const response = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:M:append?valueInputOption=USER_ENTERED`,
+        // Check if gapi.client is initialized and has token
+        if (!gapi || !gapi.client || !gapi.client.getToken || !gapi.client.getToken()) {
+          console.error("[SHEETS] Token not available");
+          return false;
+        }
           {
             method: 'POST',
             headers: {
