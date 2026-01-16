@@ -1257,6 +1257,7 @@
             const setVolume = userBodyweight * metadata.multiplier * reps;
             totalVolume += setVolume;
           }
+          totalDuration = 0;  // Bodyweight exercises are not duration-based
           
         } else {
           // STANDARD WEIGHTED EXERCISE
@@ -1269,6 +1270,7 @@
             weightArray.push(weight);
           }
           // Use pre-calculated volume from gym_hist
+          totalDuration = 0;  // Standard exercises are not duration-based
         }
         
         // Build CSV strings
