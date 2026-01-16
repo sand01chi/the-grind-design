@@ -1,7 +1,7 @@
 # 🏗️ ARCHITECTURE DOCUMENTATION - THE GRIND DESIGN
 
-**Version:** V30.0
-**Last Updated:** January 10, 2026
+**Version:** V30.8
+**Last Updated:** January 15, 2026
 **Purpose:** System design decisions, patterns, and architectural principles
 
 **Note:** V30.0 introduced mobile-first UI redesign with unified view-based navigation. All main views (Dashboard, Analytics, AI, Profile) now use `switchView()` pattern instead of modal overlays. View IDs must follow `{name}-view` pattern (e.g., dashboard-view, klinik-view). See HANDOVER_V30.md for complete UI redesign documentation.
@@ -165,26 +165,26 @@ APP.validation.fuzzyMatchExercise(userInput)
 
 ## 📦 V28 MODULAR FILE STRUCTURE
 
-**Complete Module Breakdown (13 files, ~12,000 lines total):**
+**Complete Module Breakdown (13 files, ~17,000 lines total):**
 
 ```
 project-root/
-├── index.html              (2,206 lines) - HTML skeleton + minimal init
+├── index.html              (3,071 lines) - HTML skeleton + V30 Mobile UI
 ├── exercises-library.js    (1,817 lines) - Exercise database
 ├── js/
-│   ├── constants.js        (455 lines)   - PRESETS, STARTER_PACK, version metadata
-│   ├── core.js            (344 lines)   - LS_SAFE, DT, APP.state, APP.core
-│   ├── validation.js      (491 lines)   - APP.validation, fuzzy matching
-│   ├── data.js            (1,218 lines)  - APP.data, CRUD operations
-│   ├── safety.js          (325 lines)   - APP.safety, backup/restore
-│   ├── stats.js           (1,665 lines)  - APP.stats, charts, analytics
-│   ├── session.js         (750 lines)   - APP.session, session management
-│   ├── cardio.js          (111 lines)   - APP.cardio, APP.timer, storage stats
-│   ├── ai-bridge.js       (1,060 lines)  - APP.aiBridge, prompt library (V28+)
-│   ├── ui.js              (1,901 lines)  - APP.ui, rendering, modals, toasts
-│   ├── debug.js           (46 lines)    - APP.debug, window.onerror
-│   ├── nav.js             (827 lines)   - APP.nav, APP.init
-│   └── cloud.js           (195 lines)   - Google Drive integration
+│   ├── constants.js        (447 lines)   - PRESETS, STARTER_PACK, version metadata
+│   ├── core.js            (414 lines)   - LS_SAFE, DT, APP.state, APP.core
+│   ├── validation.js      (725 lines)   - APP.validation, fuzzy matching
+│   ├── data.js            (1,288 lines)  - APP.data, CRUD operations
+│   ├── safety.js          (272 lines)   - APP.safety, backup/restore
+│   ├── stats.js           (6,382 lines)  - APP.stats, charts, analytics (V29+ expansion)
+│   ├── session.js         (794 lines)   - APP.session, session management
+│   ├── cardio.js          (253 lines)   - APP.cardio, APP.timer, storage stats
+│   ├── ui.js              (3,418 lines)  - APP.ui, rendering, modals, toasts (V30+ mobile)
+│   ├── ai-bridge.js       (1,758 lines)  - APP.aiBridge, prompt library (V28+)
+│   ├── debug.js           (39 lines)    - APP.debug, window.onerror
+│   ├── nav.js             (981 lines)   - APP.nav, APP.init, view switching
+│   └── cloud.js           (186 lines)   - Google Drive integration
 ├── sw.js                   - Service Worker (PWA)
 └── manifest.json           - PWA manifest
 ```
@@ -192,6 +192,8 @@ project-root/
 **Evolution:**
 - V27: 9,000+ lines (monolithic) → 2,203 lines (index.html) + 7,453 lines (12 modules)
 - V28: Added ai-bridge.js (1,060 lines) + enhanced ui.js (+850 lines) = ~12,000 lines total (13 modules)
+- V29: Stats.js expansion (analytics explosion) = ~14,000 lines total
+- V30: Mobile UI redesign (index.html +868 lines, ui.js +1,517 lines) = ~17,000 lines total
 
 ---
 
@@ -215,11 +217,11 @@ project-root/
 <script src="js/session.js"></script>
 <script src="js/cardio.js"></script>
 
-<!-- 4. AI integration (depends on core, validation, constants) -->
-<script src="js/ai-bridge.js"></script>
-
-<!-- 5. UI layer (depends on all above) -->
+<!-- 4. UI layer (depends on business logic) -->
 <script src="js/ui.js"></script>
+
+<!-- 5. AI integration (depends on ui.js for prompt manager UI) -->
+<script src="js/ai-bridge.js"></script>
 
 <!-- 6. Error handling (must load before nav) -->
 <script src="js/debug.js"></script>
@@ -367,10 +369,10 @@ if (window.APP) {
 - `APP.aiBridge.getPrompt()` - Smart placeholder replacement engine
 - `APP.aiBridge.getPromptContext()` - Workout data context generator
 
-**Dependencies:** core.js, constants.js, validation.js, exercises-library.js
-**Used by:** ui.js (prompt manager UI)
+**Dependencies:** core.js, constants.js, validation.js, exercises-library.js, ui.js (for prompt manager UI)
+**Used by:** Navigation and AI Command Center features
 
-**Critical Note:** Must load AFTER constants.js (uses APP.version) and validation.js (uses fuzzyMatchExercise).
+**Critical Note:** Must load AFTER ui.js (depends on ui.js for prompt manager rendering). Uses APP.version from constants.js and fuzzyMatchExercise from validation.js.
 
 ---
 
@@ -383,10 +385,10 @@ if (window.APP) {
 - Toasts: `showToast()`
 - All UI rendering logic
 
-**Dependencies:** ALL previous modules (uses everything, including ai-bridge)
-**Used by:** ALL modules (UI entry points)
+**Dependencies:** ALL business logic modules (data, validation, stats, session, etc.)
+**Used by:** ALL modules (UI entry points), ai-bridge (for prompt manager UI)
 
-**Critical Note:** Must load AFTER all business logic modules including ai-bridge.
+**Critical Note:** Must load AFTER all business logic modules, BEFORE ai-bridge (which depends on ui.js for prompt manager rendering).
 
 ---
 
@@ -660,7 +662,7 @@ const { builtIn, custom } = APP.aiBridge.library.list();
 **Output Format:**
 ```
 **App Version:**
-- Version: 28.0
+- Version: 30.8
 - Architecture: IIFE Modular
 - Modules: 13
 
@@ -1885,10 +1887,297 @@ const userWeight = this._getUserWeight() || 70;
 
 ---
 
-**V29.0 Architecture Complete**
-**Total System Lines:** ~10,000 lines (index.html + all modules)
-**V29 Contribution:** ~1,638 lines (+16% codebase growth)
-**Maintainability:** Modular, well-documented, tested
+## 🎨 V30.0-V30.8 MOBILE-FIRST UI ARCHITECTURE
+
+### Overview
+V30.0 represents a complete UI/UX overhaul with mobile-first design principles, replacing modal-based navigation with view-based switching and introducing a pure black theme.
+
+### Major Architectural Changes
+
+#### **1. View-Based Navigation System**
+
+**Problem Solved:**
+- Pre-V30: Main sections (Analytics, AI) opened in modals (poor mobile UX)
+- Post-V30: Full-screen views with bottom navigation (native app feel)
+
+**Implementation:**
+```javascript
+// APP.nav.switchView(viewName) - Core navigation function
+APP.nav.switchView = function(viewName) {
+  // 1. Hide all views
+  document.querySelectorAll('[data-view]').forEach(v => {
+    v.classList.add('hidden');
+  });
+  
+  // 2. Show target view
+  const targetView = document.querySelector(`[data-view="${viewName}"]`);
+  if (targetView) targetView.classList.remove('hidden');
+  
+  // 3. Update bottom nav active state
+  document.querySelectorAll('[data-nav]').forEach(n => {
+    n.classList.remove('nav-item-active');
+  });
+  const activeNav = document.querySelector(`[data-nav="${viewName}"]`);
+  if (activeNav) activeNav.classList.add('nav-item-active');
+};
+```
+
+**View Naming Convention:**
+- HTML: `<div data-view="dashboard">` (no `-view` suffix in HTML)
+- JavaScript: `switchView("dashboard")` (matches data-view attribute)
+- Bottom Nav: `<button data-nav="dashboard">` (must match view name)
+
+**Critical Views:**
+- `dashboard` - Workout program and session list
+- `analytics-view` - Charts and clinical insights
+- `ai-command-center` - AI prompt generation
+- `profile-view` - User settings
+
+#### **2. Pure Black Theme System**
+
+**Design Tokens (CSS Variables):**
+```css
+:root {
+  --glass-bg: rgba(28, 28, 30, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --primary-color: #4FD1C5; /* Teal accent */
+  --primary-glow: rgba(79, 209, 197, 0.2);
+}
+
+body {
+  background: #000000; /* Pure black */
+  color: #ffffff;
+}
+```
+
+**Glass Morphism Utilities:**
+```css
+.glass-panel { /* Main containers */
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card { /* Interactive cards */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-input { /* Form inputs */
+  background: rgba(15, 23, 42, 0.6);
+  min-height: 44px; /* Touch target */
+}
+
+.glass-btn { /* Buttons */
+  background: rgba(255, 255, 255, 0.05);
+  min-height: 44px; /* Touch target */
+}
+```
+
+#### **3. Mobile-First Responsive Strategy**
+
+**Touch Target Compliance:**
+- All interactive elements: minimum 44px × 44px (Apple HIG)
+- Implemented via Tailwind: `py-3` (12px × 2 = 24px) + text height + padding
+
+**Breakpoints (Tailwind):**
+```
+sm: 640px   (tablet)
+md: 768px   (tablet landscape)
+lg: 1024px  (desktop)
+xl: 1280px  (large desktop)
+```
+
+**Responsive Pattern:**
+```html
+<!-- Mobile-first: Base = mobile, sm+ = larger screens -->
+<button class="px-4 py-3 text-sm sm:px-6 sm:py-4 sm:text-base">
+  <!-- 16px padding mobile, 24px tablet+ -->
+</button>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+  <!-- 1 column mobile, 2 tablet, 3 desktop -->
+</div>
+```
+
+#### **4. Bottom Navigation Architecture**
+
+**Fixed Position Strategy:**
+```css
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  backdrop-filter: blur(16px);
+  padding-bottom: env(safe-area-inset-bottom); /* iOS notch safety */
+}
+```
+
+**Active State Management:**
+```javascript
+// Automatic sync between view and nav
+.nav-item-active {
+  color: #4FD1C5; /* Teal accent */
+}
+
+.nav-item-active i {
+  filter: drop-shadow(0 0 5px rgba(79, 209, 197, 0.6)); /* Glow effect */
+}
+```
+
+#### **5. Toast Notification System (V30.5)**
+
+**Position Strategy:**
+```css
+#toast-container {
+  position: fixed;
+  bottom: 80px; /* Above bottom nav */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000; /* Above nav */
+}
+```
+
+**Line Break Support:**
+```javascript
+// V30.5: Automatic \n to <br> conversion with XSS protection
+showToast: (msg, type = "success") => {
+  const msgWithBreaks = msg.replace(/\n/g, '<br>');
+  const safeMsg = window.APP.validation.sanitizeHTMLWithTags
+    ? window.APP.validation.sanitizeHTMLWithTags(msgWithBreaks, ['br'])
+    : msgWithBreaks.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/&lt;br&gt;/g, '<br>');
+  // ... render toast
+};
+```
+
+#### **6. Analytics Tab System (V30.4)**
+
+**Color-Coded Severity:**
+```javascript
+// Teal accent for active state
+.tab-btn.active {
+  background-color: rgba(79, 209, 197, 0.15);
+  color: #4FD1C5;
+  border-color: rgba(79, 209, 197, 0.4);
+}
+
+// Status badges
+.status-optimal { color: #10B981; }    // Green
+.status-monitor { color: #EAB308; }    // Yellow
+.status-imbalance { color: #EF4444; }  // Red
+```
+
+#### **7. Bodyweight Volume System (V30.6-V30.8)**
+
+**Architecture:**
+```javascript
+// constants.js: Multiplier definitions
+const BODYWEIGHT_MULTIPLIERS = {
+  "[Bodyweight] Pull Up": 1.0,     // 100% body weight
+  "[Bodyweight] Chin Up": 1.0,
+  "[Bodyweight] Dip": 1.0,
+  "[Bodyweight] Push Up": 0.64,    // 64% body weight
+  "[Bodyweight] Inverted Row": 0.6,
+  "[Bodyweight] Pike Push Up": 0.7
+};
+
+// data.js: Volume calculation
+function calculateVolume(exercise, reps, weight) {
+  if (exercise.name.includes("[Bodyweight]")) {
+    const userWeight = APP.state.profile?.weight || 70;
+    const multiplier = BODYWEIGHT_MULTIPLIERS[exercise.name] || 1.0;
+    return userWeight * multiplier * reps;
+  }
+  return weight * reps;
+}
+
+// V30.8: Historical data migration
+function migrateHistoricalBodyweightVolumes() {
+  // Retroactively recalculate pre-V30.6 volumes
+  // Uses user weight history for accuracy
+  // Creates automatic backup before migration
+}
+```
+
+### Performance Optimizations
+
+#### **1. Lazy Loading**
+```javascript
+// Analytics rendered only when view opened
+if (activeView === 'analytics-view') {
+  APP.stats.renderAdvancedAnalytics(); // 6,382 lines - load on demand
+}
+```
+
+#### **2. View Caching**
+```javascript
+// DOM not destroyed, just hidden (faster switching)
+view.classList.add('hidden'); // Instead of view.remove()
+```
+
+#### **3. Scroll Optimization**
+```css
+/* Hide scrollbars for cleaner look */
+::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+```
+
+### Mobile UX Patterns
+
+#### **1. Pull-to-Refresh Ready**
+```javascript
+// Service worker configured for offline-first
+// All data stored locally (instant load)
+```
+
+#### **2. Native App Feel**
+```html
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+```
+
+#### **3. Safe Area Handling**
+```css
+body {
+  padding-bottom: env(safe-area-inset-bottom); /* iOS notch */
+}
+```
+
+### File Size Impact
+
+**V30.0-V30.8 Growth:**
+```
+index.html:  2,203 → 3,071 lines (+868 lines, +39%)
+ui.js:       1,901 → 3,418 lines (+1,517 lines, +80%)
+stats.js:    1,665 → 6,382 lines (+4,717 lines, +283% - analytics)
+Total:      ~12,000 → ~17,000 lines (+42% codebase growth)
+```
+
+### Browser Compatibility
+
+**Tested:**
+- ✅ Chrome 90+ (Android, iOS, Desktop)
+- ✅ Safari 14+ (iOS, macOS)
+- ✅ Firefox 88+ (Android, Desktop)
+- ✅ Edge 90+ (Desktop)
+
+**Required Features:**
+- CSS backdrop-filter (fallback: solid backgrounds)
+- CSS env() for safe areas
+- LocalStorage (5-10MB quota)
+- Service Workers (PWA)
+
+---
+
+**V30.8 Architecture Complete**
+**Total System Lines:** ~17,000 lines (index.html + all modules)
+**V30 Contribution:** ~5,000 lines (+42% codebase growth)
+**Key Achievement:** Production-ready mobile-first PWA with clinical analytics
+**Maintainability:** Modular, documented, version-synchronized
 
 ---
 

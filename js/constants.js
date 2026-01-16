@@ -8,16 +8,16 @@
   if (!window.APP) window.APP = {};
 
   window.APP.version = {
-    number: "29.5",
-    name: "CODE HEALTH AUDIT",
+    number: "30.8",
+    name: "HISTORICAL DATA MIGRATION",
     date: "January 2026",
-    previous: "29.0"
+    previous: "30.7"
   };
 
   window.APP.architecture = {
     pattern: "IIFE Modular",
-    modules: 12,
-    stack: ["Vanilla JavaScript", "Tailwind CSS", "Chart.js"],
+    modules: 13,
+    stack: ["Vanilla JavaScript", "Tailwind CSS", "Chart.js", "Day.js"],
     storage: "LocalStorage (LS_SAFE wrapper)",
     files: [
       "js/core.js",
@@ -26,8 +26,12 @@
       "js/safety.js",
       "js/stats.js",
       "js/session.js",
+      "js/cardio.js",
       "js/ui.js",
-      "js/ai-bridge.js"
+      "js/ai-bridge.js",
+      "js/debug.js",
+      "js/nav.js",
+      "js/cloud.js"
     ]
   };
 

@@ -1,7 +1,7 @@
 # 💻 CODING GUIDELINES - THE GRIND DESIGN
 
-**Version:** V27.0  
-**Last Updated:** January 1, 2026  
+**Version:** V30.8  
+**Last Updated:** January 15, 2026  
 **Purpose:** Code style, conventions, and best practices for consistency
 
 ---
@@ -159,6 +159,306 @@
      };
    })();
    ```
+
+---
+
+## 🆕 V28-V30 CRITICAL PATTERNS
+
+### **V28: AI Bridge Prompt System**
+
+**Placeholder Convention:**
+```javascript
+// ✅ CORRECT: System placeholders (auto-replaced)
+{{VERSION}}     // → APP.version.number + APP.version.name
+{{CONTEXT}}     // → Full workout context
+{{ARCHITECTURE}} // → APP.architecture.pattern
+
+// ✅ CORRECT: User-provided placeholders
+{{USER_DESCRIPTION}} // → User must provide input
+{{TOPIC}}            // → User must provide input
+```
+
+**Prompt Template Rules:**
+```javascript
+// ❌ WRONG: Mixed placeholder styles
+template: "Version: ${APP.version}"  // Don't use template literals
+
+// ✅ CORRECT: Use double curly braces
+template: "Version: {{VERSION}}"     // Consistent with system
+```
+
+---
+
+### **V29: Analytics Validation**
+
+**Clinical Threshold Constants:**
+```javascript
+// ✅ ALWAYS use constants from stats.js
+const CLINICAL_THRESHOLDS = {
+  VOLUME_SPIKE_THRESHOLD: 1.3,  // 30% increase
+  IMBALANCE_WARNING: 0.6,        // 60% ratio
+  IMBALANCE_DANGER: 0.4,         // 40% ratio
+  MIN_WEEKLY_SETS_PER_MUSCLE: 10
+};
+
+// ❌ NEVER hardcode thresholds
+if (volumeRatio < 0.6) { }  // Magic number - no scientific basis
+
+// ✅ CORRECT: Use named constants
+if (volumeRatio < CLINICAL_THRESHOLDS.IMBALANCE_WARNING) { }
+```
+
+**Bodyweight Exercise Volume (V30.6+):**
+```javascript
+// ✅ ALWAYS calculate bodyweight volume with multipliers
+const BODYWEIGHT_MULTIPLIERS = {
+  "[Bodyweight] Pull Up": 1.0,
+  "[Bodyweight] Chin Up": 1.0,
+  "[Bodyweight] Dip": 1.0,
+  "[Bodyweight] Push Up": 0.64,
+  "[Bodyweight] Inverted Row": 0.6,
+  "[Bodyweight] Pike Push Up": 0.7
+};
+
+function calculateBodyweightVolume(exercise, reps, userWeight) {
+  const multiplier = BODYWEIGHT_MULTIPLIERS[exercise.name] || 1.0;
+  return userWeight * multiplier * reps;
+}
+
+// ❌ WRONG: Don't log bodyweight exercises with 0kg
+set.weight = 0;  // Analytics will be broken
+
+// ✅ CORRECT: Always calculate effective weight
+set.weight = userWeight * multiplier;
+```
+
+---
+
+### **V30: View-Based Navigation**
+
+**switchView() Pattern:**
+```javascript
+// ✅ CORRECT: Use switchView() for main navigation
+window.APP.nav.switchView("dashboard");
+window.APP.nav.switchView("analytics-view");
+window.APP.nav.switchView("ai-command-center");
+
+// ❌ WRONG: Don't use modals for main views
+APP.ui.openModal("dashboard");  // Modals are for overlays only
+
+// View ID Convention:
+// - Main views: "dashboard", "analytics-view", "ai-command-center", "profile-view"
+// - Must have data-view="{name}" attribute in HTML
+// - Must have corresponding nav item with data-nav="{name}"
+```
+
+**Mobile-First UI Rules:**
+```javascript
+// ✅ ALWAYS use Tailwind responsive classes
+<button class="px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4">
+
+// ✅ ALWAYS provide touch targets (min 44px)
+.glass-btn { min-height: 44px; }
+
+// ❌ NEVER use fixed pixel widths on mobile
+width: 320px;  // Breaks on small screens
+
+// ✅ CORRECT: Use responsive widths
+class="w-full sm:w-auto"
+```
+
+**Toast Notification Line Breaks (V30.5):**
+```javascript
+// ✅ CORRECT: Use \n for line breaks in toasts
+APP.ui.showToast("Set saved\nVolume: 2400kg", "success");
+
+// ❌ WRONG: HTML breaks in string (XSS risk)
+APP.ui.showToast("Set saved<br>Volume: 2400kg", "success");
+
+// Note: showToast() automatically converts \n to <br> with XSS protection
+```
+
+**Color Coding Standards (V30.4):**
+```javascript
+// Analytics Severity Colors (Clinical Standard)
+const SEVERITY_COLORS = {
+  optimal: "#10B981",    // Green - Safe, healthy
+  monitor: "#EAB308",    // Yellow - Watch closely
+  imbalance: "#EF4444",  // Red - Action required
+  info: "#3B82F6"        // Blue - Informational
+};
+
+// Primary Theme Colors
+const THEME_COLORS = {
+  accent: "#4FD1C5",     // Teal - Primary actions
+  bg: "#000000",         // Pure black - Background
+  card: "#1C1C1E",       // Dark gray - Cards
+  text: "#FFFFFF",       // White - Primary text
+  subtext: "#9CA3AF"     // Gray - Secondary text
+};
+
+// ❌ NEVER hardcode colors in JavaScript
+if (status === "warning") {
+  element.style.color = "#EAB308"; // ❌ Magic color
+}
+
+// ✅ ALWAYS use named constants or Tailwind classes
+if (status === "warning") {
+  element.classList.add("text-yellow-500"); // ✅ Semantic
+}
+```
+
+---
+
+## 📐 V30 UI/UX PATTERNS
+
+### **View Navigation (V30.0+)**
+
+```javascript
+// ✅ CORRECT: Use switchView() for main navigation
+window.APP.nav.switchView("dashboard");
+window.APP.nav.switchView("analytics-view");
+window.APP.nav.switchView("ai-command-center");
+
+// ❌ WRONG: Don't use modals for main views
+APP.ui.openModal("analytics");  // Modals are for overlays only!
+
+// ✅ CORRECT: Modals for temporary overlays
+APP.ui.openModal("exercise-picker");
+APP.ui.openModal("session-editor");
+```
+
+**View Naming Convention:**
+```html
+<!-- HTML: Use data-view attribute (no -view suffix) -->
+<div data-view="dashboard" class="hidden">
+  <!-- Dashboard content -->
+</div>
+
+<!-- Bottom Nav: Must match view name -->
+<button data-nav="dashboard">
+  <i class="fa-solid fa-home"></i>
+</button>
+```
+
+**Critical Rule:**
+- `data-view` in HTML = view name
+- `switchView("viewName")` parameter must match `data-view` attribute exactly
+- Bottom nav `data-nav` must match view name
+
+---
+
+### **Responsive Design (Mobile-First)**
+
+```html
+<!-- ✅ CORRECT: Mobile-first Tailwind classes -->
+<button class="
+  px-4 py-3           <!-- Mobile: 16px h-padding, 12px v-padding -->
+  sm:px-6 sm:py-4     <!-- Tablet: 24px h-padding, 16px v-padding -->
+  text-sm sm:text-base <!-- Mobile: 14px, Tablet: 16px -->
+">
+  Action
+</button>
+
+<!-- ✅ CORRECT: Touch target compliance (min 44px) -->
+<button class="min-h-[44px] py-3">Touch Me</button>
+
+<!-- ❌ WRONG: Fixed pixel widths -->
+<button style="width: 320px;">  <!-- Breaks on small screens -->
+
+<!-- ✅ CORRECT: Responsive widths -->
+<button class="w-full sm:w-auto">
+```
+
+**Tailwind Breakpoints:**
+```
+Default: < 640px (mobile)
+sm:     >= 640px (tablet)
+md:     >= 768px (tablet landscape)
+lg:     >= 1024px (desktop)
+xl:     >= 1280px (large desktop)
+```
+
+**Grid Responsive Pattern:**
+```html
+<!-- ✅ 1 column mobile, 2 tablet, 3 desktop -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="glass-card">Card 1</div>
+  <div class="glass-card">Card 2</div>
+  <div class="glass-card">Card 3</div>
+</div>
+```
+
+---
+
+### **Glass Morphism UI (V30.0+)**
+
+```html
+<!-- ✅ CORRECT: Use predefined glass utilities -->
+<div class="glass-panel">  <!-- Main containers -->
+  <div class="glass-card">  <!-- Interactive cards -->
+    <input class="glass-input" />  <!-- Form inputs -->
+    <button class="glass-btn">Action</button>
+  </div>
+</div>
+
+<!-- ❌ WRONG: Custom glass styles (inconsistent) -->
+<div style="background: rgba(255,255,255,0.1);">
+```
+
+**Glass Utility Classes:**
+```css
+.glass-panel  /* Main containers, heavy blur */
+.glass-card   /* Cards, light blur, hover effect */
+.glass-input  /* Form inputs, min 44px height */
+.glass-btn    /* Buttons, min 44px height */
+```
+
+---
+
+### **Toast Notifications (V30.5)**
+
+```javascript
+// ✅ CORRECT: Multi-line toasts with \n
+APP.ui.showToast("Operation successful\nVolume: 2400kg\nSets: 4", "success");
+
+// ✅ CORRECT: Single line
+APP.ui.showToast("Set saved", "success");
+
+// ✅ CORRECT: Warning/error types
+APP.ui.showToast("Check form inputs", "warning");
+
+// ❌ WRONG: HTML injection (XSS risk)
+APP.ui.showToast("<b>Bold text</b>", "success");  // Will be escaped
+
+// ❌ WRONG: Manual <br> tags
+APP.ui.showToast("Line 1<br>Line 2", "success");  // Use \n instead
+```
+
+**Toast Types:**
+- `"success"` - Green border, check icon (default)
+- `"warning"` - Yellow border, exclamation icon
+- `"error"` - Red border, X icon (use sparingly)
+
+---
+
+### **Safe Area Handling (iOS)**
+
+```css
+/* ✅ CORRECT: iOS notch/home indicator safety */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+#bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ❌ WRONG: Fixed padding (cuts off on iPhone) */
+body {
+  padding-bottom: 20px;
+}
+```
 
 ---
 

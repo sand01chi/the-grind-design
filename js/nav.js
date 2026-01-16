@@ -303,6 +303,17 @@
             console.error("[INIT] Fatal error:", e);
             window.APP.debug.showFatalError("App Initialization", e);
           }
+          
+          // Auto-process sync queue on app load (V31 Phase 1)
+          if (window.APP && window.APP.cloud && window.APP.cloud.processQueue) {
+            // Run after 2 seconds to let app fully initialize
+            setTimeout(() => {
+              window.APP.cloud.processQueue().catch(err => {
+                console.error("[INIT] Queue processing error:", err);
+              });
+            }, 2000);
+          }
+          
           console.groupEnd();
           console.timeEnd("Init Duration");
           console.log("✅ Application ready");
