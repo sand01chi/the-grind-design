@@ -1226,7 +1226,7 @@
         let totalDuration = exercise.dur || 0;  // Use duration from gym_hist (for time-based exercises)
         
         // Handle duration-based vs standard exercises
-        if (metadata.isDuration || totalDuration > 0) {
+        if (metadata.isDuration) {
           // DURATION EXERCISE (e.g., Plank)
           console.log(`[SHEETS] Duration exercise: ${exerciseName}`);
           
